@@ -22,6 +22,16 @@ class MenuResource extends Resource
 
     protected static ?string $recordTitleAttribute = 'name';
 
+    public static function getNavigationGroup(): string
+    {
+        return 'Navigation';
+    }
+
+    public static function getNavigationSort(): ?int
+    {
+        return 1;
+    }
+
     public static function form(Schema $schema): Schema
     {
         return MenuForm::configure($schema);

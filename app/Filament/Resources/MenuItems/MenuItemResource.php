@@ -22,6 +22,16 @@ class MenuItemResource extends Resource
 
     protected static ?string $recordTitleAttribute = 'label_en';
 
+    public static function getNavigationGroup(): string
+    {
+        return 'Navigation';
+    }
+
+    public static function getNavigationSort(): ?int
+    {
+        return 2;
+    }
+
     public static function form(Schema $schema): Schema
     {
         return MenuItemForm::configure($schema);
