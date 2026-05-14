@@ -2,14 +2,17 @@
 
 namespace App\Filament\Resources\News\Tables;
 
+use App\Models\News;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
-use Filament\Tables\Columns\BadgeColumn;
+use Filament\Actions\Action;
+use Filament\Forms\Components\Textarea;
 use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
+use Illuminate\Support\Facades\Auth;
 
 class NewsTable
 {
@@ -45,6 +48,9 @@ class NewsTable
                 TextColumn::make('submittedBy.name')
                     ->label('Submitted By')
                     ->sortable(),
+                TextColumn::make('approvedBy.name')
+                    ->label('Approved By')
+                    ->default('—'),
                 TextColumn::make('published_at')
                     ->label('Published')
                     ->dateTime()
@@ -71,6 +77,53 @@ class NewsTable
             ])
             ->recordActions([
                 EditAction::make(),
+
+                Action::make('submit_review')
+                    ->label('Submit for Review')
+                    ->icon('heroicon-o-paper-airplane')
+                    ->color('warning')
+                    ->visible(fn (News $record) =>
+                        $record->status === 'draft' &&
+                        Auth::user()->hasAnyRole(['content_creator', 'super_admin'])
+                    )
+                    ->requiresConfirmation()
+                    ->action(fn (News $record) => $record->update([
+                        'status'       => 'review',
+                        'submitted_by' => Auth::id(),
+                    ])),
+
+                Action::make('approve')
+                    ->label('Approve & Publish')
+                    ->icon('heroicon-o-check-circle')
+                    ->color('success')
+                    ->visible(fn (News $record) =>
+                        $record->status === 'review' &&
+                        Auth::user()->hasAnyRole(['zonal_director', 'super_admin'])
+                    )
+                    ->requiresConfirmation()
+                    ->action(fn (News $record) => $record->update([
+                        'status'      => 'published',
+                        'approved_by' => Auth::id(),
+                        'published_at' => now(),
+                    ])),
+
+                Action::make('reject')
+                    ->label('Reject')
+                    ->icon('heroicon-o-x-circle')
+                    ->color('danger')
+                    ->visible(fn (News $record) =>
+                        $record->status === 'review' &&
+                        Auth::user()->hasAnyRole(['zonal_director', 'zonal_officer', 'super_admin'])
+                    )
+                    ->form([
+                        Textarea::make('rejection_reason')
+                            ->label('Rejection Reason')
+                            ->required(),
+                    ])
+                    ->action(fn (News $record, array $data) => $record->update([
+                        'status'      => 'rejected',
+                        'reviewed_by' => Auth::id(),
+                    ])),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
