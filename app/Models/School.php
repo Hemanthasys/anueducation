@@ -24,6 +24,9 @@ class School extends Model
         'lat',
         'lng',
         'medium',
+        'address_si',
+        'ownership',
+        'convenience_level',
         'is_active',
     ];
 
