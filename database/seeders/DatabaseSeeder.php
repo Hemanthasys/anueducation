@@ -17,6 +17,7 @@ class DatabaseSeeder extends Seeder
             DivisionSeeder::class,
             SuperAdminSeeder::class,
             SchoolSeeder::class,
+            SiteSettingSeeder::class,
         ]);
     }
 }
