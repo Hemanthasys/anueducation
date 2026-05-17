@@ -73,6 +73,7 @@ class ProgrammeForm
                                 FileUpload::make('flier_image')
                                     ->label('Programme Flier (A4 Print)')
                                     ->image()
+                                    ->disk('public')
                                     ->directory('programmes/fliers')
                                     ->maxSize(2048)
                                     ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp'])

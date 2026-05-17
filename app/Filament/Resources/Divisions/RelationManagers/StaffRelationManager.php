@@ -38,6 +38,7 @@ class StaffRelationManager extends RelationManager
                 FileUpload::make('photo')
                     ->label('Photo')
                     ->image()
+                    ->disk('public')
                     ->directory('division/staff')
                     ->maxSize(1024)
                     ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp'])

@@ -1,25 +1,59 @@
+{{-- Notice Ticker: continuous marquee scroll, hidden if no notices --}}
 @if($notices->count() > 0)
-<div style="background: var(--color-accent); padding: 8px 0; overflow: hidden;">
-    <div style="max-width: 1280px; margin: 0 auto; padding: 0 20px; display: flex; align-items: center; gap: 12px;">
-        <span style="background: var(--color-primary); color: white; padding: 4px 12px; border-radius: 4px; font-size: 0.8rem; font-weight: 600; white-space: nowrap; flex-shrink: 0;">
-            {{ app()->getLocale() === 'si' ? 'නිවේදන' : 'NOTICES' }}
+<div class="w-full py-2 overflow-hidden" style="background: var(--color-accent);">
+    <div class="max-w-7xl mx-auto px-4 flex items-center gap-3">
+
+        {{-- Notices label badge --}}
+        <span class="flex-shrink-0 px-3 py-1 rounded text-xs font-bold whitespace-nowrap"
+              style="background: var(--color-primary); color: white;">
+            {{ __('notices') }}
         </span>
-        <div x-data="{ current: 0, items: {{ $notices->count() }} }"
-             x-init="setInterval(() => { current = (current + 1) % items }, 4000)"
-             style="overflow: hidden; flex: 1;">
-            @foreach($notices as $index => $notice)
-                <a href="/notices"
-                   x-show="current === {{ $index }}"
-                   style="display: block; color: var(--color-primary); text-decoration: none; font-size: 0.85rem; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"
-                   @mouseenter="$dispatch('pause')"
-                   @mouseleave="$dispatch('resume')">
-                    {{ $notice->{'title_' . app()->getLocale()} }}
-                </a>
-            @endforeach
+
+        {{-- Marquee scrolling container --}}
+        <div class="flex-1 overflow-hidden">
+            <div class="marquee-track flex gap-12 whitespace-nowrap">
+
+                {{-- Notices repeated twice for seamless loop --}}
+                @foreach([1, 2] as $repeat)
+                    @foreach($notices as $notice)
+                        <a href="{{ route('notices.index') }}"
+                           class="inline-flex items-center gap-2 text-sm font-medium no-underline flex-shrink-0"
+                           style="color: var(--color-primary);">
+                            {{-- Dot separator --}}
+                            <span class="w-1.5 h-1.5 rounded-full flex-shrink-0"
+                                  style="background: var(--color-primary);"></span>
+                            {{ $notice->{'title_' . app()->getLocale()} }}
+                        </a>
+                    @endforeach
+                @endforeach
+
+            </div>
         </div>
-        <a href="/notices" style="color: var(--color-primary); font-size: 0.8rem; font-weight: 600; text-decoration: none; white-space: nowrap; flex-shrink: 0;">
-            {{ app()->getLocale() === 'si' ? 'සියල්ල බලන්න ›' : 'View All ›' }}
+
+        {{-- View all link --}}
+        <a href="{{ route('notices.index') }}"
+           class="flex-shrink-0 text-xs font-bold no-underline whitespace-nowrap"
+           style="color: var(--color-primary);">
+            {{ __('view_all') }} ›
         </a>
+
     </div>
 </div>
+
+{{-- Marquee animation styles --}}
+<style>
+    .marquee-track {
+        display: inline-flex;
+        animation: marquee-scroll 30s linear infinite;
+    }
+
+    .marquee-track:hover {
+        animation-play-state: paused;
+    }
+
+    @keyframes marquee-scroll {
+        0%   { transform: translateX(0); }
+        100% { transform: translateX(-50%); }
+    }
+</style>
 @endif

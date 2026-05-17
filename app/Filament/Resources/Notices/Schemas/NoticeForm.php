@@ -97,6 +97,7 @@ class NoticeForm
                             ->schema([
                                 FileUpload::make('file_path')
                                     ->label('Attachment (PDF)')
+                                    ->disk('public')
                                     ->directory('notices')
                                     ->acceptedFileTypes(['application/pdf'])
                                     ->maxSize(5120)

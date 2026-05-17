@@ -1,77 +1,114 @@
-<div style="background: #fff; padding: 50px 0;">
-    <div style="max-width: 1280px; margin: 0 auto; padding: 0 20px;">
-        <h2 style="color: var(--color-primary); font-size: 1.4rem; font-weight: 700; margin-bottom: 24px; padding-bottom: 10px; border-bottom: 3px solid var(--color-accent); display: flex; align-items: center; gap: 8px;">
-            <svg xmlns="http://www.w3.org/2000/svg" style="width:24px;height:24px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+{{-- Events Calendar: calendar left, upcoming events right. Stacks on mobile. --}}
+<div class="w-full py-12" style="background: #fff;">
+    <div class="max-w-7xl mx-auto px-4">
+
+        {{-- Section heading --}}
+        <h2 class="flex items-center gap-2 text-xl font-bold mb-6 pb-3 border-b-4"
+            style="color: var(--color-primary); border-color: var(--color-accent);">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
             </svg>
-            {{ app()->getLocale() === 'si' ? 'සිදුවීම් දින දර්ශනය' : 'Events Calendar' }}
+            {{ __('events_calendar') }}
         </h2>
 
-        <div style="display: grid; grid-template-columns: 400px 1fr; gap: 30px; align-items: start;">
+        {{-- Grid: stacks on mobile, side by side on desktop --}}
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
 
-            {{-- Calendar --}}
-            <div x-data="calendar()" style="border: 1px solid #e0e0e0; border-radius: 16px; overflow: hidden; box-shadow: 0 2px 12px rgba(0,0,0,0.06);">
-                <div style="background: var(--color-primary); padding: 16px 20px; display: flex; justify-content: space-between; align-items: center;">
-                    <button @click="prevMonth()" style="background: rgba(255,255,255,0.15); border: none; color: white; cursor: pointer; width: 32px; height: 32px; border-radius: 50%; font-size: 1.1rem; display: flex; align-items: center; justify-content: center;">‹</button>
-                    <span style="color: white; font-weight: 700; font-size: 1rem;" x-text="monthName + ' ' + year"></span>
-                    <button @click="nextMonth()" style="background: rgba(255,255,255,0.15); border: none; color: white; cursor: pointer; width: 32px; height: 32px; border-radius: 50%; font-size: 1.1rem; display: flex; align-items: center; justify-content: center;">›</button>
+            {{-- Calendar widget --}}
+            <div x-data="calendar()"
+                 class="rounded-2xl overflow-hidden border border-gray-100"
+                 style="box-shadow: 0 2px 12px rgba(0,0,0,0.06);">
+
+                {{-- Calendar header: month + prev/next --}}
+                <div class="flex items-center justify-between px-5 py-4"
+                     style="background: var(--color-primary);">
+                    <button @click="prevMonth()"
+                            class="w-8 h-8 rounded-full border-none cursor-pointer flex items-center justify-center text-white"
+                            style="background: rgba(255,255,255,0.15);">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+                        </svg>
+                    </button>
+                    <span class="text-white font-bold text-sm" x-text="monthName + ' ' + year"></span>
+                    <button @click="nextMonth()"
+                            class="w-8 h-8 rounded-full border-none cursor-pointer flex items-center justify-center text-white"
+                            style="background: rgba(255,255,255,0.15);">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+                        </svg>
+                    </button>
                 </div>
 
-                <div style="padding: 16px 20px;">
-                    {{-- Day headers --}}
-                    <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; margin-bottom: 8px;">
+                <div class="p-4">
+                    {{-- Day name headers --}}
+                    <div class="grid grid-cols-7 gap-1 mb-2">
                         <template x-for="day in ['Sun','Mon','Tue','Wed','Thu','Fri','Sat']">
-                            <div style="text-align: center; font-size: 11px; font-weight: 600; color: #888; padding: 4px;" x-text="day"></div>
+                            <div class="text-center text-xs font-semibold text-gray-400 py-1" x-text="day"></div>
                         </template>
                     </div>
 
-                    {{-- Days --}}
-                    <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px;">
+                    {{-- Day number grid --}}
+                    <div class="grid grid-cols-7 gap-1">
+                        {{-- Empty cells before first day --}}
                         <template x-for="blank in firstDay"><div></div></template>
+
+                        {{-- Day cells --}}
                         <template x-for="day in daysInMonth">
                             <div @click="selectDay(day)"
-                                 style="text-align: center; font-size: 13px; padding: 8px 4px; cursor: pointer; border-radius: 50%; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; margin: auto;"
-                                 :style="isToday(day) ? 'background: var(--color-primary); color: white; font-weight: 700;' : selectedDay === day ? 'background: var(--color-accent); color: var(--color-primary); font-weight: 700;' : 'color: #333;'"
+                                 class="flex items-center justify-center w-9 h-9 mx-auto rounded-full text-sm cursor-pointer transition-colors"
+                                 :style="isToday(day)
+                                     ? 'background: var(--color-primary); color: white; font-weight: 700;'
+                                     : selectedDay === day
+                                         ? 'background: var(--color-accent); color: var(--color-primary); font-weight: 700;'
+                                         : 'color: #333;'"
                                  x-text="day">
                             </div>
                         </template>
                     </div>
                 </div>
 
-                {{-- Legend --}}
-                <div style="padding: 12px 20px; border-top: 1px solid #f0f0f0; display: flex; gap: 16px;">
-                    <span style="display: flex; align-items: center; gap: 6px; font-size: 11px; color: #555;">
-                        <span style="width: 14px; height: 14px; border-radius: 50%; background: var(--color-primary); display: inline-block;"></span>
-                        {{ app()->getLocale() === 'si' ? 'අද' : 'Today' }}
+                {{-- Legend: today + event --}}
+                <div class="flex gap-4 px-5 py-3 border-t border-gray-100">
+                    <span class="flex items-center gap-1.5 text-xs text-gray-500">
+                        <span class="w-3.5 h-3.5 rounded-full flex-shrink-0" style="background: var(--color-primary);"></span>
+                        {{ __('today') }}
                     </span>
-                    <span style="display: flex; align-items: center; gap: 6px; font-size: 11px; color: #555;">
-                        <span style="width: 14px; height: 14px; border-radius: 50%; background: var(--color-accent); display: inline-block;"></span>
-                        {{ app()->getLocale() === 'si' ? 'සිදුවීම' : 'Event' }}
+                    <span class="flex items-center gap-1.5 text-xs text-gray-500">
+                        <span class="w-3.5 h-3.5 rounded-full flex-shrink-0" style="background: var(--color-accent);"></span>
+                        {{ __('event') }}
                     </span>
                 </div>
             </div>
 
-            {{-- Upcoming Events --}}
+            {{-- Upcoming events panel --}}
             <div>
-                <h3 style="font-size: 1.1rem; font-weight: 700; color: var(--color-primary); margin-bottom: 16px; display: flex; align-items: center; gap: 6px;">
-                    <svg xmlns="http://www.w3.org/2000/svg" style="width:20px;height:20px;color:var(--color-accent);" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <h3 class="flex items-center gap-2 text-base font-bold mb-4"
+                    style="color: var(--color-primary);">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" style="color: var(--color-accent);"
+                         fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
-                    {{ app()->getLocale() === 'si' ? 'ඉදිරි සිදුවීම්' : 'Upcoming Events' }}
+                    {{ __('upcoming_events') }}
                 </h3>
-                <div style="padding: 30px; border: 1.5px dashed #ddd; border-radius: 12px; text-align: center; color: #aaa;">
-                    <svg xmlns="http://www.w3.org/2000/svg" style="width:48px;height:48px;margin:0 auto 12px;display:block;color:#ddd;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+
+                {{-- Empty state: replace with real events when available --}}
+                <div class="text-center py-8 rounded-xl border-2 border-dashed border-gray-200 text-gray-400">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-12 h-12 mx-auto mb-3 text-gray-300"
+                         fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                              d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                     </svg>
-                    {{ app()->getLocale() === 'si' ? 'ඉදිරි සිදුවීම් නොමැත' : 'No upcoming events. Events will appear here when added.' }}
+                    <p class="text-sm">{{ __('no_upcoming_events') }}</p>
                 </div>
             </div>
+
         </div>
     </div>
 </div>
 
 @push('scripts')
 <script>
+{{-- Alpine.js calendar component --}}
 function calendar() {
     return {
         month: new Date().getMonth(),

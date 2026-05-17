@@ -19,6 +19,7 @@ class SliderForm
                     ->schema([
                         FileUpload::make('image')
                             ->image()
+                            ->disk('public')
                             ->directory('sliders')
                             ->required()
                             ->maxSize(2048)

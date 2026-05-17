@@ -35,6 +35,7 @@ class DownloadForm
                         FileUpload::make('file_path')
                             ->label('File')
                             ->required()
+                            ->disk('public')
                             ->directory('downloads')
                             ->acceptedFileTypes([
                                 'application/pdf',

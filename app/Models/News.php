@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Str;
 
 class News extends Model
 {
@@ -23,6 +24,13 @@ class News extends Model
     protected $casts = [
         'published_at' => 'datetime',
     ];
+
+    protected static function booted(): void
+    {
+        static::creating(function ($news) {
+            $news->slug = Str::slug($news->title_en) . '-' . uniqid();
+        });
+    }
 
     public function submittedBy()
     {

@@ -94,12 +94,20 @@ class NewsForm
                                         'zonal_officer',
                                     ])),
                             ]),
+
+                        // ADD THIS:
+                        TextInput::make('slug')
+                            ->label('Slug (auto-generated)')
+                            ->disabled()
+                            ->visibleOn('edit')
+                            ->columnSpanFull(),
                     ]),
 
                 Section::make('Featured Image')
                     ->schema([
                         FileUpload::make('image')
                             ->image()
+                            ->disk('public')
                             ->directory('news')
                             ->maxSize(2048)
                             ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp'])

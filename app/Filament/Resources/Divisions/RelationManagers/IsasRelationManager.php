@@ -41,6 +41,7 @@ class IsasRelationManager extends RelationManager
                 FileUpload::make('photo')
                     ->label('Photo')
                     ->image()
+                    ->disk('public')
                     ->directory('division/isas')
                     ->maxSize(1024)
                     ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp'])

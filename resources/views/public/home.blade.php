@@ -4,21 +4,12 @@
 {{ app()->getLocale() === 'si' ? 'කලාප අධ්‍යාපන කාර්යාලය, අනුරාධපුර' : 'Zonal Education Office Anuradhapura' }}
 @endsection
 
-@section('content')
-    @include('components.public.slider', ['sliders' => $sliders])
-    @include('components.public.notice-ticker', ['notices' => $notices])
-    @include('components.public.statistics')
-    @include('components.public.programmes-slider', ['programmes' => $programmes])
-    @include('components.public.map-news', ['news' => $news])
-    @include('components.public.events-calendar')
-    @include('components.public.quick-links')
-@endsection
 
 @section('content')
 
     {{-- Hero Slider --}}
     @include('components.public.slider', ['sliders' => $sliders])
-
+    
     {{-- Notice Ticker --}}
     @include('components.public.notice-ticker', ['notices' => $notices])
 
