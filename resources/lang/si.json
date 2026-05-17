@@ -71,6 +71,31 @@
      "male": "පු",
     "female": "ගැ",
     "total": "එකතුව",
-    "not_available": "N/A"
+    "not_available": "N/A",
+
+    "school_profile": "පාසල් පැතිකඩ",
+    "back_to_directory": "නාමාවලියට ආපසු",
+    "contact_location": "සම්බන්ධතා හා පිහිටීම",
+    "student_statistics": "සිසු සංඛ්‍යාලේඛන",
+    "academic_results": "අධ්‍යාපනික ප්‍රතිඵල",
+    "ongoing_projects": "පවත්නා ව්‍යාපෘති",
+    "achievements": "ගුණාත්මක කවය හා සම්මාන",
+    "school_news": "පාසල් පුවත්",
+    "get_directions": "මාර්ග ලබා ගන්න",
+    "grade5_results": "5 ශ්‍රේණිය",
+    "ol_results": "සා/පෙළ ප්‍රතිඵල",
+    "al_results": "උ/පෙළ ප්‍රතිඵල",
+    "term_results": "වාර පරීක්ෂණ",
+    "view_results": "ප්‍රතිඵල බලන්න",
+    "phase2_note": "2 වන අදියරේදී ලබා ගත හැක",
+    "principal": "විදුහල්පති",
+    "established": "ස්ථාපිත",
+    "class_span": "පන්ති පරාසය",
+    "convenience": "පහසුකම් මට්ටම",
+    "grade": "ශ්‍රේණිය",
+    "divisional_secretariat": "කොට්ඨාස ලේකම්",
+    "gn_division": "ග්‍රාම නිලධාරී කොට්ඨාසය",
+    "no_school_news": "මෙම පාසලේ පුවත් නොමැත.",
+    "data_updated_annually": "විදුහල්පතිවරයා විසින් වාර්ෂිකව යාවත්කාලීන කරනු ලැබේ"
 
 }

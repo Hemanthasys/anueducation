@@ -38,4 +38,19 @@ class SchoolController extends Controller
 
         return view('public.schools.index', compact('schools', 'divisions'));
     }
+
+    public function show($census_no)
+    {
+        // Find school by census number
+        $school = School::where('census_no', $census_no)
+            ->where('is_active', true)
+            ->with(['division', 'principal'])
+            ->firstOrFail();
+
+        
+        // School-specific news not available yet (Phase 2)
+        $news = collect();
+
+        return view('public.schools.show', compact('school', 'news'));
+    }
 }

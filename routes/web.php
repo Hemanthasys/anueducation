@@ -19,4 +19,5 @@ Route::group([
     Route::get('notices/{slug}', [NoticeController::class, 'show'])->name('notices.show');
     Route::get('programmes', [ProgrammeController::class, 'index'])->name('programmes.index');
     Route::get('schools', [SchoolController::class, 'index'])->name('schools.index');
+    Route::get('schools/{census_no}', [SchoolController::class, 'show'])->name('schools.show');
 });

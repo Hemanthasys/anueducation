@@ -72,5 +72,30 @@
     "male": "M",
     "female": "F",
     "total": "Total",
-    "not_available": "N/A"
-}
+    "not_available": "N/A",
+
+    "school_profile": "School Profile",
+    "back_to_directory": "Back to Directory",
+    "contact_location": "Contact & Location",
+    "student_statistics": "Student Statistics",
+    "academic_results": "Academic Results",
+    "ongoing_projects": "Ongoing Projects",
+    "achievements": "Quality Circle & Achievements",
+    "school_news": "School News",
+    "get_directions": "Get Directions",
+    "grade5_results": "Grade 5",
+    "ol_results": "O/L Results",
+    "al_results": "A/L Results",
+    "term_results": "Term Tests",
+    "view_results": "View Results",
+    "phase2_note": "Available in Phase 2",
+    "principal": "Principal",
+    "established": "Established",
+    "class_span": "Class Span",
+    "convenience": "Convenience Level",
+    "grade": "Grade",
+    "divisional_secretariat": "Div. Secretariat",
+    "gn_division": "GN Division",
+    "no_school_news": "No news from this school yet.",
+    "data_updated_annually": "Data updated by principal annually"
+    }
