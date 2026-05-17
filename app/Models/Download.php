@@ -10,6 +10,7 @@ class Download extends Model
         'title_si',
         'title_en',
         'file_path',
+        'drive_url',
         'category',
         'year',
         'download_count',

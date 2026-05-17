@@ -96,6 +96,25 @@
     "divisional_secretariat": "කොට්ඨාස ලේකම්",
     "gn_division": "ග්‍රාම නිලධාරී කොට්ඨාසය",
     "no_school_news": "මෙම පාසලේ පුවත් නොමැත.",
-    "data_updated_annually": "විදුහල්පතිවරයා විසින් වාර්ෂිකව යාවත්කාලීන කරනු ලැබේ"
+    "data_updated_annually": "විදුහල්පතිවරයා විසින් වාර්ෂිකව යාවත්කාලීන කරනු ලැබේ",
+
+    "downloads_page": "බාගැනීම්",
+    "all_documents": "සියලු ලේඛන",
+    "all_years": "සියලු වර්ෂ",
+    "search_documents": "ලේඛන සොයන්න...",
+    "file_size": "ප්‍රමාණය",
+    "download_count": "බාගැනීම්",
+    "preview_download": "පෙරදර්ශනය හා බාගැනීම",
+    "no_downloads_found": "ලේඛන හමු නොවිණි.",
+    "forms": "පෝරම",
+    "templates": "ආකෘති",
+    "reports": "වාර්තා",
+    "guidelines": "මාර්ගෝපදේශ",
+    "exam_papers": "විභාග ප්‍රශ්න",
+    "answer_sheets": "පිළිතුරු පත්‍ර",
+    "general_forms": "සාමාන්‍ය පෝරම",
+    "other": "වෙනත්",
+    "preview_not_available": "මෙම ගොනු වර්ගය සඳහා පෙරදර්ශනය නොමැත.",
+    "click_to_download": "බාගන්න."
 
 }

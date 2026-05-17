@@ -97,5 +97,24 @@
     "divisional_secretariat": "Div. Secretariat",
     "gn_division": "GN Division",
     "no_school_news": "No news from this school yet.",
-    "data_updated_annually": "Data updated by principal annually"
+    "data_updated_annually": "Data updated by principal annually",
+
+    "downloads_page": "Downloads",
+    "all_documents": "All Documents",
+    "all_years": "All Years",
+    "search_documents": "Search documents...",
+    "file_size": "Size",
+    "download_count": "Downloads",
+    "preview_download": "Preview & Download",
+    "no_downloads_found": "No documents found.",
+    "forms": "Forms",
+    "templates": "Templates",
+    "reports": "Reports",
+    "guidelines": "Guidelines",
+    "exam_papers": "Exam Papers",
+    "answer_sheets": "Answer Sheets",
+    "general_forms": "General Forms",
+    "other": "Other",
+    "preview_not_available": "Preview not available for this file type.",
+    "click_to_download": "Click to download directly."
     }

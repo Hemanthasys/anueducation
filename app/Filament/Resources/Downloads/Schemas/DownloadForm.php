@@ -31,22 +31,41 @@ class DownloadForm
                     ]),
 
                 Section::make('File')
-                    ->schema([
-                        FileUpload::make('file_path')
-                            ->label('File')
-                            ->required()
-                            ->disk('public')
-                            ->directory('downloads')
-                            ->acceptedFileTypes([
-                                'application/pdf',
-                                'application/msword',
-                                'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-                                'application/vnd.ms-excel',
-                                'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-                            ])
-                            ->maxSize(10240)
-                            ->helperText('Accepted: PDF, Word, Excel. Max 10MB.'),
-                    ]),
+                ->schema([
+                    \Filament\Forms\Components\Radio::make('file_source')
+                        ->label('File Source')
+                        ->options([
+                            'upload'      => 'Upload File',
+                            'google_drive' => 'Google Drive Link',
+                        ])
+                        ->default('upload')
+                        ->live()
+                        ->columnSpanFull(),
+
+                    FileUpload::make('file_path')
+                        ->label('Upload File')
+                        ->disk('public')
+                        ->directory('downloads')
+                        ->acceptedFileTypes([
+                            'application/pdf',
+                            'application/msword',
+                            'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                            'application/vnd.ms-excel',
+                            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                        ])
+                        ->maxSize(10240)
+                        ->helperText('Accepted: PDF, Word, Excel. Max 10MB.')
+                        ->visible(fn ($get) => $get('file_source') === 'upload' || !$get('file_source'))
+                        ->columnSpanFull(),
+
+                    \Filament\Forms\Components\TextInput::make('drive_url')
+                        ->label('Google Drive Link')
+                        ->url()
+                        ->placeholder('https://drive.google.com/file/d/xxxxxxxx/view')
+                        ->helperText('Paste the Google Drive shareable link. Make sure sharing is set to "Anyone with the link".')
+                        ->visible(fn ($get) => $get('file_source') === 'google_drive')
+                        ->columnSpanFull(),
+                ]),
 
                 Section::make('Settings')
                     ->schema([
