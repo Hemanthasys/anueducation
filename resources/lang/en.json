@@ -139,5 +139,15 @@
     "medium_breakdown": "Medium Breakdown",
     "division_staff": "Division Staff",
     "no_staff": "No staff added yet.",
-    "no_division_data": "No data available yet."
+    "no_division_data": "No data available yet.",
+
+    "sections_page": "Office Sections",
+    "section_profile": "Section Profile",
+    "back_to_sections": "Back to Sections",
+    "head_officer": "Head Officer",
+    "responsibilities": "Responsibilities",
+    "section_staff": "Section Staff",
+    "section_downloads": "Section Downloads",
+    "no_section_staff": "No staff added yet.",
+    "no_section_downloads": "No downloads available."
     }

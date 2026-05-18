@@ -9,6 +9,7 @@ use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
+use App\Models\OfficeSection;
 
 class DownloadForm
 {
@@ -97,6 +98,13 @@ class DownloadForm
                                     ->default(now()->year)
                                     ->searchable(),
 
+                                Select::make('office_section_id')
+                                    ->label('Office Section')
+                                    ->options(OfficeSection::where('is_active', true)->orderBy('order')->pluck('name_en', 'id'))
+                                    ->searchable()
+                                    ->nullable()
+                                    ->placeholder('Select section...'),
+                                    
                                 Toggle::make('is_active')
                                     ->label('Active')
                                     ->default(true),

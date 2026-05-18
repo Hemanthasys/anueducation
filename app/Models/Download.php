@@ -13,6 +13,7 @@ class Download extends Model
         'drive_url',
         'category',
         'year',
+        'office_section_id',
         'download_count',
         'is_active',
     ];

@@ -138,7 +138,17 @@
     "medium_breakdown": "මාධ්‍ය විස්තරය",
     "division_staff": "කොට්ඨාස කාර්යමණ්ඩලය",
     "no_staff": "කාර්යමණ්ඩල තොරතුරු නොමැත.",
-    "no_division_data": "දත්ත නොමැත."
+    "no_division_data": "දත්ත නොමැත.",
+
+    "sections_page": "කාර්යාල අංශ",
+    "section_profile": "අංශ පැතිකඩ",
+    "back_to_sections": "අංශ වෙත ආපසු",
+    "head_officer": "අංශ ප්‍රධානී",
+    "responsibilities": "වගකීම්",
+    "section_staff": "අංශ කාර්යමණ්ඩලය",
+    "section_downloads": "අංශ ලේඛන",
+    "no_section_staff": "කාර්යමණ්ඩල තොරතුරු නොමැත.",
+    "no_section_downloads": "ලේඛන නොමැත."
 
 
 }
