@@ -8,6 +8,7 @@ use App\Models\Notice;
 use App\Models\Programme;
 use App\Models\Slider;
 use App\Models\SiteSetting;
+use App\Services\StatisticsService;
 
 class HomeController extends Controller
 {
@@ -39,12 +40,16 @@ class HomeController extends Controller
 
         $theme = SiteSetting::get('theme', 'royal_blue_gold');
 
+        // Get latest snapshot for student/teacher counts
+        $snapshot = app(StatisticsService::class)->getCurrentSnapshot();
+
         return view('public.home', compact(
             'sliders',
             'notices',
             'news',
             'programmes',
-            'theme'
+            'theme',
+            'snapshot'
         ));
     }
 }

@@ -11,10 +11,20 @@ use Illuminate\Support\Facades\Mail;
 
 class ContactController extends Controller
 {
-    public function index()
+public function index()
     {
+        $siteSettings = [
+            'address_en'   => \App\Models\SiteSetting::get('address_en', ''),
+            'address_si'   => \App\Models\SiteSetting::get('address_si', ''),
+            'phone'        => \App\Models\SiteSetting::get('phone', ''),
+            'email'        => \App\Models\SiteSetting::get('email', ''),
+            'lat'          => \App\Models\SiteSetting::get('lat', ''),
+            'lng'          => \App\Models\SiteSetting::get('lng', ''),
+        ];
+
         return view('public.contact.index', [
             'recaptchaSiteKey' => config('services.recaptcha.site_key'),
+            'siteSettings'     => $siteSettings,
         ]);
     }
 

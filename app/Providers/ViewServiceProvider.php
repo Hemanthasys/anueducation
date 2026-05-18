@@ -4,23 +4,21 @@ namespace App\Providers;
 
 use App\Helpers\ThemeHelper;
 use App\Models\SiteSetting;
+use App\Models\VisitorCount;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
-use App\Models\VisitorCount;
 
 class ViewServiceProvider extends ServiceProvider
 {
     public function boot(): void
     {
-        View::composer('*', function ($view) {
+        View::composer('layouts.public', function ($view) {
             $locale     = app()->getLocale();
             $siteNameEn = SiteSetting::get('site_name_en', 'Zonal Education Office Anuradhapura');
             $siteNameSi = SiteSetting::get('site_name_si', 'කලාපීය අධ්‍යාපන කාර්යාලය, අනුරාධපුර');
             $siteName   = $locale === 'si' ? $siteNameSi : $siteNameEn;
 
-
-
-            // Build full siteSettings array for use in all views
+            // Build full siteSettings array
             $siteSettings = [
                 'site_name_en' => $siteNameEn,
                 'site_name_si' => $siteNameSi,
@@ -39,7 +37,6 @@ class ViewServiceProvider extends ServiceProvider
             $visitorToday = VisitorCount::where('date', now()->toDateString())->sum('count');
             $visitorWeek  = VisitorCount::where('date', '>=', now()->subWeek()->toDateString())->sum('count');
             $visitorTotal = VisitorCount::sum('count');
-
 
             $view->with([
                 'theme'        => ThemeHelper::getTheme(),
