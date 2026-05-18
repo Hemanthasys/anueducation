@@ -6,6 +6,7 @@ use App\Helpers\ThemeHelper;
 use App\Models\SiteSetting;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
+use App\Models\VisitorCount;
 
 class ViewServiceProvider extends ServiceProvider
 {
@@ -16,6 +17,8 @@ class ViewServiceProvider extends ServiceProvider
             $siteNameEn = SiteSetting::get('site_name_en', 'Zonal Education Office Anuradhapura');
             $siteNameSi = SiteSetting::get('site_name_si', 'කලාපීය අධ්‍යාපන කාර්යාලය, අනුරාධපුර');
             $siteName   = $locale === 'si' ? $siteNameSi : $siteNameEn;
+
+
 
             // Build full siteSettings array for use in all views
             $siteSettings = [
@@ -32,6 +35,12 @@ class ViewServiceProvider extends ServiceProvider
                 'lng'          => SiteSetting::get('lng', ''),
             ];
 
+            // Visitor counts for footer
+            $visitorToday = VisitorCount::where('date', now()->toDateString())->sum('count');
+            $visitorWeek  = VisitorCount::where('date', '>=', now()->subWeek()->toDateString())->sum('count');
+            $visitorTotal = VisitorCount::sum('count');
+
+
             $view->with([
                 'theme'        => ThemeHelper::getTheme(),
                 'siteNameEn'   => $siteNameEn,
@@ -43,6 +52,9 @@ class ViewServiceProvider extends ServiceProvider
                 'ytUrl'        => $siteSettings['youtube_url'],
                 'waNo'         => $siteSettings['whatsapp_no'],
                 'siteSettings' => $siteSettings,
+                'visitorToday' => $visitorToday,
+                'visitorWeek'  => $visitorWeek,
+                'visitorTotal' => $visitorTotal,
             ]);
         });
     }

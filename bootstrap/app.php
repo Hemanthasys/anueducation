@@ -15,6 +15,8 @@ return Application::configure(basePath: dirname(__DIR__))
         \Mcamara\LaravelLocalization\Middleware\LocaleSessionRedirect::class,
         \Mcamara\LaravelLocalization\Middleware\LaravelLocalizationRedirectFilter::class,
         \Mcamara\LaravelLocalization\Middleware\LaravelLocalizationViewPath::class,
+        \App\Http\Middleware\TrackVisitor::class,
+        
     ]);
 
     $middleware->alias([
