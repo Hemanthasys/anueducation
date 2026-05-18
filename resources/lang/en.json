@@ -129,5 +129,15 @@
     "contact_success": "Your message has been sent successfully. We will get back to you soon.",
     "contact_error": "Something went wrong. Please try again.",
     "office_hours": "Office Hours",
-    "office_hours_value": "Monday – Friday: 8:30 AM – 4:15 PM"
+    "office_hours_value": "Monday – Friday: 8:30 AM – 4:15 PM",
+
+    "divisions_page": "Divisions",
+    "division_profile": "Division Profile",
+    "back_to_divisions": "Back to Divisions",
+    "isa_count": "ISAs",
+    "type_breakdown": "School Types",
+    "medium_breakdown": "Medium Breakdown",
+    "division_staff": "Division Staff",
+    "no_staff": "No staff added yet.",
+    "no_division_data": "No data available yet."
     }

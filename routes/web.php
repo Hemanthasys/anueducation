@@ -9,6 +9,7 @@ use App\Http\Controllers\Public\ProgrammeController;
 use App\Http\Controllers\Public\SchoolController;
 use App\Http\Controllers\Public\DownloadController;
 use App\Http\Controllers\Public\ContactController;
+use App\Http\Controllers\Public\DivisionController;
 
 Route::group([
     'prefix'     => LaravelLocalization::setLocale(),
@@ -25,6 +26,8 @@ Route::group([
     Route::get('downloads', [DownloadController::class, 'index'])->name('downloads.index');
     Route::get('contact', [ContactController::class, 'index'])->name('contact.index');
     Route::post('contact', [ContactController::class, 'submit'])->name('contact.submit');
+    Route::get('divisions', [DivisionController::class, 'index'])->name('divisions.index');
+    Route::get('divisions/{id}', [DivisionController::class, 'show'])->name('divisions.show');
 });
 // Download counter increment
 Route::post('/downloads/{id}/increment', function ($id) {

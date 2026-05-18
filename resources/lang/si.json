@@ -117,16 +117,28 @@
     "preview_not_available": "මෙම ගොනු වර්ගය සඳහා පෙරදර්ශනය නොමැත.",
     "click_to_download": "බාගන්න.",
 
-    "contact_page": "Contact Us",
-    "contact_details": "Contact Details",
-    "contact_form": "Send a Message",
-    "your_name": "Your Name",
-    "your_email": "Your Email",
-    "your_subject": "Subject",
-    "your_message": "Message",
-    "send_message": "Send Message",
-    "contact_success": "Your message has been sent successfully. We will get back to you soon.",
-    "contact_error": "Something went wrong. Please try again.",
-    "office_hours": "Office Hours",
-    "office_hours_value": "Monday – Friday: 8:30 AM – 4:15 PM"
+    "contact_page": "සම්බන්ධ වන්න",
+    "contact_details": "සම්බන්ධකරගැනීමේ විස්තර",
+    "contact_form": "සම්බන්ධකර ගැනීමේ ෆෝරමය",
+    "your_name": "ඔබේ නම",
+    "your_email": "ඔබේ විද්‍යුත් තැපැල්",
+    "your_subject": "විෂයය",
+    "your_message": "පණිවිඩය",
+    "send_message": "පණිවිඩය යවන්න",
+    "contact_success": "ඔබේ පණිවිඩය සාර්ථකව යොමු කොට ඇත.",
+    "contact_error": "දෝශයක් පැන නැගී ඇත. නැවත උත්සාහ කරන්න.",
+    "office_hours": "කාර්යාලයීය වේලාවන්",
+    "office_hours_value": "සඳුදා – සිකුරාදා: 8:30 AM – 4:15 PM",
+
+    "divisions_page": "කොට්ඨාස",
+    "division_profile": "කොට්ඨාස පැතිකඩ",
+    "back_to_divisions": "කොට්ඨාස වෙත ආපසු",
+    "isa_count": "ISA",
+    "type_breakdown": "පාසල් වර්ග",
+    "medium_breakdown": "මාධ්‍ය විස්තරය",
+    "division_staff": "කොට්ඨාස කාර්යමණ්ඩලය",
+    "no_staff": "කාර්යමණ්ඩල තොරතුරු නොමැත.",
+    "no_division_data": "දත්ත නොමැත."
+
+
 }
