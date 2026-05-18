@@ -1,0 +1,95 @@
+<?php
+
+namespace App\Filament\Resources\ContactMessages\Pages;
+
+use App\Filament\Resources\ContactMessages\ContactMessageResource;
+use App\Models\User;
+use App\Notifications\ContactMessageAssigned;
+use Filament\Actions\Action;
+use Filament\Forms\Components\Select;
+use Filament\Notifications\Notification;
+use Filament\Resources\Pages\ViewRecord;
+use Filament\Support\Icons\Heroicon;
+
+class ViewContactMessage extends ViewRecord
+{
+    protected static string $resource = ContactMessageResource::class;
+
+    // Mark as read when opened
+    public function mount(int|string $record): void
+    {
+        parent::mount($record);
+
+        if ($this->record->status === 'new') {
+            $this->record->update([
+                'status'  => 'read',
+                'read_at' => now(),
+            ]);
+        }
+    }
+
+    protected function getHeaderActions(): array
+    {
+        return [
+
+            // Reply via email
+            Action::make('reply')
+                ->label('Reply via Email')
+                ->icon(Heroicon::OutlinedPaperAirplane)
+                ->color('primary')
+                ->url(fn () => 'mailto:' . $this->record->email . '?subject=Re: ' . $this->record->subject)
+                ->openUrlInNewTab(),
+
+            // Assign to user
+            Action::make('assign')
+                ->label('Assign to User')
+                ->icon(Heroicon::OutlinedUserPlus)
+                ->color('warning')
+                ->form([
+                    Select::make('user_id')
+                        ->label('Assign To')
+                        ->options(
+                            User::role(['zonal_officer', 'zonal_director'])
+                                ->get()
+                                ->pluck('name', 'id')
+                        )
+                        ->required()
+                        ->searchable(),
+                ])
+                ->action(function (array $data) {
+                    $user = User::find($data['user_id']);
+
+                    $this->record->update([
+                        'assigned_to' => $user->id,
+                        'assigned_at' => now(),
+                        'status'      => 'assigned',
+                    ]);
+
+                    // Notify assigned user by email + database
+                    $user->notify(new ContactMessageAssigned($this->record));
+
+                    Notification::make()
+                        ->title('Message assigned to ' . $user->name)
+                        ->success()
+                        ->send();
+                }),
+
+            // Mark as replied
+            Action::make('mark_replied')
+                ->label('Mark as Replied')
+                ->icon(Heroicon::OutlinedCheckCircle)
+                ->color('success')
+                ->requiresConfirmation()
+                ->visible(fn () => $this->record->status !== 'replied')
+                ->action(function () {
+                    $this->record->update(['status' => 'replied']);
+
+                    Notification::make()
+                        ->title('Message marked as replied')
+                        ->success()
+                        ->send();
+                }),
+
+        ];
+    }
+}

@@ -116,5 +116,18 @@
     "general_forms": "General Forms",
     "other": "Other",
     "preview_not_available": "Preview not available for this file type.",
-    "click_to_download": "Click to download directly."
+    "click_to_download": "Click to download directly.",
+
+    "contact_page": "Contact Us",
+    "contact_details": "Contact Details",
+    "contact_form": "Send a Message",
+    "your_name": "Your Name",
+    "your_email": "Your Email",
+    "your_subject": "Subject",
+    "your_message": "Message",
+    "send_message": "Send Message",
+    "contact_success": "Your message has been sent successfully. We will get back to you soon.",
+    "contact_error": "Something went wrong. Please try again.",
+    "office_hours": "Office Hours",
+    "office_hours_value": "Monday – Friday: 8:30 AM – 4:15 PM"
     }
