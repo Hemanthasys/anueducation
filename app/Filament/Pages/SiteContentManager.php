@@ -215,12 +215,13 @@ class SiteContentManager extends Page implements HasForms
         }
 
         // getState() returns the processed file path after moving to disk
-        $photo = $state['director_photo'] ?? [];
-        if (!empty($photo)) {
-            $path = is_array($photo) ? array_values($photo)[0] : $photo;
-            SiteSetting::set('director_photo', $path);
-            Cache::forget('site_setting_director_photo');
-        }
+            $state = $this->form->getState();
+            $photo = $state['director_photo'] ?? [];
+            if (!empty($photo)) {
+                $path = is_array($photo) ? array_values($photo)[0] : $photo;
+                SiteSetting::set('director_photo', $path);
+                Cache::forget('site_setting_director_photo');
+            }
 
         Notification::make()
             ->title('Director information saved successfully.')

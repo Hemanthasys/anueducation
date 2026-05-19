@@ -160,6 +160,7 @@
     "zonal_logo":        "Zonal Education Office Logo",
 
     "essential_links":         "Essential Links",
-"essential_links_heading": "Essential Links & Resources",
-"visit_link":              "Visit"
+    "essential_links_heading": "Essential Links & Resources",
+    "visit_link":              "Visit",
+    "home": "Home" 
     }
