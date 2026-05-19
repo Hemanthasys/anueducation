@@ -149,5 +149,17 @@
     "section_staff": "Section Staff",
     "section_downloads": "Section Downloads",
     "no_section_staff": "No staff added yet.",
-    "no_section_downloads": "No downloads available."
+    "no_section_downloads": "No downloads available.",
+
+    "our_leadership":    "Our Leadership",
+    "meet_the_director": "Meet the Zonal Director",
+    "directors_message": "Director's Message",
+    "our_mission":       "Our Mission",
+    "our_vision":        "Our Vision",
+    "zonal_flag":        "Zonal Flag",
+    "zonal_logo":        "Zonal Education Office Logo",
+
+    "essential_links":         "Essential Links",
+"essential_links_heading": "Essential Links & Resources",
+"visit_link":              "Visit"
     }

@@ -18,6 +18,7 @@ class DatabaseSeeder extends Seeder
             SuperAdminSeeder::class,
             SchoolSeeder::class,
             SiteSettingSeeder::class,
+            DirectorContentSeeder::class
         ]);
     }
 }

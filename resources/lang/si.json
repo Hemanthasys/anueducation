@@ -148,7 +148,20 @@
     "section_staff": "අංශ කාර්යමණ්ඩලය",
     "section_downloads": "අංශ ලේඛන",
     "no_section_staff": "කාර්යමණ්ඩල තොරතුරු නොමැත.",
-    "no_section_downloads": "ලේඛන නොමැත."
+    "no_section_downloads": "ලේඛන නොමැත.",
+
+    "our_leadership":    "අපගේ නායකත්වය",
+    "meet_the_director": "කලාප අධ්‍යාපන අධ්‍යක්ෂතුමිය",
+    "directors_message": "අධ්‍යක්ෂතුමියගේ පණිවිඩය",
+    "our_mission":       "අපගේ මෙහෙවර",
+    "our_vision":        "අපගේ දැක්ම",
+    "zonal_flag":        "කලාප කොඩිය",
+    "zonal_logo":        "කලාප අධ්‍යාපන කාර්යාල ලාංඡනය",
+
+    "essential_links":         "වැදගත් සබැඳි",
+    "essential_links_heading": "වැදගත් සබැඳි සහ සම්පත්",
+    "visit_link":              "පිවිසෙන්න"
+ 
 
 
 }

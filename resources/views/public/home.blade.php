@@ -13,6 +13,9 @@
     {{-- Notice Ticker --}}
     @include('components.public.notice-ticker', ['notices' => $notices])
 
+    {{-- Zonal Director Section --}}
+    @include('components.public.director-section')
+
     {{-- Statistics --}}
     @include('components.public.statistics')
 
@@ -27,5 +30,8 @@
 
     {{-- Quick Links --}}
     @include('components.public.quick-links')
+    
+    {{-- Essential Links --}}
+    @include('components.public.essential-links')
 
 @endsection
