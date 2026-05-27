@@ -276,30 +276,16 @@
         </div>
     </div>
 
-            {{-- Results analyzer placeholder --}}
-            <div class="profile-card" style="border: 0.5px dashed #e5e7eb; background: #f9fafb;">
+            {{-- Academic results — tabbed by exam type --}}
+            <div class="profile-card">
                 <p class="profile-section-title">{{ __('academic_results') }}</p>
-                <div class="text-center py-6">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="w-10 h-10 mx-auto mb-3 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z" />
-                    </svg>
-                    <p class="text-sm font-semibold mb-1" style="color: var(--color-primary);">{{ __('academic_results') }}</p>
-                    <p class="text-xs mb-4" style="color: #9ca3af;">{{ __('phase2_note') }}</p>
-                    {{-- 4 exam type cards --}}
-                    <div class="grid grid-cols-2 gap-2">
-                        @foreach([
-                            ['key' => 'grade5_results', 'exam' => 'grade5'],
-                            ['key' => 'ol_results',     'exam' => 'ol'],
-                            ['key' => 'al_results',     'exam' => 'al'],
-                            ['key' => 'term_results',   'exam' => 'term'],
-                        ] as $result)
-                        <div class="p-3 rounded-xl border border-gray-200 text-center bg-white opacity-60">
-                            <p class="text-xs font-semibold" style="color: var(--color-primary);">{{ __($result['key']) }}</p>
-                            <p class="text-xs mt-1" style="color: #9ca3af;">{{ __('phase2_note') }}</p>
-                        </div>
-                        @endforeach
-                    </div>
-                </div>
+                @include('components.public.division-results', [
+                    'alResults' => $alResults,
+                    'olResults' => $olResults,
+                    'g5Results' => $g5Results,
+                    'locale'    => $locale,
+                    'division'  => $division,
+                ])
             </div>
 
     {{-- Schools table: full width --}}

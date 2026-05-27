@@ -14,7 +14,7 @@
      @mouseenter="paused = true"
      @mouseleave="paused = false"
      class="relative overflow-hidden w-full"
-     style="height: 520px; background: var(--color-dark);">
+     style="height: 580px; background: var(--color-dark);">
 
     {{-- Slides --}}
     @forelse($sliders as $index => $slider)

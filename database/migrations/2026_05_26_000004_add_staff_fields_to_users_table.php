@@ -1,0 +1,76 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    public function up(): void
+    {
+        Schema::table('users', function (Blueprint $table) {
+            $table->enum('gender', ['M', 'F'])->nullable()->after('phone');
+            $table->string('salary_slip_no')->nullable()->after('gender');
+            $table->enum('appointment_type', [
+                'permanent',
+                'acting',
+                'contract',
+                'temporary',
+            ])->nullable()->after('salary_slip_no');
+            $table->enum('staff_type', [
+                'principal',
+                'vice_principal',
+                'teacher',
+                'non_academic',
+            ])->nullable()->after('appointment_type');
+            $table->enum('non_academic_role', [
+                'management_assistant',
+                'office_assistant',
+                'lab_assistant',
+                'watcher',
+                'cook',
+                'cleaning_staff',
+                'driver',
+                'other',
+            ])->nullable()->after('staff_type');
+            $table->enum('service_grade', [
+                // Teacher grades
+                'SLTS_I',
+                'SLTS_2I',
+                'SLTS_2II',
+                'SLTS_3Ia',
+                'SLTS_3Ib',
+                'SLTS_3Ic',
+                'SLTS_3II',
+                // Principal / Vice Principal grades
+                'SLPS_I',
+                'SLPS_II',
+                'SLPS_III',
+            ])->nullable()->after('non_academic_role');
+            $table->date('joined_school_date')->nullable()->after('service_grade');
+
+            // Indexes for filtering
+            $table->index('staff_type');
+            $table->index('school_id');
+            $table->index('appointment_type');
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::table('users', function (Blueprint $table) {
+            $table->dropIndex(['staff_type']);
+            $table->dropIndex(['school_id']);
+            $table->dropIndex(['appointment_type']);
+            $table->dropColumn([
+                'gender',
+                'salary_slip_no',
+                'appointment_type',
+                'staff_type',
+                'non_academic_role',
+                'service_grade',
+                'joined_school_date',
+            ]);
+        });
+    }
+};

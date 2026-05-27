@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class SchoolCompliance extends Model
 {
+    protected $table = 'school_compliance';
+
     protected $fillable = [
         'school_id',
         'stat_deadline_id',

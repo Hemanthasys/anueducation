@@ -73,6 +73,9 @@
     </script>
     @endif
 
+    {{-- Chart.js — loaded in head so it's ready before Livewire scripts execute --}}
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+
 </head>
 <body>
 

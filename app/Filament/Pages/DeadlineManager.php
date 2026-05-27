@@ -22,13 +22,12 @@ class DeadlineManager extends Page
     protected static ?string $navigationLabel = 'Deadline Manager';
 
     public static function getNavigationGroup(): string
-{
-    return 'Statistics';
-}
+    {
+        return 'Statistics';
+    }
 
     protected static ?int $navigationSort = 1;
 
-    // Only super_admin and zonal_director
     public static function canAccess(): bool
     {
         return auth()->user()->hasAnyRole(['super_admin', 'zonal_director']);
@@ -42,6 +41,11 @@ class DeadlineManager extends Page
     public function getLatestSnapshot()
     {
         return StatSnapshot::latest()->first();
+    }
+
+    public function getComplianceReport(): array
+    {
+        return app(StatisticsService::class)->getComplianceReport();
     }
 
     protected function getHeaderActions(): array
@@ -64,17 +68,14 @@ class DeadlineManager extends Page
                         ->minDate(now()),
                 ])
                 ->action(function (array $data) {
-                    // Deactivate previous deadlines
                     StatDeadline::where('is_active', true)->update(['is_active' => false]);
 
-                    // Create new deadline
                     $deadline = StatDeadline::create([
                         'academic_year' => $data['academic_year'],
                         'deadline_date' => $data['deadline_date'],
                         'is_active'     => true,
                     ]);
 
-                    // Create compliance records for all schools
                     app(StatisticsService::class)->createComplianceRecords($deadline);
 
                     Notification::make()
@@ -89,15 +90,19 @@ class DeadlineManager extends Page
                 ->icon(Heroicon::OutlinedArrowPath)
                 ->color('warning')
                 ->requiresConfirmation()
-                ->modalDescription('This will generate a new statistics snapshot with current data. Are you sure?')
+                ->modalDescription('This will generate a statistics snapshot from current submitted data and lock all submissions. Are you sure?')
                 ->action(function () {
-                    $service      = app(StatisticsService::class);
-                    $academicYear = $service->getCurrentAcademicYear();
-                    $snapshot     = $service->generateSnapshot($academicYear);
+                    $service  = app(StatisticsService::class);
+                    $deadline = StatDeadline::where('is_active', true)->first();
 
-                    // Mark active deadline as triggered
-                    StatDeadline::where('is_active', true)
-                        ->update(['triggered_at' => now()]);
+                    $academicYear = $deadline?->academic_year ?? $service->getCurrentAcademicYear();
+                    $snapshot     = $service->generateSnapshot($academicYear, $deadline);
+
+                    // Mark pending schools as overdue
+                    if ($deadline) {
+                        $service->markOverdueSchools($deadline);
+                        $deadline->update(['triggered_at' => now()]);
+                    }
 
                     Notification::make()
                         ->title('Snapshot generated for ' . $academicYear)

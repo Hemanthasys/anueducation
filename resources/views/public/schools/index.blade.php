@@ -170,9 +170,14 @@
                                 <span class="badge-medium" x-text="school.medium"></span>
                             </td>
 
-                            {{-- Students placeholder --}}
-                            <td class="table-td" style="color: #9ca3af; text-align: center;">
-                                {{ __('not_available') }}
+                            {{-- Students count --}}
+                            <td class="table-td" style="text-align: center;">
+                                <template x-if="school.total_students > 0">
+                                    <span class="font-semibold" style="color: var(--color-primary);" x-text="school.total_students"></span>
+                                </template>
+                                <template x-if="school.total_students === 0">
+                                    <span style="color: #d1d5db;">—</span>
+                                </template>
                             </td>
 
                             {{-- View profile button --}}
