@@ -3,20 +3,23 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class TeacherQualification extends Model
 {
     protected $fillable = [
-        'user_id', 'qualification_id', 'type', 'year_obtained', 'institution',
+        'teacher_id',
+        'qualification_id',
+        'type',
+        'year_obtained',
+        'institution',
     ];
 
-    public function user(): BelongsTo
+    public function teacher()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(Teacher::class);
     }
 
-    public function qualification(): BelongsTo
+    public function qualification()
     {
         return $this->belongsTo(Qualification::class);
     }

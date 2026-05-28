@@ -79,7 +79,7 @@ class SchoolController extends Controller
         if ($isAdmin) {
             $teacherBreakdown = $school->teachers()
                 ->where('is_active', true)
-                ->with('teacherQualifications.qualification')
+                ->with('qualifications.qualification')
                 ->get();
 
             $nonAcademicStaff = $school->nonAcademicStaff()

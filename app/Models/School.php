@@ -7,28 +7,12 @@ use Illuminate\Database\Eloquent\Model;
 class School extends Model
 {
     protected $fillable = [
-        'census_no',
-        'name_si',
-        'name_en',
-        'division_id',
-        'type',
-        'class_span_from',
-        'class_span_to',
-        'established_date',
-        'divisional_secretariat',
-        'grama_niladari_division',
-        'address',
-        'address_si',
-        'principal_id',
-        'phone',
-        'email',
-        'lat',
-        'lng',
-        'medium',
-        'ownership',
-        'convenience_level',
-        'is_active',
-        'school_logo',
+        'census_no', 'name_si', 'name_en', 'division_id', 'type',
+        'class_span_from', 'class_span_to', 'established_date',
+        'divisional_secretariat', 'grama_niladari_division',
+        'address', 'address_si', 'principal_id', 'phone', 'email',
+        'lat', 'lng', 'medium', 'ownership', 'convenience_level',
+        'is_active', 'school_logo',
     ];
 
     protected $casts = [
@@ -37,8 +21,6 @@ class School extends Model
         'lat'              => 'decimal:8',
         'lng'              => 'decimal:8',
     ];
-
-    // ── Relationships ─────────────────────────────────────────
 
     public function division()
     {
@@ -50,26 +32,29 @@ class School extends Model
         return $this->belongsTo(User::class, 'principal_id');
     }
 
-    public function staff()
+    // ── Teachers & Vice Principals (teachers table) ───────────
+    public function teacherRecords()
     {
-        return $this->hasMany(User::class)->whereNotNull('staff_type');
+        return $this->hasMany(Teacher::class);
     }
 
     public function teachers()
     {
-        return $this->hasMany(User::class)->where('staff_type', 'teacher');
+        return $this->hasMany(Teacher::class)->where('staff_type', 'teacher');
     }
 
     public function vicePrincipals()
     {
-        return $this->hasMany(User::class)->where('staff_type', 'vice_principal');
+        return $this->hasMany(Teacher::class)->where('staff_type', 'vice_principal');
     }
 
+    // ── Non-Academic Staff (school_staff table) ───────────────
     public function nonAcademicStaff()
     {
-        return $this->hasMany(User::class)->where('staff_type', 'non_academic');
+        return $this->hasMany(SchoolStaff::class);
     }
 
+    // ── Statistics ────────────────────────────────────────────
     public function latestStats()
     {
         return $this->hasOne(SchoolStat::class)->latestOfMany('academic_year');
@@ -80,6 +65,7 @@ class School extends Model
         return $this->hasMany(SchoolStat::class);
     }
 
+    // ── Physical Resources ────────────────────────────────────
     public function physicalResources()
     {
         return $this->hasOne(SchoolPhysicalResource::class);
@@ -90,6 +76,7 @@ class School extends Model
         return $this->hasOne(SchoolResourceProgram::class);
     }
 
+    // ── Quality Circles ───────────────────────────────────────
     public function qualityCircleRecords()
     {
         return $this->hasMany(QualityCircleRecord::class);
@@ -100,15 +87,13 @@ class School extends Model
         return $this->hasOne(QualityCircleRecord::class)->latestOfMany();
     }
 
-    // ── Bilingual name accessor ───────────────────────────────
-
+    // ── Bilingual name ────────────────────────────────────────
     public function getNameAttribute(): string
     {
         return $this->{'name_' . app()->getLocale()} ?? $this->name_en;
     }
 
-    // ── Bilingual type labels ─────────────────────────────────
-
+    // ── Type labels ───────────────────────────────────────────
     public function getSchoolTypeLabelsAttribute(): ?array
     {
         return match($this->type) {
@@ -120,8 +105,7 @@ class School extends Model
         };
     }
 
-    // ── Bilingual medium labels ───────────────────────────────
-
+    // ── Medium labels ─────────────────────────────────────────
     public function getMediumLabelsAttribute(): ?array
     {
         return match($this->medium) {
@@ -133,15 +117,11 @@ class School extends Model
         };
     }
 
-    // ── Class span display ────────────────────────────────────
-
     public function getClassSpanAttribute(): ?string
     {
         if (!$this->class_span_from && !$this->class_span_to) return null;
         return $this->class_span_from . ' - ' . $this->class_span_to;
     }
-
-    // ── Grades within span (for forms and filtering) ──────────
 
     public function gradesInSpan(): array
     {
@@ -149,22 +129,17 @@ class School extends Model
         return range((int)$this->class_span_from, (int)$this->class_span_to);
     }
 
-    // ── Established year ──────────────────────────────────────
-
     public function getEstablishedYearAttribute(): ?string
     {
         return $this->established_date?->format('Y');
     }
-
-    // ── Compliance badge (Phase 2) ────────────────────────────
 
     public function getComplianceBadgeAttribute(): ?array
     {
         return null;
     }
 
-    // ── Staff counts from users table ─────────────────────────
-
+    // ── Staff counts ──────────────────────────────────────────
     public function getTeacherCountAttribute(): int
     {
         return $this->teachers()->where('is_active', true)->count();
@@ -179,8 +154,6 @@ class School extends Model
     {
         return $this->nonAcademicStaff()->where('is_active', true)->count();
     }
-
-    // ── School logo URL ───────────────────────────────────────
 
     public function getLogoUrlAttribute(): ?string
     {

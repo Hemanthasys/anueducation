@@ -510,6 +510,47 @@
 "deadline_submit_before": "මෙයට පෙර ඉදිරිපත් කරන්න",
 "submissions_locked": "ඉදිරිපත් කිරීම් අගුළු දමා ඇත",
 "deadline_passed": "කාලසීමාව අවසන් වී ඇත.",
-"no_active_deadline": "ක්‍රියාත්මක කාලසීමාවක් නොමැත. ඕනෑම වේලාවක ඔබේ දත්ත යාවත්කාලීන කළ හැකිය."
+"no_active_deadline": "ක්‍රියාත්මක කාලසීමාවක් නොමැත. ඕනෑම වේලාවක ඔබේ දත්ත යාවත්කාලීන කළ හැකිය.",
+
+"new_password": "New Password",
+"confirm_password": "Confirm Password",
+"password_min_length": "Minimum 8 characters",
+"password_changed": "Password changed successfully.",
+"password_same_as_username": "Password cannot be the same as your username.",
+
+   "add_staff":              "කාර්යය මණ්ඩලය එකතු කරන්න",
+   "academic_staff":         "අධ්‍යයන කාර්ය මණ්ඩලය",
+   "non_academic":           "අනධ්‍යයන",
+   "vice_principal":         "නියෝජ්‍ය විදුහල්පති",
+   "staff_type":             "කාර්ය මණ්ඩල වර්ගය",
+   "full_name":              "සම්පූර්ණ නම",
+   "enter_full_name":        "සම්පූර්ණ නම ඇතුළත් කරන්න",
+   "select_subject":         "විෂය තෝරන්න",
+   "select_role":            "භූමිකාව තෝරන්න",
+   "joined_school_date":     "පාසලට සම්බන්ධ වූ දිනය",
+   "save_staff":             "සාමාජිකයා සුරකින්න",
+   "staff_added_success":    "කාර්ය මණ්ඩල සාමාජිකයා සාර්ථකව එකතු කරන ලදී.",
+   "no_academic_staff":      "ශාස්ත්‍රීය කාර්ය මණ්ඩල වාර්තා හමු නොවිණ.",
+   "no_non_academic_staff":  "අශාස්ත්‍රීය කාර්ය මණ්ඩල වාර්තා හමු නොවිණ.",
+   "please_fix_errors":      "පහත දෝෂ නිරාකරණය කරන්න:",
+
+   "edit_staff":                 "කාර්ය මණ්ඩල සාමාජිකයා සංස්කරණය කරන්න",
+
+   "appointed_subject":          "පත්කරන ලද විෂය",
+   "appointed_subject_hint":     "නිල පත්වීම් ලිපියේ සඳහන් විෂය",
+   "teaching_subjects":          "උගන්වන විෂයයන්",
+   "add_subject":                "විෂය එකතු කරන්න",
+   "main":                       "ප්‍රධාන",
+   "sub":                        "අනු",
+   "update_basic_info":          "මූලික තොරතුරු යාවත්කාලීන කරන්න", 
+   "staff_updated_success":      "කාර්ය මණ්ඩල සාමාජිකයා සාර්ථකව යාවත්කාලීන කරන ලදී.",
+   "subject_added_success":      "විෂය සාර්ථකව එකතු කරන ලදී.",
+   "subject_removed_success":    "විෂය ඉවත් කරන ලදී.",
+   "no_subjects_assigned":       "තවම කිසිදු විෂයයක් පවරා නොමැත.",
+   "please_select_subject":      "කරුණාකර විෂයක් තෝරන්න.",
+   "basic_information":          "මූලික තොරතුරු",
+   "load_error":                 "දත්ත පූරණය කිරීමට නොහැකි විය.",
+   "error_occurred":             "දෝෂයක් ඇති විය. නැවත උත්සාහ කරන්න.",
+   "optional":                   "(විකල්ප)"
 
 }

@@ -94,7 +94,6 @@ Route::prefix('principal')->name('principal.')->group(function () {
         Route::get('school',             [PrincipalController::class, 'school'])->name('school');
         Route::post('school',            [PrincipalController::class, 'updateSchool'])->name('school.update');
         Route::get('students',           [PrincipalController::class, 'students'])->name('students');
-        Route::get('teachers',           [PrincipalController::class, 'teachers'])->name('teachers');
         Route::get('physical-resources', [PrincipalController::class, 'physicalResources'])->name('physical-resources');
         Route::post('physical-resources',[PrincipalController::class, 'updatePhysicalResources'])->name('physical-resources.update');
         Route::get('term-tests',         [PrincipalController::class, 'termTests'])->name('term-tests');
@@ -105,6 +104,16 @@ Route::prefix('principal')->name('principal.')->group(function () {
         Route::get('profile',            [PrincipalController::class, 'profile'])->name('profile');
         Route::post('profile',           [PrincipalController::class, 'updateProfile'])->name('profile.update');
 
+        // ── Teachers & Staff ──────────────────────────────────
+        Route::get('teachers',                                   [PrincipalController::class, 'teachers'])->name('teachers');
+        Route::post('teachers/store',                            [PrincipalController::class, 'storeTeacher'])->name('teachers.store');
+        Route::post('staff/store',                               [PrincipalController::class, 'storeStaff'])->name('staff.store');
+        Route::get('teachers/{teacher}/edit-data',               [PrincipalController::class, 'teacherEditData'])->name('teachers.edit-data');
+        Route::put('teachers/{teacher}',                         [PrincipalController::class, 'updateTeacher'])->name('teachers.update');
+        Route::post('teachers/{teacher}/subjects',               [PrincipalController::class, 'addTeachingSubject'])->name('teachers.subjects.add');
+        Route::delete('teachers/{teacher}/subjects/{subject}',   [PrincipalController::class, 'removeTeachingSubject'])->name('teachers.subjects.remove');
+
+        // ── Quality Circles ───────────────────────────────────
         Route::get('quality-circles',               [QualityCircleController::class, 'index'])->name('quality-circles');
         Route::post('quality-circles',              [QualityCircleController::class, 'store'])->name('quality-circles.store');
         Route::get('quality-circles/{record}',      [QualityCircleController::class, 'show'])->name('quality-circles.show');

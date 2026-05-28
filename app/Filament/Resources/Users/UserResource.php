@@ -20,6 +20,7 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Actions\Action;
+use Filament\Actions\BulkAction;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
@@ -28,6 +29,7 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Hash;
 
 class UserResource extends Resource
@@ -124,6 +126,11 @@ class UserResource extends Resource
                         ->label('First Appointed Date')
                         ->maxDate(today()),
 
+                    TextInput::make('designation')
+                        ->label('Designation')
+                        ->maxLength(100)
+                        ->nullable(),
+
                     FileUpload::make('photo')
                         ->label('Profile Photo')
                         ->image()
@@ -203,6 +210,11 @@ class UserResource extends Resource
                     ->relationship('roles', 'name')
                     ->label('Role'),
 
+                SelectFilter::make('school_id')
+                    ->label('School')
+                    ->options(School::orderBy('name_en')->pluck('name_en', 'id'))
+                    ->searchable(),
+
                 TernaryFilter::make('is_active')
                     ->label('Active'),
 
@@ -212,7 +224,6 @@ class UserResource extends Resource
             ->actions([
                 EditAction::make(),
 
-                // Reset password to username
                 Action::make('reset_password')
                     ->label('Reset Password')
                     ->icon(Heroicon::OutlinedKey)
@@ -221,14 +232,16 @@ class UserResource extends Resource
                     ->modalHeading('Reset Password')
                     ->modalDescription('This will reset the password to the username and force a password change on next login.')
                     ->action(function (User $record) {
-                        $record->resetToDefaultPassword();
+                        $record->update([
+                            'password'             => Hash::make($record->username),
+                            'must_change_password' => true,
+                        ]);
                         Notification::make()
                             ->title('Password reset to username')
                             ->success()
                             ->send();
                     }),
 
-                // Toggle active/inactive
                 Action::make('toggle_active')
                     ->label(fn(User $record) => $record->is_active ? 'Deactivate' : 'Activate')
                     ->icon(fn(User $record) => $record->is_active ? Heroicon::OutlinedXCircle : Heroicon::OutlinedCheckCircle)
@@ -245,6 +258,58 @@ class UserResource extends Resource
             ->bulkActions([
                 BulkActionGroup::make([
                     DeleteBulkAction::make(),
+
+                    BulkAction::make('generate_passwords')
+                        ->label('Generate Passwords')
+                        ->icon(Heroicon::OutlinedKey)
+                        ->color('warning')
+                        ->requiresConfirmation()
+                        ->modalHeading('Generate Passwords')
+                        ->modalDescription('Random passwords will be generated for selected users. Save or print the list shown.')
+                        ->action(function (Collection $records) {
+                            $results = [];
+                            foreach ($records as $user) {
+                                $password = substr(str_shuffle('abcdefghjkmnpqrstuvwxyzABCDEFGHJKMNPQRSTUVWXYZ23456789@#'), 0, 8);
+                                $user->update([
+                                    'password'             => Hash::make($password),
+                                    'must_change_password' => true,
+                                    'is_active'            => true,
+                                ]);
+                                $results[] = $user->name . ' (' . $user->username . ') — ' . $password;
+                            }
+                            Notification::make()
+                                ->title('Passwords Generated (' . count($results) . ' users)')
+                                ->body(implode("\n", $results))
+                                ->success()
+                                ->persistent()
+                                ->send();
+                        }),
+
+                    BulkAction::make('activate_users')
+                        ->label('Activate Selected')
+                        ->icon(Heroicon::OutlinedCheckCircle)
+                        ->color('success')
+                        ->requiresConfirmation()
+                        ->action(function (Collection $records) {
+                            $records->each(fn($user) => $user->update(['is_active' => true]));
+                            Notification::make()
+                                ->title($records->count() . ' users activated')
+                                ->success()
+                                ->send();
+                        }),
+
+                    BulkAction::make('deactivate_users')
+                        ->label('Deactivate Selected')
+                        ->icon(Heroicon::OutlinedXCircle)
+                        ->color('danger')
+                        ->requiresConfirmation()
+                        ->action(function (Collection $records) {
+                            $records->each(fn($user) => $user->update(['is_active' => false]));
+                            Notification::make()
+                                ->title($records->count() . ' users deactivated')
+                                ->warning()
+                                ->send();
+                        }),
                 ]),
             ])
             ->defaultSort('created_at', 'desc');
