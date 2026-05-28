@@ -25,7 +25,7 @@
                 </div>
                 <div class="text-xs md:text-sm mt-1 text-white/80 hidden sm:block">
                     @if(app()->getLocale() === 'si')
-                        අනුරාධපුර දිස්ත්‍රික්කය, උතුරු මධ්‍යම පළාත, ශ්‍රී ලංකාව
+                        අනුරාධපුර දිස්ත්‍රික්කය, උතුරු මැද පළාත, ශ්‍රී ලංකාව
                     @else
                         Anuradhapura District, North Central Province, Sri Lanka
                     @endif

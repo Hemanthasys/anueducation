@@ -22,6 +22,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'principal'               => \App\Http\Middleware\PrincipalMiddleware::class,
             'teacher'                 => \App\Http\Middleware\TeacherMiddleware::class,
             'must.change.password'    => \App\Http\Middleware\MustChangePassword::class,
+            'set.portal.locale' => \App\Http\Middleware\SetPortalLocale::class,
         ]);
     })
     ->withProviders([

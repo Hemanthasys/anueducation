@@ -39,12 +39,7 @@ class QualityCircleController extends Controller
         )->orderBy('name')->get();
 
         // Can create if no draft/submitted record for current year
-        $currentYear = date('Y');
-        $existing    = QualityCircleRecord::where('school_id', $school->id)
-            ->where('academic_year', $currentYear)
-            ->whereIn('status', ['draft', 'submitted', 'approved'])
-            ->first();
-        $canCreate = !$existing;
+        $canCreate = true;
 
         return view('principal.quality-circles', compact(
             'user', 'school', 'theme', 'records', 'criteria', 'inspectors', 'canCreate'
@@ -67,19 +62,19 @@ class QualityCircleController extends Controller
             'marks'           => 'required|array',
         ]);
 
-        // Check no duplicate for this year — check all statuses
-        $existing = QualityCircleRecord::where('school_id', $school->id)
-            ->where('academic_year', $request->academic_year)
-            ->first();
+        // // Check no duplicate for this year — check all statuses
+        // $existing = QualityCircleRecord::where('school_id', $school->id)
+        //     ->where('academic_year', $request->academic_year)
+        //     ->first();
 
-        if ($existing) {
-            if (in_array($existing->status, ['draft', 'rejected'])) {
-                // Redirect to edit instead
-                return redirect()->route('principal.quality-circles.edit', $existing->id)
-                    ->with('error', $request->academic_year . ' වර්ෂය සඳහා කෙටුම්පතක් දැනටමත් පවතී. සංස්කරණය කරන්න.');
-            }
-            return back()->with('error', $request->academic_year . ' වර්ෂය සඳහා ඇගයීමක් දැනටමත් පවතී.');
-        }
+        // if ($existing) {
+        //     if (in_array($existing->status, ['draft', 'rejected'])) {
+        //         // Redirect to edit instead
+        //         return redirect()->route('principal.quality-circles.edit', $existing->id)
+        //             ->with('error', $request->academic_year . ' වර්ෂය සඳහා කෙටුම්පතක් දැනටමත් පවතී. සංස්කරණය කරන්න.');
+        //     }
+        //     return back()->with('error', $request->academic_year . ' වර්ෂය සඳහා ඇගයීමක් දැනටමත් පවතී.');
+        // }
 
         DB::transaction(function () use ($request, $school, $user) {
             $inspectedBy = $request->inspected_by !== 'other'

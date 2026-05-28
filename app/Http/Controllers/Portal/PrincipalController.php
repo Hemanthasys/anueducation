@@ -290,27 +290,56 @@ public function updateSchool(Request $request)
         return back()->with('error', __('invalid_section'));
     }
 
-    // ── Students ───────────────────────────────────────────────
-    public function students()
+
+
+    // ── Physical Resources ─────────────────────────────────────────
+    public function physicalResources()
+    {
+        $user        = $this->guard()->user();
+        $school      = $user->school;
+        $theme       = ThemeHelper::getTheme();
+        $res         = $school?->physicalResources;
+        $canSubmit   = $school ? app(\App\Services\StatisticsService::class)->canSubmit($school->id) : false;
+        $activeDeadline = \App\Models\StatDeadline::where('is_active', true)->first();
+
+        return view('principal.physical-resources', compact(
+            'user', 'school', 'theme', 'res', 'canSubmit', 'activeDeadline'
+        ));
+    }
+
+    // ── Term Tests — placeholder ───────────────────────────────────
+    public function termTests()
     {
         $user   = $this->guard()->user();
         $school = $user->school;
         $theme  = ThemeHelper::getTheme();
-        return view('principal.students', compact('user', 'school', 'theme'));
+
+        return view('principal.term-tests', compact('user', 'school', 'theme'));
     }
+    // ── Students ───────────────────────────────────────────────
+        public function students()
+        {
+            $user        = $this->guard()->user();
+            $school      = $user->school;
+            $theme       = ThemeHelper::getTheme();
+            $latestStats = $school?->latestStats;
+
+            return view('principal.students', compact('user', 'school', 'theme', 'latestStats'));
+        }
 
     // ── Teachers ───────────────────────────────────────────────
     public function teachers()
     {
-        $user    = $this->guard()->user();
-        $school  = $user->school;
-        $teachers = \App\Models\User::where('school_id', $school->id)
-            ->role('teacher')
-            ->where('is_active', true)
-            ->orderBy('name')
-            ->get();
-        $theme = ThemeHelper::getTheme();
-        return view('principal.teachers', compact('user', 'school', 'teachers', 'theme'));
+        $user     = $this->guard()->user();
+        $school   = $user->school;
+        $theme    = ThemeHelper::getTheme();
+        $teachers = $school ? \App\Models\User::where('school_id', $school->id)
+                        ->whereIn('staff_type', ['teacher', 'vice_principal'])
+                        ->where('is_active', true)
+                        ->orderBy('name')
+                        ->get() : collect();
+
+        return view('principal.teachers', compact('user', 'school', 'theme', 'teachers'));
     }
 
     // ── News ───────────────────────────────────────────────────
@@ -327,18 +356,22 @@ public function updateSchool(Request $request)
     public function notices()
     {
         $user    = $this->guard()->user();
-        $notices = Notice::active()->latest()->paginate(20);
+        $school  = $user->school;
+        $notices = \App\Models\Notice::where('is_active', true)->latest()->paginate(20);
         $theme   = ThemeHelper::getTheme();
-        return view('principal.notices', compact('user', 'notices', 'theme'));
+
+        return view('principal.notices', compact('user', 'school', 'notices', 'theme'));
     }
 
     // ── Downloads ──────────────────────────────────────────────
     public function downloads()
     {
         $user      = $this->guard()->user();
-        $downloads = Download::latest()->paginate(20);
+        $school    = $user->school;
+        $downloads = \App\Models\Download::where('is_active', true)->latest()->paginate(20);
         $theme     = ThemeHelper::getTheme();
-        return view('principal.downloads', compact('user', 'downloads', 'theme'));
+
+        return view('principal.downloads', compact('user', 'school', 'downloads', 'theme'));
     }
 
     // ── Projects — PLACEHOLDER ─────────────────────────────────

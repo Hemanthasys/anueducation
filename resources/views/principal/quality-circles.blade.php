@@ -1,11 +1,11 @@
 @extends('layouts.principal')
 
-@section('title', 'ගුණාත්මක කවය')
+@section('title', 'තත්ත්ව කවය')
 
 @section('content')
 
 <div class="mb-6">
-    <h1 class="text-xl font-bold" style="color: var(--color-primary);">ගුණාත්මක කවය — පාසල් ඇගයීම</h1>
+    <h1 class="text-xl font-bold" style="color: var(--color-primary);">තත්ත්ව කවය — පාසල් ඇගයීම</h1>
     <p class="text-sm text-gray-500 mt-1">පාසල් අධ්‍යාපන ගුණාත්මක දර්ශකය (School Education Quality Index)</p>
 </div>
 
@@ -20,7 +20,7 @@
             <thead>
                 <tr class="bg-gray-50 text-xs text-gray-500 uppercase tracking-wide">
                     <th class="px-6 py-3 text-left">අධ්‍යයන වර්ෂය</th>
-                    <th class="px-4 py-3 text-left">පරීක්ෂා දිනය</th>
+                    <th class="px-4 py-3 text-left">පරීක්ෂා  දිනය</th>
                     <th class="px-4 py-3 text-left">පරීක්ෂා කළේ</th>
                     <th class="px-4 py-3 text-center">තත්ත්වය</th>
                     <th class="px-4 py-3 text-right">දර්ශකය</th>
@@ -263,6 +263,18 @@
 function qcForm() {
     return {
         inspectorId: '{{ old('inspected_by', '') }}',
+        finalIndex() {
+            const rows = document.querySelectorAll('[x-data*="criteriaRow"]');
+            let total = 0, count = 0;
+            rows.forEach(row => {
+                const comp = Alpine.$data(row);
+                if (comp && comp.pct !== undefined) {
+                    total += comp.pct;
+                    count++;
+                }
+            });
+            return count > 0 ? (Math.round(total / count * 100) / 100).toFixed(2) : '0.00';
+        }
     };
 }
 
@@ -277,25 +289,6 @@ function criteriaRow(id) {
             const obt = parseFloat(this.obtained) || 0;
             this.pct  = max > 0 ? Math.round((obt / max) * 10000) / 100 : 0;
         },
-    };
-}
-
-// Calculate final index — average of all 8 percentages
-function qcForm() {
-    return {
-        inspectorId: '{{ old('inspected_by', '') }}',
-        finalIndex() {
-            const rows = document.querySelectorAll('[x-data*="criteriaRow"]');
-            let total = 0, count = 0;
-            rows.forEach(row => {
-                const comp = Alpine.$data(row);
-                if (comp && comp.pct !== undefined) {
-                    total += comp.pct;
-                    count++;
-                }
-            });
-            return count > 0 ? (Math.round(total / count * 100) / 100).toFixed(2) : '0.00';
-        }
     };
 }
 </script>

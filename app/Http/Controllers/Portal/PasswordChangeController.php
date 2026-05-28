@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Portal;
 
 use App\Http\Controllers\Controller;
+use App\Helpers\ThemeHelper;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -12,7 +13,7 @@ class PasswordChangeController extends Controller
     public function show()
     {
         $user  = Auth::user();
-        $theme = app('theme');
+        $theme = ThemeHelper::getTheme();
         return view('auth.change-password', compact('user', 'theme'));
     }
 
@@ -25,7 +26,6 @@ class PasswordChangeController extends Controller
 
         $user = Auth::user();
 
-        // Prevent using same password as username
         if ($request->password === $user->username) {
             return back()->withErrors(['password' => __('password_same_as_username')]);
         }
@@ -35,8 +35,7 @@ class PasswordChangeController extends Controller
             'must_change_password' => false,
         ]);
 
-        // Redirect based on role
-        if ($user->hasRole('principal')) {
+        if ($user->hasRole('school_principal')) {
             return redirect()->route('principal.dashboard')->with('success', __('password_changed'));
         }
 

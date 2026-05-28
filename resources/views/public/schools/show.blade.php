@@ -146,18 +146,21 @@
                                     'sub'   => __('boys') . ' ' . number_format($stats->total_boys) . ' / ' . __('girls') . ' ' . number_format($stats->total_girls),
                                     'color' => 'var(--color-primary)',
                                 ],
-                                [
-                                    'label' => __('total_teachers'),
-                                    'value' => number_format($teacherCount),
-                                    'sub'   => null,
-                                    'color' => '#0891b2',
-                                ],
+
                                 [
                                     'label' => __('vice_principals'),
                                     'value' => number_format($vicePrincipalCount),
                                     'sub'   => null,
                                     'color' => '#7c3aed',
                                 ],
+
+                                [
+                                    'label' => __('total_teachers'),
+                                    'value' => number_format($teacherCount),
+                                    'sub'   => null,
+                                    'color' => '#0891b2',
+                                ],
+
                                 [
                                     'label' => __('non_academic_staff'),
                                     'value' => number_format($nonAcademicCount),
