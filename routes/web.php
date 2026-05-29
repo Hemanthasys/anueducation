@@ -138,6 +138,7 @@ Route::prefix('teacher')->name('teacher.')->group(function () {
         Route::get('/',                       [TeacherController::class, 'dashboard'])->name('dashboard');
         Route::get('profile',                 [TeacherController::class, 'profile'])->name('profile');
         Route::post('profile',                [TeacherController::class, 'updateProfile'])->name('profile.update');
+        Route::post('profile/change-request', [TeacherController::class, 'submitChangeRequest'])->name('profile.change-request');
         Route::get('working-history',         [TeacherController::class, 'workingHistory'])->name('working-history');
         Route::post('working-history',        [TeacherController::class, 'addWorkingHistory'])->name('working-history.add');
         Route::delete('working-history/{id}', [TeacherController::class, 'deleteWorkingHistory'])->name('working-history.delete');

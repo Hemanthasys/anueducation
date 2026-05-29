@@ -34,6 +34,8 @@ class PrincipalController extends Controller
         if ($this->guard()->check() && $this->guard()->user()->hasRole('school_principal')) {
             return redirect()->route('principal.dashboard');
         }
+        // Apply locale from session so language switcher works on login page
+        app()->setLocale(session('locale', config('app.locale')));
         $theme = ThemeHelper::getTheme();
         return view('principal.login', compact('theme'));
     }

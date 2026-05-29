@@ -64,6 +64,9 @@ class SiteSettingsManager extends Page implements HasForms
 
             // Favicon
             'favicon'             => SiteSetting::get('favicon') ? [SiteSetting::get('favicon')] : [],
+            'principal_login_bg'  => SiteSetting::get('principal_login_bg') ? [SiteSetting::get('principal_login_bg')] : [],
+            'teacher_login_bg'    => SiteSetting::get('teacher_login_bg') ? [SiteSetting::get('teacher_login_bg')] : [],
+            'login_blur_amount'   => SiteSetting::get('login_blur_amount', '3'),
 
             // Footer
             'footer_text_en'      => SiteSetting::get('footer_text_en', ''),
@@ -234,6 +237,51 @@ class SiteSettingsManager extends Page implements HasForms
                                     ]),
                             ]),
 
+                        // ── PORTAL LOGIN BACKGROUNDS ──────────────────────
+                        Tab::make('Portal Login')
+                            ->schema([
+                                Section::make('Principal Portal Login Background')
+                                    ->description('Background image shown behind the login card on the Principal portal login page. Recommended: landscape image, min 1920×1080px. Max 5MB.')
+                                    ->schema([
+                                        FileUpload::make('principal_login_bg')
+                                            ->label('Principal Login Background Image')
+                                            ->image()
+                                            ->disk('public')
+                                            ->directory('login-backgrounds')
+                                            ->maxSize(5120)
+                                            ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp'])
+                                            ->imagePreviewHeight('150')
+                                            ->columnSpanFull(),
+                                    ]),
+
+                                Section::make('Background Blur Amount')
+                                    ->description('Controls how blurry the background image appears. 0 = no blur, 10 = heavy blur.')
+                                    ->schema([
+                                        \Filament\Forms\Components\TextInput::make('login_blur_amount')
+                                            ->label('Blur Amount (px)')
+                                            ->numeric()
+                                            ->minValue(0)
+                                            ->maxValue(20)
+                                            ->default(3)
+                                            ->suffix('px')
+                                            ->helperText('Recommended: 2–5px for subtle blur, 8–12px for heavy blur'),
+                                    ]),
+
+                                Section::make('Teacher Portal Login Background')
+                                    ->description('Background image shown behind the login card on the Teacher portal login page. Recommended: landscape image, min 1920×1080px. Max 5MB.')
+                                    ->schema([
+                                        FileUpload::make('teacher_login_bg')
+                                            ->label('Teacher Login Background Image')
+                                            ->image()
+                                            ->disk('public')
+                                            ->directory('login-backgrounds')
+                                            ->maxSize(5120)
+                                            ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp'])
+                                            ->imagePreviewHeight('150')
+                                            ->columnSpanFull(),
+                                    ]),
+                            ]),
+
                         // ── FOOTER ────────────────────────────────────────
                         Tab::make('Footer')
                             ->schema([
@@ -332,6 +380,27 @@ class SiteSettingsManager extends Page implements HasForms
     }
     Notification::make()->title('Favicon saved.')->success()->send();
 }
+
+    // Save Portal Login Backgrounds
+    public function savePortalLogin(): void
+    {
+        $state = $this->form->getState();
+
+        // Save blur amount
+        SiteSetting::set('login_blur_amount', $state['login_blur_amount'] ?? '3');
+        Cache::forget('site_setting_login_blur_amount');
+
+        foreach (['principal_login_bg', 'teacher_login_bg'] as $key) {
+            $val = $state[$key] ?? [];
+            if (!empty($val)) {
+                $path = is_array($val) ? array_values($val)[0] : $val;
+                SiteSetting::set($key, $path);
+                Cache::forget("site_setting_{$key}");
+            }
+        }
+
+        Notification::make()->title('Portal login backgrounds saved.')->success()->send();
+    }
 
     // Save Footer tab
     public function saveFooter(): void

@@ -649,6 +649,26 @@ function removeTeachingSubject(subjectId) {
     });
 }
 
+// ── Submit edit form with client-side NIC/phone validation ───────────
+function submitEditForm() {
+    clearEditErrors();
+    let valid = true;
+    const nic   = document.getElementById('edit-nic').value.trim();
+    const phone = document.getElementById('edit-phone').value.trim();
+
+    if (nic && !validateNic(nic)) {
+        showEditFieldError('edit-nic-error', '{{ __("validation_nic_invalid") }}');
+        valid = false;
+    }
+    if (phone && !validatePhone(phone)) {
+        showEditFieldError('edit-phone-error', '{{ __("validation_phone_invalid") }}');
+        valid = false;
+    }
+    if (valid) {
+        document.getElementById('edit-form-basic').submit();
+    }
+}
+
 function showSubjectMsg(msg, color) {
     const el = document.getElementById('subject-add-msg');
     el.textContent = msg;

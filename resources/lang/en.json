@@ -660,6 +660,34 @@
 
    "nic_format_hint": "(9 digits+V/X or 12 digits)",
 "validation_nic_invalid": "NIC must be 9 digits followed by V or X, or 12 digits.",
-"validation_phone_invalid": "Phone must be 10 digits starting with 0."
+"validation_phone_invalid": "Phone must be 10 digits starting with 0.",
+
+    "direct_edit_hint":               "Phone, email and photo are updated immediately without approval",
+    "photo_hint":                     "Max 5MB. Will be compressed automatically to save space.",
+    "save_changes":                   "Save Changes",
+    "request_profile_change":         "Request Profile Change",
+    "change_request_hint":            "Select the fields you want to change. A Zonal Officer will review and approve.",
+    "select_fields_to_change":        "Select fields to change:",
+    "change_request_approval_note":   "Your request will be reviewed by a Zonal Officer before changes are applied.",
+    "submit_change_request":          "Submit Change Request",
+    "pending_request_exists_title":   "You have a pending change request",
+    "pending_request_hint":           "You cannot submit a new request until this one is resolved.",
+    "request_history":                "Request History",
+    "no_teacher_record":              "No teacher record is linked to your account. Please contact the admin.",
+    "pending_request_exists":         "You already have a pending request. Please wait for it to be reviewed.",
+    "select_at_least_one_field":      "Please select at least one field to change.",
+    "no_changes_detected":            "No changes were detected. Please enter a different value.",
+    "change_request_submitted":       "Your change request has been submitted successfully.",
+    "current":                        "current",
+    "reference":                      "Reference",
+    "submitted":                      "Submitted",
+    "pending":                        "Pending",
+    "approved":                       "Approved",
+    "rejected":                       "Rejected",
+    "birthday":                       "Birthday",
+     "photo":                          "Profile Photo",
+
+     "principal_portal_link": "Principal Portal",
+"teacher_portal_link": "Teacher Portal"
 
     }

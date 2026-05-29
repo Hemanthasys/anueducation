@@ -555,6 +555,36 @@
 
    "nic_format_hint": "(අංක 9+V/X හෝ අංක 12)",
 "validation_nic_invalid": "NIC ආකෘතිය වැරදිය. අංක 9 + V/X හෝ අංක 12 විය යුතුය.",
-"validation_phone_invalid": "දුරකථන අංකය 0 සමඟ ආරම්භ වන ඉලක්කම් 10ක් විය යුතුය."
+"validation_phone_invalid": "දුරකථන අංකය 0 සමඟ ආරම්භ වන ඉලක්කම් 10ක් විය යුතුය.",
+
+"profile_page_desc":              "ඔබගේ පැතිකඩ තොරතුරු බලන්න හා කළමනාකරණය කරන්න",
+    "update_contact_info":            "සම්බන්ධතා තොරතුරු යාවත්කාලීන කරන්න",
+    "direct_edit_hint":               "දුරකථනය, විද්‍යුත් තැපෑල සහ ඡායාරූපය අනුමැතිය නොමැතිව යාවත්කාලීන වේ",
+    "photo_hint":                     "උපරිම 5MB. ස්වයංක්‍රීයව සම්පීඩනය කෙරේ.",
+    "save_changes":                   "වෙනස්කම් සුරකින්න",
+    "request_profile_change":         "පැතිකඩ වෙනස් කිරීමේ ඉල්ලීමක් ඉදිරිපත් කරන්න",
+    "change_request_hint":            "ඔබට වෙනස් කිරීමට අවශ්‍ය ක්ෂේත්‍ර තෝරන්න. කලාපීය නිලධාරියෙකු අනුමත කරනු ඇත.",
+    "select_fields_to_change":        "වෙනස් කළ යුතු ක්ෂේත්‍ර තෝරන්න:",
+    "change_request_approval_note":   "ඔබගේ ඉල්ලීම කලාපීය නිලධාරියෙකු විසින් සමාලෝචනය කරනු ලැබේ.",
+    "submit_change_request":          "වෙනස් කිරීමේ ඉල්ලීම ඉදිරිපත් කරන්න",
+    "pending_request_exists_title":   "ඔබට අපේක්ෂිත ඉල්ලීමක් ඇත",
+    "pending_request_hint":           "මෙම ඉල්ලීම විසඳෙන තෙක් නව ඉල්ලීමක් ඉදිරිපත් කළ නොහැක.",
+    "request_history":                "ඉල්ලීම් ඉතිහාසය",
+    "no_teacher_record":              "ඔබගේ ගිණුමට ගුරු වාර්තාවක් සම්බන්ධ නොවේ. පරිපාලකයා අමතන්න.",
+    "pending_request_exists":         "ඔබට දැනටමත් අපේක්ෂිත ඉල්ලීමක් ඇත.",
+    "select_at_least_one_field":      "කරුණාකර අවම වශයෙන් ක්ෂේත්‍රයක් තෝරන්න.",
+    "no_changes_detected":            "කිසිදු වෙනසක් හඳුනාගත නොහැකි විය.",
+    "change_request_submitted":       "ඔබගේ වෙනස් කිරීමේ ඉල්ලීම සාර්ථකව ඉදිරිපත් කරන ලදී.",
+    "current":                        "වර්තමාන",
+    "reference":                      "යොමු",
+    "submitted":                      "ඉදිරිපත් කළ",
+    "pending":                        "අපේක්ෂිත",
+    "approved":                       "අනුමත",
+    "rejected":                       "ප්‍රතික්ෂේප",
+    "birthday":                       "උපන් දිනය",
+    "photo":                          "පැතිකඩ ඡායාරූපය",
+
+    "principal_portal_link": "Principal Portal",
+"teacher_portal_link": "Teacher Portal"
 
 }

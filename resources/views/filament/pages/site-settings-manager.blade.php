@@ -4,7 +4,7 @@
         {{ $this->form }}
     </form>
 
-    {{-- Six save buttons — one per tab, clearly labelled --}}
+    {{-- Seven save buttons — one per tab, clearly labelled --}}
     <div style="display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 10px; margin-top: 24px;">
 
         <button wire:click="saveGeneral" wire:loading.attr="disabled"
@@ -35,6 +35,12 @@
                 style="padding: 9px 20px; border-radius: 8px; border: none; background: var(--color-primary, #1a3a6b); color: white; font-size: 13px; font-weight: 500; cursor: pointer;">
             <span wire:loading.remove wire:target="saveFavicon">Save Favicon</span>
             <span wire:loading wire:target="saveFavicon">Saving...</span>
+        </button>
+
+        <button wire:click="savePortalLogin" wire:loading.attr="disabled"
+                 style="padding: 9px 20px; border-radius: 8px; border: none; background: var(--color-primary, #1a3a6b); color: white; font-size: 13px; font-weight: 500; cursor: pointer;">
+            <span wire:loading.remove wire:target="savePortalLogin">Save Portal Login</span>
+            <span wire:loading wire:target="savePortalLogin">Saving...</span>
         </button>
 
         <button wire:click="saveFooter" wire:loading.attr="disabled"

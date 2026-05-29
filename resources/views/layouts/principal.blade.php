@@ -6,6 +6,7 @@
     <meta name="theme-color" content="{{ $theme['primary'] ?? '#1a3a6b' }}">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta name="apple-mobile-web-app-title" content="{{ __('principal_portal') }}">
     <title>@yield('title', __('principal_portal')) — {{ config('app.name') }}</title>
     <link rel="icon" type="image/png" href="{{ $faviconUrl ?? asset('favicon.png') }}">
