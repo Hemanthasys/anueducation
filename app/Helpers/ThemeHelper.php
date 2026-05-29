@@ -3,9 +3,16 @@
 namespace App\Helpers;
 
 use App\Models\SiteSetting;
+use Illuminate\Support\Facades\Cache;
 
 class ThemeHelper
 {
+    // Cache key
+    const CACHE_KEY = 'site_theme';
+
+    // Cache duration in seconds (1 hour)
+    const CACHE_TTL = 3600;
+
     public static function getTheme(): array
     {
         $themes = [
@@ -59,7 +66,20 @@ class ThemeHelper
             ],
         ];
 
-        $key = SiteSetting::get('theme', 'royal_blue_gold');
+        // Cache the theme key — only hits DB once per hour
+        $key = Cache::remember(self::CACHE_KEY, self::CACHE_TTL, function () {
+            return SiteSetting::get('theme', 'royal_blue_gold');
+        });
+
         return $themes[$key] ?? $themes['royal_blue_gold'];
+    }
+
+    /**
+     * Call this whenever the theme is changed in admin panel.
+     * Clears the cache so the new theme loads immediately.
+     */
+    public static function clearCache(): void
+    {
+        Cache::forget(self::CACHE_KEY);
     }
 }

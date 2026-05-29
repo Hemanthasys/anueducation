@@ -656,6 +656,10 @@
    "load_error":                 "Failed to load data. Please try again.",
    "error_occurred":             "An error occurred. Please try again.",
       "optional":                   "(optional)",
-   "update_basic_info":          "Update Basic Info"
+   "update_basic_info":          "Update Basic Info",
+
+   "nic_format_hint": "(9 digits+V/X or 12 digits)",
+"validation_nic_invalid": "NIC must be 9 digits followed by V or X, or 12 digits.",
+"validation_phone_invalid": "Phone must be 10 digits starting with 0."
 
     }

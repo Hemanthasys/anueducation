@@ -9,16 +9,25 @@
         {{ __('full_name') }} <span style="color:#ef4444;">*</span>
     </label>
     <input type="text" name="name" value="{{ old('name') }}" required
-        style="width:100%;padding:9px 13px;border:1.5px solid #d1d5db;border-radius:8px;font-size:14px;color:#111827;outline:none;box-sizing:border-box;"
+        style="width:100%;padding:9px 13px;border:1.5px solid {{ $errors->has('name') ? '#ef4444' : '#d1d5db' }};border-radius:8px;font-size:14px;color:#111827;outline:none;box-sizing:border-box;"
         placeholder="{{ __('enter_full_name') }}">
+    @error('name')
+        <p style="color:#ef4444;font-size:12px;margin:4px 0 0;">{{ $message }}</p>
+    @enderror
 </div>
 
 {{-- NIC --}}
 <div style="margin-bottom:15px;">
-    <label style="font-size:13px;font-weight:600;color:#374151;display:block;margin-bottom:5px;">{{ __('nic') }}</label>
+    <label style="font-size:13px;font-weight:600;color:#374151;display:block;margin-bottom:5px;">
+        {{ __('nic') }}
+        <span style="font-size:11px;font-weight:400;color:#9ca3af;margin-left:4px;">{{ __('nic_format_hint') }}</span>
+    </label>
     <input type="text" name="nic" value="{{ old('nic') }}" maxlength="12"
-        style="width:100%;padding:9px 13px;border:1.5px solid #d1d5db;border-radius:8px;font-size:14px;color:#111827;outline:none;box-sizing:border-box;"
-        placeholder="e.g. 199012345678">
+        style="width:100%;padding:9px 13px;border:1.5px solid {{ $errors->has('nic') ? '#ef4444' : '#d1d5db' }};border-radius:8px;font-size:14px;color:#111827;outline:none;box-sizing:border-box;"
+        placeholder="e.g. 199012345678 or 900123456V">
+    @error('nic')
+        <p style="color:#ef4444;font-size:12px;margin:4px 0 0;">{{ $message }}</p>
+    @enderror
 </div>
 
 {{-- Gender + Phone --}}
@@ -34,9 +43,12 @@
     </div>
     <div>
         <label style="font-size:13px;font-weight:600;color:#374151;display:block;margin-bottom:5px;">{{ __('phone') }}</label>
-        <input type="text" name="phone" value="{{ old('phone') }}" maxlength="15"
-            style="width:100%;padding:9px 13px;border:1.5px solid #d1d5db;border-radius:8px;font-size:14px;color:#111827;outline:none;box-sizing:border-box;"
-            placeholder="07X XXXXXXX">
+        <input type="text" name="phone" value="{{ old('phone') }}" maxlength="10"
+            style="width:100%;padding:9px 13px;border:1.5px solid {{ $errors->has('phone') ? '#ef4444' : '#d1d5db' }};border-radius:8px;font-size:14px;color:#111827;outline:none;box-sizing:border-box;"
+            placeholder="07XXXXXXXX">
+        @error('phone')
+            <p style="color:#ef4444;font-size:11px;margin:3px 0 0;">{{ $message }}</p>
+        @enderror
     </div>
 </div>
 
@@ -46,12 +58,15 @@
         {{ __('role') }} <span style="color:#ef4444;">*</span>
     </label>
     <select name="non_academic_role" required
-        style="width:100%;padding:9px 13px;border:1.5px solid #d1d5db;border-radius:8px;font-size:14px;color:#111827;outline:none;box-sizing:border-box;background:#fff;">
+        style="width:100%;padding:9px 13px;border:1.5px solid {{ $errors->has('non_academic_role') ? '#ef4444' : '#d1d5db' }};border-radius:8px;font-size:14px;color:#111827;outline:none;box-sizing:border-box;background:#fff;">
         <option value="">— {{ __('select_role') }} —</option>
         @foreach($nonAcademicRoles as $val => $lbl)
             <option value="{{ $val }}" {{ old('non_academic_role') == $val ? 'selected' : '' }}>{{ $lbl }}</option>
         @endforeach
     </select>
+    @error('non_academic_role')
+        <p style="color:#ef4444;font-size:12px;margin:4px 0 0;">{{ $message }}</p>
+    @enderror
 </div>
 
 {{-- Appointment Type --}}

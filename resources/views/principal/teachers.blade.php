@@ -320,9 +320,14 @@
 
                 {{-- NIC --}}
                 <div style="margin-bottom:14px;">
-                    <label style="font-size:13px;font-weight:600;color:#374151;display:block;margin-bottom:5px;">{{ __('nic') }}</label>
+                    <label style="font-size:13px;font-weight:600;color:#374151;display:block;margin-bottom:5px;">
+                        {{ __('nic') }}
+                        <span style="font-size:11px;font-weight:400;color:#9ca3af;margin-left:4px;">{{ __('nic_format_hint') }}</span>
+                    </label>
                     <input type="text" name="nic" id="edit-nic" maxlength="12"
-                        style="width:100%;padding:9px 13px;border:1.5px solid #d1d5db;border-radius:8px;font-size:14px;color:#111827;outline:none;box-sizing:border-box;">
+                        style="width:100%;padding:9px 13px;border:1.5px solid #d1d5db;border-radius:8px;font-size:14px;color:#111827;outline:none;box-sizing:border-box;"
+                        placeholder="e.g. 199012345678 or 900123456V">
+                    <p id="edit-nic-error" style="color:#ef4444;font-size:12px;margin:4px 0 0;display:none;"></p>
                 </div>
 
                 {{-- Gender + Phone --}}
@@ -338,8 +343,10 @@
                     </div>
                     <div>
                         <label style="font-size:13px;font-weight:600;color:#374151;display:block;margin-bottom:5px;">{{ __('phone') }}</label>
-                        <input type="text" name="phone" id="edit-phone" maxlength="15"
-                            style="width:100%;padding:9px 13px;border:1.5px solid #d1d5db;border-radius:8px;font-size:14px;color:#111827;outline:none;box-sizing:border-box;">
+                        <input type="text" name="phone" id="edit-phone" maxlength="10"
+                            style="width:100%;padding:9px 13px;border:1.5px solid #d1d5db;border-radius:8px;font-size:14px;color:#111827;outline:none;box-sizing:border-box;"
+                            placeholder="07XXXXXXXX">
+                        <p id="edit-phone-error" style="color:#ef4444;font-size:11px;margin:3px 0 0;display:none;"></p>
                     </div>
                 </div>
 
@@ -409,7 +416,8 @@
                     </div>
                 </div>
 
-                <button type="submit"
+                <button type="button"
+                    onclick="submitEditForm()"
                     style="width:100%;padding:11px;background:#374151;color:#fff;font-size:14px;font-weight:700;border:none;border-radius:10px;cursor:pointer;">
                     {{ __('update_basic_info') }}
                 </button>
@@ -509,6 +517,26 @@ function setAddStaffType(type) {
     if (!isNonAc) {
         document.getElementById('add-input-staff-type').value = type;
     }
+}
+
+// ── Client-side NIC/phone validation for edit drawer ─────────────────
+function validateNic(value) {
+    if (!value) return true; // optional
+    return /^(\d{9}[VvXx]|\d{12})$/.test(value);
+}
+function validatePhone(value) {
+    if (!value) return true; // optional
+    return /^0[0-9]{9}$/.test(value);
+}
+function clearEditErrors() {
+    ['edit-nic-error','edit-phone-error'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) { el.style.display = 'none'; el.textContent = ''; }
+    });
+}
+function showEditFieldError(id, msg) {
+    const el = document.getElementById(id);
+    if (el) { el.textContent = msg; el.style.display = 'block'; }
 }
 
 // ── Load teacher data into edit drawer ───────────────────────────────

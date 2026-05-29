@@ -7,6 +7,7 @@ use BackedEnum;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Filament\Support\Icons\Heroicon;
+use App\Helpers\ThemeHelper;
 
 class ThemeManager extends Page
 {
@@ -44,6 +45,7 @@ class ThemeManager extends Page
     {
         $this->selectedTheme = $theme;
         SiteSetting::set('theme', $theme);
+        ThemeHelper::clearCache();
 
         Notification::make()
             ->title('Theme updated successfully!')

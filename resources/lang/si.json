@@ -551,6 +551,10 @@
    "basic_information":          "මූලික තොරතුරු",
    "load_error":                 "දත්ත පූරණය කිරීමට නොහැකි විය.",
    "error_occurred":             "දෝෂයක් ඇති විය. නැවත උත්සාහ කරන්න.",
-   "optional":                   "(විකල්ප)"
+   "optional":                   "(විකල්ප)",
+
+   "nic_format_hint": "(අංක 9+V/X හෝ අංක 12)",
+"validation_nic_invalid": "NIC ආකෘතිය වැරදිය. අංක 9 + V/X හෝ අංක 12 විය යුතුය.",
+"validation_phone_invalid": "දුරකථන අංකය 0 සමඟ ආරම්භ වන ඉලක්කම් 10ක් විය යුතුය."
 
 }

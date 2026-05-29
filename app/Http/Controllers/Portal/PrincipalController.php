@@ -18,6 +18,7 @@ use App\Models\Teacher;
 use App\Models\SchoolStaff;
 use App\Models\TeachingSubject;
 use App\Models\LookupValue;
+use App\Rules\SriLankaNic;
 
 class PrincipalController extends Controller
 {
@@ -382,9 +383,9 @@ class PrincipalController extends Controller
 
         $validated = $request->validate([
             'name'                 => ['required', 'string', 'max:255'],
-            'nic'                  => ['nullable', 'string', 'max:12'],
+            'nic'                  => ['nullable', new SriLankaNic],
             'gender'               => ['nullable', 'in:M,F'],
-            'phone'                => ['nullable', 'string', 'max:15'],
+            'phone'                => ['nullable', 'regex:/^0[0-9]{9}$/'],
             'staff_type'           => ['required', 'in:teacher,vice_principal'],
             'appointed_subject_id' => ['nullable', 'exists:teaching_subjects,id'],
             'appointment_type'     => ['nullable', 'string', 'max:20'],
@@ -416,9 +417,9 @@ class PrincipalController extends Controller
 
         $validated = $request->validate([
             'name'               => ['required', 'string', 'max:255'],
-            'nic'                => ['nullable', 'string', 'max:12'],
+            'nic'                => ['nullable', new SriLankaNic],
             'gender'             => ['nullable', 'in:M,F'],
-            'phone'              => ['nullable', 'string', 'max:15'],
+            'phone'              => ['nullable', 'regex:/^0[0-9]{9}$/'],
             'non_academic_role'  => ['required', 'string', 'max:30'],
             'appointment_type'   => ['nullable', 'string', 'max:20'],
             'joined_school_date' => ['nullable', 'date', 'before_or_equal:today'],
@@ -477,9 +478,9 @@ class PrincipalController extends Controller
 
         $validated = $request->validate([
             'name'                 => ['required', 'string', 'max:255'],
-            'nic'                  => ['nullable', 'string', 'max:12'],
+            'nic'                  => ['nullable', new SriLankaNic],
             'gender'               => ['nullable', 'in:M,F'],
-            'phone'                => ['nullable', 'string', 'max:15'],
+            'phone'                => ['nullable', 'regex:/^0[0-9]{9}$/'],
             'staff_type'           => ['required', 'in:teacher,vice_principal'],
             'appointed_subject_id' => ['nullable', 'exists:teaching_subjects,id'],
             'appointment_type'     => ['nullable', 'string', 'max:20'],
