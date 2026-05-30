@@ -11,7 +11,7 @@ class Teacher extends Model
         'name', 'nic', 'gender', 'phone', 'email', 'birthday', 'photo',
         'salary_slip_no', 'appointed_date', 'joined_school_date', 'designation',
         'staff_type', 'appointment_type', 'service_grade',
-        'is_active',
+        'is_active','attached_school_id','is_attached',
     ];
 
     protected $casts = [
@@ -19,6 +19,7 @@ class Teacher extends Model
         'appointed_date'     => 'date',
         'joined_school_date' => 'date',
         'is_active'          => 'boolean',
+        'is_attached' => 'boolean',
     ];
 
     // ── Relationships ─────────────────────────────────────────────────
@@ -58,6 +59,23 @@ class Teacher extends Model
         return $this->hasMany(ProfileChangeRequest::class);
     }
 
+    // ── Attachment relationships ──────────────────────────────────────
+ 
+    public function attachedSchool()
+    {
+        return $this->belongsTo(School::class, 'attached_school_id');
+    }
+ 
+    public function attachments()
+    {
+        return $this->hasMany(TeacherAttachment::class);
+    }
+ 
+    public function activeAttachment()
+    {
+        return $this->hasOne(TeacherAttachment::class)->where('status', 'active');
+    }
+
     // Officially appointed subject (single — from appointment letter)
     public function appointedSubject()
     {
@@ -74,7 +92,7 @@ class Teacher extends Model
                 'teaching_subject_id'
             )
             ->using(TeacherTeachingSubject::class)
-            ->withPivot('role')
+            ->withPivot('role', 'periods_per_week')
             ->withTimestamps();
     }
 
@@ -88,6 +106,35 @@ class Teacher extends Model
     public function subSubjects()
     {
         return $this->teachingSubjects()->wherePivot('role', 'sub');
+    }
+
+    // ── Helpers ───────────────────────────────────────────────────────
+ 
+    /**
+     * Get the school where this teacher is currently working.
+     * Returns attached school if attached, otherwise permanent school.
+     */
+    public function currentWorkingSchool(): ?School
+    {
+        return $this->is_attached
+            ? $this->attachedSchool
+            : $this->school;
+    }
+ 
+    /**
+     * Count of subjects this teacher teaches (from pivot table).
+     */
+    public function getSubjectCountAttribute(): int
+    {
+        return $this->teachingSubjects()->count();
+    }
+ 
+    /**
+     * Check if this teacher is attached to a given school.
+     */
+    public function isAttachedToSchool(int $schoolId): bool
+    {
+        return $this->is_attached && $this->attached_school_id === $schoolId;
     }
 
     // ── Accessors ─────────────────────────────────────────────────────
@@ -114,6 +161,14 @@ class Teacher extends Model
             'F' => app()->getLocale() === 'si' ? 'ගැහැණු' : 'Female',
             default => '—',
         };
+    }
+
+        /**
+     * Total periods per week across all teaching subjects.
+     */
+    public function getTotalPeriodsAttribute(): int
+    {
+        return $this->teachingSubjects->sum('pivot.periods_per_week');
     }
 
     // ── Scopes ────────────────────────────────────────────────────────

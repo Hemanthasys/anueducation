@@ -19,6 +19,8 @@ use App\Models\SchoolStaff;
 use App\Models\TeachingSubject;
 use App\Models\LookupValue;
 use App\Rules\SriLankaNic;
+use App\Models\TeacherAttachment;
+use App\Models\School;
 
 class PrincipalController extends Controller
 {
@@ -34,7 +36,6 @@ class PrincipalController extends Controller
         if ($this->guard()->check() && $this->guard()->user()->hasRole('school_principal')) {
             return redirect()->route('principal.dashboard');
         }
-        // Apply locale from session so language switcher works on login page
         app()->setLocale(session('locale', config('app.locale')));
         $theme = ThemeHelper::getTheme();
         return view('principal.login', compact('theme'));
@@ -113,7 +114,7 @@ class PrincipalController extends Controller
         return view('principal.school', compact('user', 'school', 'theme', 'latestStats'));
     }
 
-    // ── Update School — handles three sections ─────────────────────────
+    // ── Update School ──────────────────────────────────────────────────
 
     public function updateSchool(Request $request)
     {
@@ -126,32 +127,24 @@ class PrincipalController extends Controller
 
         $section = $request->input('section');
 
-        // ── Section 1: Basic Info ──────────────────────────────────────
         if ($section === 'basic_info') {
-
             if (!app(\App\Services\StatisticsService::class)->canSubmit($school->id)) {
                 return back()->with('error', __('submissions_locked'));
             }
-
             $request->validate([
                 'phone'       => 'nullable|string|max:15',
                 'email'       => 'nullable|email|max:255',
                 'school_logo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             ]);
-
             $old  = $school->only(['phone', 'email', 'school_logo']);
             $data = $request->only(['phone', 'email']);
-
             if ($request->hasFile('school_logo')) {
                 if ($school->school_logo) {
                     \Storage::disk('public')->delete($school->school_logo);
                 }
-                $data['school_logo'] = $request->file('school_logo')
-                    ->store('school-logos', 'public');
+                $data['school_logo'] = $request->file('school_logo')->store('school-logos', 'public');
             }
-
             $school->update($data);
-
             AuditLogService::log('school_info', 'updated', [
                 'school_id'  => $school->id,
                 'record_id'  => $school->id,
@@ -159,23 +152,18 @@ class PrincipalController extends Controller
                 'new_values' => $data,
                 'notes'      => 'Principal confirmed responsibility for this data.',
             ]);
-
             return back()->with('success', __('school_info_updated'));
         }
 
-        // ── Section 2: Student Stats ───────────────────────────────────
         if ($section === 'student_stats') {
-
             if (!app(\App\Services\StatisticsService::class)->canSubmit($school->id)) {
                 return back()->with('error', __('submissions_locked'));
             }
-
             $request->validate([
                 'academic_year'  => 'required|digits:4|integer|min:2000|max:2099',
                 'disabled_boys'  => 'nullable|integer|min:0',
                 'disabled_girls' => 'nullable|integer|min:0',
             ]);
-
             $data = [
                 'school_id'      => $school->id,
                 'academic_year'  => $request->academic_year,
@@ -183,25 +171,18 @@ class PrincipalController extends Controller
                 'disabled_girls' => $request->disabled_girls ?? 0,
                 'updated_by'     => $user->id,
             ];
-
             foreach ($school->gradesInSpan() as $grade) {
                 $data["grade_{$grade}_boys"]  = $request->input("grade_{$grade}_boys", 0);
                 $data["grade_{$grade}_girls"] = $request->input("grade_{$grade}_girls", 0);
             }
-
             $existing = SchoolStat::where('school_id', $school->id)
-                ->where('academic_year', $request->academic_year)
-                ->first();
-
-            $old  = $existing ? $existing->toArray() : [];
-
+                ->where('academic_year', $request->academic_year)->first();
+            $old = $existing ? $existing->toArray() : [];
             $stat = SchoolStat::updateOrCreate(
                 ['school_id' => $school->id, 'academic_year' => $request->academic_year],
                 $data
             );
-
             app(\App\Services\StatisticsService::class)->markSchoolSubmitted($school->id);
-
             AuditLogService::log('student_stats', $existing ? 'updated' : 'created', [
                 'school_id'  => $school->id,
                 'record_id'  => $stat->id,
@@ -209,75 +190,54 @@ class PrincipalController extends Controller
                 'new_values' => $data,
                 'notes'      => 'Principal confirmed responsibility for this data.',
             ]);
-
             return back()->with('success', __('student_stats_saved'));
         }
 
-        // ── Section 3: Physical Resources ─────────────────────────────
         if ($section === 'physical_resources') {
-
             if (!app(\App\Services\StatisticsService::class)->canSubmit($school->id)) {
                 return back()->with('error', __('submissions_locked'));
             }
-
             $boolFields = [
-                'multi_story_buildings', 'library', 'staff_room', 'administrative_block',
-                'hostel', 'teachers_quarters', 'canteen', 'electricity', 'drinking_water',
-                'hand_washing', 'solar_power', 'waste_management', 'computer_lab',
-                'internet_access', 'wifi', 'school_mis', 'cctv', 'digital_attendance',
-                'science_lab', 'home_economics_unit', 'music_room', 'dancing_room',
-                'playground', 'volleyball_court', 'netball_court', 'athletic_track',
-                'cctv_monitoring', 'security_fence', 'fire_extinguishers',
-                'emergency_exit_plan', 'disaster_preparedness', 'student_safety_committee',
-                'public_transport_access', 'school_van', 'disabled_accessibility',
+                'multi_story_buildings','library','staff_room','administrative_block',
+                'hostel','teachers_quarters','canteen','electricity','drinking_water',
+                'hand_washing','solar_power','waste_management','computer_lab',
+                'internet_access','wifi','school_mis','cctv','digital_attendance',
+                'science_lab','home_economics_unit','music_room','dancing_room',
+                'playground','volleyball_court','netball_court','athletic_track',
+                'cctv_monitoring','security_fence','fire_extinguishers',
+                'emergency_exit_plan','disaster_preparedness','student_safety_committee',
+                'public_transport_access','school_van','disabled_accessibility',
             ];
-
             $numFields = [
-                'classrooms_count', 'smart_classrooms_count', 'toilets_boys',
-                'toilets_girls', 'toilets_disabled', 'computers_count', 'laptops_count',
-                'smart_boards_count', 'projectors_count', 'printers_count',
+                'classrooms_count','smart_classrooms_count','toilets_boys',
+                'toilets_girls','toilets_disabled','computers_count','laptops_count',
+                'smart_boards_count','projectors_count','printers_count',
             ];
-
             $data = ['updated_by' => $user->id];
-
-            foreach ($boolFields as $field) {
-                $data[$field] = $request->boolean($field);
-            }
-
-            foreach ($numFields as $field) {
-                $data[$field] = $request->input($field, 0);
-            }
-
+            foreach ($boolFields as $field) { $data[$field] = $request->boolean($field); }
+            foreach ($numFields  as $field) { $data[$field] = $request->input($field, 0); }
             $data['water_supply_type']     = $request->input('water_supply_type', 'none');
             $data['internet_speed']        = $request->input('internet_speed');
             $data['internet_type']         = $request->input('internet_type') ?: null;
             $data['access_road_condition'] = $request->input('access_road_condition') ?: null;
-
             $existing = SchoolPhysicalResource::where('school_id', $school->id)->first();
             $old      = $existing ? $existing->toArray() : [];
-
             $res = SchoolPhysicalResource::updateOrCreate(
                 ['school_id' => $school->id],
                 array_merge($data, ['school_id' => $school->id])
             );
-
             $progFields = [
-                'special_education_unit', 'counseling_unit', 'school_health_unit',
-                'first_aid_room', 'midday_meal_program', 'dengue_prevention',
-                'scouts', 'girl_guides', 'cadet_corps', 'school_band', 'dancing_team',
-                'drama_society', 'media_unit', 'debate_club', 'environmental_society', 'it_club',
+                'special_education_unit','counseling_unit','school_health_unit',
+                'first_aid_room','midday_meal_program','dengue_prevention',
+                'scouts','girl_guides','cadet_corps','school_band','dancing_team',
+                'drama_society','media_unit','debate_club','environmental_society','it_club',
             ];
-
             $progData = ['updated_by' => $user->id];
-            foreach ($progFields as $field) {
-                $progData[$field] = $request->boolean($field);
-            }
-
+            foreach ($progFields as $field) { $progData[$field] = $request->boolean($field); }
             SchoolResourceProgram::updateOrCreate(
                 ['school_id' => $school->id],
                 array_merge($progData, ['school_id' => $school->id])
             );
-
             AuditLogService::log('physical_resources', $existing ? 'updated' : 'created', [
                 'school_id'  => $school->id,
                 'record_id'  => $res->id,
@@ -285,7 +245,6 @@ class PrincipalController extends Controller
                 'new_values' => $data,
                 'notes'      => 'Principal confirmed responsibility for this data.',
             ]);
-
             return back()->with('success', __('physical_resources_saved'));
         }
 
@@ -320,7 +279,7 @@ class PrincipalController extends Controller
         return view('principal.students', compact('user', 'school', 'theme', 'latestStats'));
     }
 
-    // ── Term Tests — placeholder ───────────────────────────────────────
+    // ── Term Tests ─────────────────────────────────────────────────────
 
     public function termTests()
     {
@@ -342,21 +301,44 @@ class PrincipalController extends Controller
                 ->with('error', __('no_school_assigned'));
         }
 
-        // VPs first, then teachers — active only
-        $academicStaff = Teacher::with(['appointedSubject', 'teachingSubjects'])
+        // Permanent staff — VPs first, then teachers
+        $academicStaff = Teacher::with(['appointedSubject', 'teachingSubjects', 'attachedSchool'])
             ->where('school_id', $school->id)
             ->where('is_active', true)
             ->orderByRaw("FIELD(staff_type, 'vice_principal', 'teacher')")
             ->orderBy('name')
             ->get();
 
+        // Teachers from other schools attached HERE
+        $attachedTeachers = Teacher::with(['appointedSubject', 'school', 'activeAttachment.salarySchool'])
+            ->where('attached_school_id', $school->id)
+            ->where('is_attached', true)
+            ->where('is_active', true)
+            ->orderBy('name')
+            ->get();
+
+        // Non-academic staff
         $nonAcademicStaff = SchoolStaff::where('school_id', $school->id)
             ->where('is_active', true)
             ->orderBy('non_academic_role')
             ->orderBy('name')
             ->get();
 
-        // Dropdown data grouped by level for optgroups
+        // All other schools for attachment dropdown
+        $schools = School::where('is_active', true)
+            ->where('id', '!=', $school->id)
+            ->orderBy('name_en')
+            ->get(['id', 'name_en', 'name_si']);
+
+        // Attachment reasons
+        $attachmentReasons = [
+            'sickness'        => __('attachment_reason_sickness'),
+            'staff_shortage'  => __('attachment_reason_shortage'),
+            'special_request' => __('attachment_reason_special'),
+            'other'           => __('attachment_reason_other'),
+        ];
+
+        // Dropdown data for Add Staff drawer
         $teachingSubjects = TeachingSubject::groupedForDropdown();
         $appointmentTypes = LookupValue::optionsFor('appointment_type');
         $serviceGrades    = LookupValue::optionsFor('service_grade');
@@ -364,7 +346,10 @@ class PrincipalController extends Controller
 
         return view('principal.teachers', compact(
             'academicStaff',
+            'attachedTeachers',
             'nonAcademicStaff',
+            'schools',
+            'attachmentReasons',
             'teachingSubjects',
             'appointmentTypes',
             'serviceGrades',
@@ -461,9 +446,10 @@ class PrincipalController extends Controller
             'joined_school_date'   => $teacher->joined_school_date?->format('Y-m-d'),
             'is_active'            => $teacher->is_active,
             'teaching_subjects'    => $teacher->teachingSubjects->map(fn($s) => [
-                'id'   => $s->id,
-                'name' => $s->name_en,
-                'role' => $s->pivot->role,
+                'id'               => $s->id,
+                'name'             => $s->name_en,
+                'role'             => $s->pivot->role,
+                'periods_per_week' => $s->pivot->periods_per_week,
             ]),
         ]);
     }
@@ -503,27 +489,37 @@ class PrincipalController extends Controller
     {
         $school = $this->guard()->user()->school;
 
-        if (! $school || $teacher->school_id !== $school->id) {
+        // Allow salary school OR attached working school to manage subjects
+        $isAllowed = $school && (
+            $teacher->school_id === $school->id ||
+            ($teacher->is_attached && $teacher->attached_school_id === $school->id)
+        );
+
+        if (! $isAllowed) {
             abort(403);
         }
 
         $validated = $request->validate([
             'teaching_subject_id' => ['required', 'exists:teaching_subjects,id'],
             'role'                => ['required', 'in:main,sub'],
+            'periods_per_week'    => ['nullable', 'integer', 'min:0', 'max:40'],
         ]);
 
-        // syncWithoutDetaching updates role if already exists, adds if not
         $teacher->teachingSubjects()->syncWithoutDetaching([
-            $validated['teaching_subject_id'] => ['role' => $validated['role']]
+            $validated['teaching_subject_id'] => [
+                'role'             => $validated['role'],
+                'periods_per_week' => $validated['periods_per_week'] ?? 0,
+            ]
         ]);
 
         return response()->json([
             'success'  => true,
             'message'  => __('subject_added_success'),
             'subjects' => $teacher->fresh()->teachingSubjects->map(fn($s) => [
-                'id'   => $s->id,
-                'name' => $s->name_en,
-                'role' => $s->pivot->role,
+                'id'               => $s->id,
+                'name'             => $s->name_en,
+                'role'             => $s->pivot->role,
+                'periods_per_week' => $s->pivot->periods_per_week,
             ]),
         ]);
     }
@@ -534,7 +530,13 @@ class PrincipalController extends Controller
     {
         $school = $this->guard()->user()->school;
 
-        if (! $school || $teacher->school_id !== $school->id) {
+        // Allow salary school OR attached working school
+        $isAllowed = $school && (
+            $teacher->school_id === $school->id ||
+            ($teacher->is_attached && $teacher->attached_school_id === $school->id)
+        );
+
+        if (! $isAllowed) {
             abort(403);
         }
 
@@ -543,6 +545,108 @@ class PrincipalController extends Controller
         return response()->json([
             'success' => true,
             'message' => __('subject_removed_success'),
+        ]);
+    }
+
+    // ── Create attachment ──────────────────────────────────────────────
+
+    public function storeAttachment(Request $request, Teacher $teacher)
+    {
+        $school = $this->guard()->user()->school;
+
+        // Only salary school principal can create attachment
+        if (! $school || $teacher->school_id !== $school->id) {
+            abort(403, __('attachment_only_salary_school'));
+        }
+
+        if ($teacher->is_attached) {
+            return redirect()->route('principal.teachers')
+                ->with('error', __('teacher_already_attached'));
+        }
+
+        $validated = $request->validate([
+            'working_school_id'     => ['nullable', 'exists:schools,id'],
+            'working_school_manual' => ['nullable', 'string', 'max:255'],
+            'reason'                => ['required', 'string', 'max:50'],
+            'reason_notes'          => ['nullable', 'string', 'max:500'],
+            'attached_from'         => ['required', 'date'],
+            'attached_to'           => ['nullable', 'date', 'after:attached_from'],
+        ]);
+
+        if (empty($validated['working_school_id']) && empty($validated['working_school_manual'])) {
+            return back()->with('error', __('attachment_school_required'));
+        }
+
+        TeacherAttachment::createWithHistory([
+            ...$validated,
+            'created_by' => $this->guard()->id(),
+        ], $teacher);
+
+        return redirect()->route('principal.teachers')
+            ->with('success', __('attachment_created_success'));
+    }
+
+    // ── End attachment ─────────────────────────────────────────────────
+
+    public function endAttachment(Request $request, Teacher $teacher)
+    {
+        $school = $this->guard()->user()->school;
+
+        if (! $school || $teacher->school_id !== $school->id) {
+            abort(403);
+        }
+
+        $attachment = $teacher->activeAttachment;
+
+        if (! $attachment) {
+            return redirect()->route('principal.teachers')
+                ->with('error', __('no_active_attachment'));
+        }
+
+        $request->validate([
+            'end_notes' => ['nullable', 'string', 'max:500'],
+        ]);
+
+        $attachment->endAttachment($request->end_notes);
+
+        return redirect()->route('principal.teachers')
+            ->with('success', __('attachment_ended_success'));
+    }
+
+    // ── Get attachment data for drawer (JSON) ─────────────────────────
+
+    public function attachmentData(Teacher $teacher)
+    {
+        $school = $this->guard()->user()->school;
+
+        if (! $school || $teacher->school_id !== $school->id) {
+            abort(403);
+        }
+
+        $attachment = $teacher->activeAttachment()->with(['workingSchool'])->first();
+
+        return response()->json([
+            'is_attached' => $teacher->is_attached,
+            'attachment'  => $attachment ? [
+                'id'                  => $attachment->id,
+                'working_school_name' => $attachment->working_school_name,
+                'reason'              => $attachment->reason,
+                'reason_notes'        => $attachment->reason_notes,
+                'attached_from'       => $attachment->attached_from?->format('d M Y'),
+                'attached_to'         => $attachment->attached_to?->format('d M Y') ?? __('indefinite'),
+                'status'              => $attachment->status,
+            ] : null,
+            'history' => $teacher->attachments()
+                ->with(['workingSchool'])
+                ->orderBy('attached_from', 'desc')
+                ->get()
+                ->map(fn($a) => [
+                    'school' => $a->working_school_name,
+                    'from'   => $a->attached_from?->format('d M Y'),
+                    'to'     => $a->attached_to?->format('d M Y') ?? __('indefinite'),
+                    'status' => $a->status,
+                    'reason' => $a->reason,
+                ]),
         ]);
     }
 
@@ -582,7 +686,7 @@ class PrincipalController extends Controller
         return view('principal.downloads', compact('user', 'school', 'downloads', 'theme'));
     }
 
-    // ── Projects — placeholder ─────────────────────────────────────────
+    // ── Projects ───────────────────────────────────────────────────────
 
     public function projects()
     {

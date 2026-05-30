@@ -73,7 +73,9 @@ Route::post('/change-password', [PasswordChangeController::class, 'update'])->na
 Route::get('/lang/{locale}', function ($locale) {
     if (in_array($locale, ['en', 'si'])) {
         session(['locale' => $locale]);
+        app()->setLocale($locale);
     }
+    // Redirect back to the same page (login page stays on login page)
     $back = url()->previous();
     $fallback = url('/principal');
     return redirect($back ?: $fallback);
@@ -112,6 +114,9 @@ Route::prefix('principal')->name('principal.')->group(function () {
         Route::put('teachers/{teacher}',                         [PrincipalController::class, 'updateTeacher'])->name('teachers.update');
         Route::post('teachers/{teacher}/subjects',               [PrincipalController::class, 'addTeachingSubject'])->name('teachers.subjects.add');
         Route::delete('teachers/{teacher}/subjects/{subject}',   [PrincipalController::class, 'removeTeachingSubject'])->name('teachers.subjects.remove');
+        Route::post('teachers/{teacher}/attachments',              [PrincipalController::class, 'storeAttachment'])->name('teachers.attachments.store');
+        Route::delete('teachers/{teacher}/attachments/end',        [PrincipalController::class, 'endAttachment'])->name('teachers.attachments.end');
+        Route::get('teachers/{teacher}/attachment-data',           [PrincipalController::class, 'attachmentData'])->name('teachers.attachment-data');
 
         // ── Quality Circles ───────────────────────────────────
         Route::get('quality-circles',               [QualityCircleController::class, 'index'])->name('quality-circles');

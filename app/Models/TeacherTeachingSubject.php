@@ -8,7 +8,16 @@ class TeacherTeachingSubject extends Pivot
 {
     protected $table = 'teacher_teaching_subjects';
 
-    protected $fillable = ['teacher_id', 'teaching_subject_id', 'role'];
+    protected $fillable = [
+        'teacher_id',
+        'teaching_subject_id',
+        'role',
+        'periods_per_week',
+    ];
+
+    protected $casts = [
+        'periods_per_week' => 'integer',
+    ];
 
     public $timestamps = true;
 }

@@ -53,6 +53,8 @@
                             <th style="text-align:left;padding:11px 16px;color:#fff;font-size:11px;font-weight:600;">{{ __('type') }}</th>
                             <th style="text-align:left;padding:11px 16px;color:#fff;font-size:11px;font-weight:600;">{{ __('appointed_subject') }}</th>
                             <th style="text-align:left;padding:11px 16px;color:#fff;font-size:11px;font-weight:600;">{{ __('teaching_subjects') }}</th>
+                            <th style="text-align:center;padding:11px 16px;color:#fff;font-size:11px;font-weight:600;">{{ __('subjects_count') }}</th>
+                            <th style="text-align:center;padding:11px 16px;color:#fff;font-size:11px;font-weight:600;">{{ __('total_periods') }}</th>
                             <th style="text-align:left;padding:11px 16px;color:#fff;font-size:11px;font-weight:600;">{{ __('service_grade') }}</th>
                             <th style="text-align:center;padding:11px 16px;color:#fff;font-size:11px;font-weight:600;">{{ __('actions') }}</th>
                         </tr>
@@ -91,8 +93,29 @@
                                     <span style="color:#d1d5db;font-size:12px;">—</span>
                                 @endforelse
                             </td>
+                            <td style="padding:11px 16px;text-align:center;">
+                                <span style="font-size:13px;font-weight:700;color:var(--color-primary);">
+                                    {{ $teacher->subject_count }}
+                                </span>
+                            </td>
+                            <td style="padding:11px 16px;text-align:center;">
+                                @php $totalPeriods = $teacher->teachingSubjects->sum('pivot.periods_per_week'); @endphp
+                                @if($totalPeriods > 0)
+                                    <span style="font-size:13px;font-weight:700;color:#059669;">{{ $totalPeriods }}</span>
+                                    <span style="font-size:10px;color:#9ca3af;display:block;">{{ __('per_week') }}</span>
+                                @else
+                                    <span style="color:#d1d5db;">—</span>
+                                @endif
+                            </td>
                             <td style="padding:11px 16px;">
-                                @if($teacher->service_grade)
+                                @if($teacher->is_attached)
+                                    <span style="font-size:11px;padding:2px 8px;border-radius:20px;background:#fef3c7;color:#92400e;font-weight:600;white-space:nowrap;">
+                                        {{ __('attached_out') }}
+                                    </span>
+                                    <p style="font-size:10px;color:#9ca3af;margin:2px 0 0;white-space:nowrap;">
+                                        {{ $teacher->attachedSchool?->name_en ?? __('other_zone') }}
+                                    </p>
+                                @elseif($teacher->service_grade)
                                     <span style="font-size:11px;padding:2px 8px;border-radius:20px;background:#eff6ff;color:#1d4ed8;white-space:nowrap;">
                                         {{ str_replace('_', ' ', $teacher->service_grade) }}
                                     </span>
@@ -101,6 +124,18 @@
                                 @endif
                             </td>
                             <td style="padding:11px 16px;text-align:center;">
+                                <div style="display:flex;gap:6px;justify-content:center;flex-wrap:wrap;">
+                                @if(!$teacher->is_attached)
+                                <button onclick="openAttachDrawer({{ $teacher->id }}, '{{ addslashes($teacher->name) }}')"
+                                    style="background:#fef3c7;border:none;border-radius:8px;padding:5px 10px;font-size:11px;font-weight:600;color:#92400e;cursor:pointer;white-space:nowrap;">
+                                    {{ __('attach') }}
+                                </button>
+                                @else
+                                <button onclick="openEndAttachDrawer({{ $teacher->id }}, '{{ addslashes($teacher->name) }}')"
+                                    style="background:#fee2e2;border:none;border-radius:8px;padding:5px 10px;font-size:11px;font-weight:600;color:#991b1b;cursor:pointer;white-space:nowrap;">
+                                    {{ __('end_attachment') }}
+                                </button>
+                                @endif
                                 <button
                                     onclick="openEditDrawer({{ $teacher->id }})"
                                     style="background:#f3f4f6;border:none;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:600;color:#374151;cursor:pointer;display:inline-flex;align-items:center;gap:4px;">
@@ -109,6 +144,7 @@
                                     </svg>
                                     {{ __('edit') }}
                                 </button>
+                                </div>
                             </td>
                         </tr>
                         @endforeach
@@ -124,7 +160,81 @@
 </div>
 
 {{-- ══════════════════════════════════════════════════════════════════ --}}
-{{-- SECTION 2 — NON-ACADEMIC STAFF                                   --}}
+{{-- SECTION 2 — ATTACHED TEACHERS (from other schools)              --}}
+{{-- ══════════════════════════════════════════════════════════════════ --}}
+<div class="mb-8">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
+        <svg xmlns="http://www.w3.org/2000/svg" style="width:20px;height:20px;color:#d97706;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" />
+        </svg>
+        <h2 style="font-size:16px;font-weight:700;color:#d97706;">
+            {{ __('attached_teachers') }}
+            <span style="font-size:13px;font-weight:500;color:#6b7280;margin-left:6px;">({{ $attachedTeachers->count() }})</span>
+        </h2>
+        <span style="font-size:11px;padding:3px 10px;border-radius:20px;background:#fef3c7;color:#92400e;font-weight:600;">
+            {{ __('attached_from_other_schools') }}
+        </span>
+    </div>
+
+    @if($attachedTeachers->count())
+        <div class="bg-white rounded-2xl shadow-sm overflow-hidden" style="border:2px solid #fcd34d;">
+            <div class="overflow-x-auto">
+                <table style="width:100%;border-collapse:collapse;font-size:0.85rem;">
+                    <thead>
+                        <tr style="background:#d97706;">
+                            <th style="text-align:left;padding:11px 16px;color:#fff;font-size:11px;font-weight:600;">{{ __('name') }}</th>
+                            <th style="text-align:left;padding:11px 16px;color:#fff;font-size:11px;font-weight:600;">{{ __('salary_school') }}</th>
+                            <th style="text-align:left;padding:11px 16px;color:#fff;font-size:11px;font-weight:600;">{{ __('attachment_reason') }}</th>
+                            <th style="text-align:left;padding:11px 16px;color:#fff;font-size:11px;font-weight:600;">{{ __('attached_from') }}</th>
+                            <th style="text-align:left;padding:11px 16px;color:#fff;font-size:11px;font-weight:600;">{{ __('attached_to') }}</th>
+                            <th style="text-align:center;padding:11px 16px;color:#fff;font-size:11px;font-weight:600;">{{ __('subjects_count') }}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach($attachedTeachers as $teacher)
+                        <tr style="border-top:1px solid #fef3c7;{{ $loop->even ? 'background:#fffbeb;' : 'background:#fff;' }}">
+                            <td style="padding:11px 16px;">
+                                <p style="font-weight:600;color:#111827;margin:0;">{{ $teacher->name }}</p>
+                                @if($teacher->nic)
+                                    <p style="font-size:11px;color:#9ca3af;margin:2px 0 0;">{{ $teacher->nic }}</p>
+                                @endif
+                                <span style="font-size:10px;padding:2px 7px;border-radius:20px;background:#fef3c7;color:#92400e;font-weight:600;">
+                                    {{ __('attached') }}
+                                </span>
+                            </td>
+                            <td style="padding:11px 16px;font-size:13px;color:#374151;">
+                                {{ app()->getLocale() === 'si' && $teacher->school->name_si ? $teacher->school->name_si : $teacher->school->name_en }}
+                            </td>
+                            <td style="padding:11px 16px;font-size:13px;color:#6b7280;">
+                                {{ $teacher->activeAttachment?->reason ? __('attachment_reason_' . $teacher->activeAttachment->reason) : '—' }}
+                            </td>
+                            <td style="padding:11px 16px;font-size:13px;color:#6b7280;white-space:nowrap;">
+                                {{ $teacher->activeAttachment?->attached_from?->format('d M Y') ?? '—' }}
+                            </td>
+                            <td style="padding:11px 16px;font-size:13px;color:#6b7280;white-space:nowrap;">
+                                {{ $teacher->activeAttachment?->attached_to?->format('d M Y') ?? __('indefinite') }}
+                            </td>
+                            <td style="padding:11px 16px;text-align:center;">
+                                <span style="font-size:13px;font-weight:700;color:#d97706;">
+                                    {{ $teacher->subject_count }}
+                                </span>
+                            </td>
+                        </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <p style="font-size:12px;color:#9ca3af;margin-top:8px;">{{ __('attached_teachers_note') }}</p>
+    @else
+        <div class="bg-white rounded-2xl p-6 text-center" style="border:2px dashed #fcd34d;">
+            <p style="color:#d97706;font-size:13px;">{{ __('no_attached_teachers') }}</p>
+        </div>
+    @endif
+</div>
+
+{{-- ══════════════════════════════════════════════════════════════════ --}}
+{{-- SECTION 3 — NON-ACADEMIC STAFF                                   --}}
 {{-- ══════════════════════════════════════════════════════════════════ --}}
 <div>
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
@@ -456,6 +566,11 @@
                             <option value="sub">{{ __('sub') }}</option>
                         </select>
                     </div>
+                    <div style="width:70px;">
+                        <label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:5px;">{{ __('periods') }}</label>
+                        <input type="number" id="new-subject-periods" min="0" max="40" value="0"
+                            style="width:100%;padding:9px 8px;border:1.5px solid #d1d5db;border-radius:8px;font-size:13px;color:#111827;outline:none;box-sizing:border-box;">
+                    </div>
                     <button onclick="addTeachingSubject()"
                         style="padding:9px 14px;background:var(--color-primary);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;">
                         + {{ __('add') }}
@@ -476,6 +591,11 @@
 let currentEditTeacherId = null;
 
 // ── Drawer helpers ────────────────────────────────────────────────────
+// ── Reset all drawers on every page load ─────────────────────────────
+document.addEventListener('DOMContentLoaded', function() {
+    closeAllDrawers();
+});
+
 function openAddDrawer() {
     document.getElementById('add-drawer').style.transform = 'translateX(0)';
     document.getElementById('drawer-backdrop').style.display = 'block';
@@ -491,9 +611,11 @@ function openEditDrawer(teacherId) {
 }
 
 function closeAllDrawers() {
-    document.getElementById('add-drawer').style.transform = 'translateX(100%)';
-    document.getElementById('edit-drawer').style.transform = 'translateX(100%)';
-    document.getElementById('drawer-backdrop').style.display = 'none';
+    document.getElementById('add-drawer').style.transform        = 'translateX(100%)';
+    document.getElementById('edit-drawer').style.transform       = 'translateX(100%)';
+    document.getElementById('attach-drawer').style.transform     = 'translateX(100%)';
+    document.getElementById('end-attach-drawer').style.transform = 'translateX(100%)';
+    document.getElementById('drawer-backdrop').style.display     = 'none';
     document.body.style.overflow = '';
 }
 
@@ -586,12 +708,13 @@ function renderSubjectsList(subjects) {
     }
     container.innerHTML = subjects.map(s => `
         <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:#f9fafb;border-radius:8px;margin-bottom:6px;border:1px solid #e5e7eb;">
-            <div style="display:flex;align-items:center;gap:8px;">
+            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
                 <span style="font-size:13px;font-weight:600;color:#111827;">${s.name}</span>
                 <span style="font-size:11px;padding:2px 8px;border-radius:20px;
                     ${s.role === 'main' ? 'background:#dbeafe;color:#1e40af;' : 'background:#f3f4f6;color:#6b7280;'}">
                     ${s.role === 'main' ? '{{ __("main") }}' : '{{ __("sub") }}'}
                 </span>
+                ${s.periods_per_week > 0 ? `<span style="font-size:11px;padding:2px 8px;border-radius:20px;background:#d1fae5;color:#065f46;">${s.periods_per_week} {{ __("periods_week_short") }}</span>` : ''}
             </div>
             <button onclick="removeTeachingSubject(${s.id})"
                 style="background:none;border:none;cursor:pointer;padding:4px;color:#ef4444;display:flex;align-items:center;">
@@ -614,13 +737,14 @@ function addTeachingSubject() {
         return;
     }
 
+    const periods = parseInt(document.getElementById('new-subject-periods').value) || 0;
     fetch(`/principal/teachers/${currentEditTeacherId}/subjects`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
         },
-        body: JSON.stringify({ teaching_subject_id: subjectId, role: role }),
+        body: JSON.stringify({ teaching_subject_id: subjectId, role: role, periods_per_week: periods }),
     })
     .then(r => r.json())
     .then(data => {
@@ -690,6 +814,187 @@ document.addEventListener('DOMContentLoaded', () => {
     @endif
 });
 @endif
+</script>
+
+{{-- ══════════════════════════════════════════════════════════════════ --}}
+{{-- ATTACH TEACHER DRAWER                                            --}}
+{{-- ══════════════════════════════════════════════════════════════════ --}}
+<div id="attach-drawer"
+    style="position:fixed;top:0;right:0;height:100%;width:100%;max-width:460px;background:#fff;z-index:50;transform:translateX(100%);transition:transform 0.35s cubic-bezier(0.4,0,0.2,1);box-shadow:-4px 0 24px rgba(0,0,0,0.12);display:flex;flex-direction:column;">
+
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:20px 24px;border-bottom:1px solid #e5e7eb;background:#d97706;">
+        <div>
+            <h2 style="font-size:16px;font-weight:700;color:#fff;margin:0;">{{ __('create_attachment') }}</h2>
+            <p style="font-size:12px;color:rgba(255,255,255,0.75);margin:3px 0 0;" id="attach-teacher-name"></p>
+        </div>
+        <button onclick="closeAllDrawers()" style="background:rgba(255,255,255,0.2);border:none;border-radius:8px;padding:6px;cursor:pointer;">
+            <svg xmlns="http://www.w3.org/2000/svg" style="width:20px;height:20px;color:#fff;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+        </button>
+    </div>
+
+    <div style="flex:1;overflow-y:auto;padding:24px;">
+        <form id="attach-form" method="POST">
+            @csrf
+
+            {{-- Info note --}}
+            <div style="background:#fef3c7;border:1px solid #fcd34d;border-radius:10px;padding:12px 14px;margin-bottom:20px;">
+                <p style="font-size:12px;color:#92400e;margin:0;">{{ __('attachment_note') }}</p>
+            </div>
+
+            {{-- Working school — from list --}}
+            <div style="margin-bottom:16px;">
+                <label style="font-size:13px;font-weight:600;color:#374151;display:block;margin-bottom:5px;">
+                    {{ __('working_school') }}
+                </label>
+                <select name="working_school_id" id="attach-school-select"
+                    onchange="toggleManualSchool(this.value)"
+                    style="width:100%;padding:9px 13px;border:1.5px solid #d1d5db;border-radius:8px;font-size:14px;color:#111827;outline:none;box-sizing:border-box;background:#fff;">
+                    <option value="">— {{ __('select_from_zone_schools') }} —</option>
+                    @foreach($schools as $s)
+                        <option value="{{ $s->id }}">
+                            {{ app()->getLocale() === 'si' && $s->name_si ? $s->name_si : $s->name_en }}
+                        </option>
+                    @endforeach
+                    <option value="other">{{ __('school_outside_zone') }}</option>
+                </select>
+            </div>
+
+            {{-- Manual school name (shown only when "other" selected) --}}
+            <div id="manual-school-field" style="display:none;margin-bottom:16px;">
+                <label style="font-size:13px;font-weight:600;color:#374151;display:block;margin-bottom:5px;">
+                    {{ __('school_name_manual') }} <span style="color:#ef4444;">*</span>
+                </label>
+                <input type="text" name="working_school_manual"
+                    style="width:100%;padding:9px 13px;border:1.5px solid #d1d5db;border-radius:8px;font-size:14px;outline:none;box-sizing:border-box;"
+                    placeholder="{{ __('enter_school_name') }}">
+                <p style="font-size:11px;color:#9ca3af;margin:4px 0 0;">{{ __('school_outside_zone_hint') }}</p>
+            </div>
+
+            {{-- Reason --}}
+            <div style="margin-bottom:16px;">
+                <label style="font-size:13px;font-weight:600;color:#374151;display:block;margin-bottom:5px;">
+                    {{ __('attachment_reason') }} <span style="color:#ef4444;">*</span>
+                </label>
+                <select name="reason" required
+                    style="width:100%;padding:9px 13px;border:1.5px solid #d1d5db;border-radius:8px;font-size:14px;color:#111827;outline:none;box-sizing:border-box;background:#fff;">
+                    <option value="">—</option>
+                    @foreach($attachmentReasons as $val => $lbl)
+                        <option value="{{ $val }}">{{ $lbl }}</option>
+                    @endforeach
+                </select>
+            </div>
+
+            {{-- Reason notes --}}
+            <div style="margin-bottom:16px;">
+                <label style="font-size:13px;font-weight:600;color:#374151;display:block;margin-bottom:5px;">{{ __('notes') }}</label>
+                <textarea name="reason_notes" rows="2"
+                    style="width:100%;padding:9px 13px;border:1.5px solid #d1d5db;border-radius:8px;font-size:14px;outline:none;box-sizing:border-box;resize:vertical;"
+                    placeholder="{{ __('optional_notes') }}"></textarea>
+            </div>
+
+            {{-- Date range --}}
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:24px;">
+                <div>
+                    <label style="font-size:13px;font-weight:600;color:#374151;display:block;margin-bottom:5px;">
+                        {{ __('attached_from') }} <span style="color:#ef4444;">*</span>
+                    </label>
+                    <input type="date" name="attached_from" required
+                        style="width:100%;padding:9px 13px;border:1.5px solid #d1d5db;border-radius:8px;font-size:14px;outline:none;box-sizing:border-box;">
+                </div>
+                <div>
+                    <label style="font-size:13px;font-weight:600;color:#374151;display:block;margin-bottom:5px;">
+                        {{ __('attached_to') }}
+                        <span style="font-size:11px;font-weight:400;color:#9ca3af;">{{ __('optional') }}</span>
+                    </label>
+                    <input type="date" name="attached_to"
+                        style="width:100%;padding:9px 13px;border:1.5px solid #d1d5db;border-radius:8px;font-size:14px;outline:none;box-sizing:border-box;">
+                    <p style="font-size:11px;color:#9ca3af;margin:3px 0 0;">{{ __('leave_blank_indefinite') }}</p>
+                </div>
+            </div>
+
+            <button type="submit"
+                style="width:100%;padding:12px;background:#d97706;color:#fff;font-size:15px;font-weight:700;border:none;border-radius:10px;cursor:pointer;">
+                {{ __('create_attachment') }}
+            </button>
+        </form>
+    </div>
+</div>
+
+{{-- ══════════════════════════════════════════════════════════════════ --}}
+{{-- END ATTACHMENT DRAWER                                            --}}
+{{-- ══════════════════════════════════════════════════════════════════ --}}
+<div id="end-attach-drawer"
+    style="position:fixed;top:0;right:0;height:100%;width:100%;max-width:420px;background:#fff;z-index:50;transform:translateX(100%);transition:transform 0.35s cubic-bezier(0.4,0,0.2,1);box-shadow:-4px 0 24px rgba(0,0,0,0.12);display:flex;flex-direction:column;">
+
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:20px 24px;border-bottom:1px solid #e5e7eb;background:#991b1b;">
+        <div>
+            <h2 style="font-size:16px;font-weight:700;color:#fff;margin:0;">{{ __('end_attachment') }}</h2>
+            <p style="font-size:12px;color:rgba(255,255,255,0.75);margin:3px 0 0;" id="end-attach-teacher-name"></p>
+        </div>
+        <button onclick="closeAllDrawers()" style="background:rgba(255,255,255,0.2);border:none;border-radius:8px;padding:6px;cursor:pointer;">
+            <svg xmlns="http://www.w3.org/2000/svg" style="width:20px;height:20px;color:#fff;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+        </button>
+    </div>
+
+    <div style="flex:1;overflow-y:auto;padding:24px;">
+        <div style="background:#fee2e2;border:1px solid #fca5a5;border-radius:10px;padding:12px 14px;margin-bottom:20px;">
+            <p style="font-size:12px;color:#991b1b;margin:0;">{{ __('end_attachment_warning') }}</p>
+        </div>
+
+        <form id="end-attach-form" method="POST">
+            @csrf
+            @method('DELETE')
+
+            <div style="margin-bottom:20px;">
+                <label style="font-size:13px;font-weight:600;color:#374151;display:block;margin-bottom:5px;">{{ __('end_notes') }}</label>
+                <textarea name="end_notes" rows="3"
+                    style="width:100%;padding:9px 13px;border:1.5px solid #d1d5db;border-radius:8px;font-size:14px;outline:none;box-sizing:border-box;resize:vertical;"
+                    placeholder="{{ __('optional_end_notes') }}"></textarea>
+            </div>
+
+            <button type="submit"
+                style="width:100%;padding:12px;background:#991b1b;color:#fff;font-size:15px;font-weight:700;border:none;border-radius:10px;cursor:pointer;">
+                {{ __('confirm_end_attachment') }}
+            </button>
+        </form>
+    </div>
+</div>
+
+<script>
+// ── Attachment drawer helpers ──────────────────────────────────────────
+function openAttachDrawer(teacherId, teacherName) {
+    document.getElementById('attach-teacher-name').textContent = teacherName;
+    document.getElementById('attach-form').action = `/principal/teachers/${teacherId}/attachments`;
+    document.getElementById('attach-drawer').style.transform = 'translateX(0)';
+    document.getElementById('drawer-backdrop').style.display = 'block';
+    document.body.style.overflow = 'hidden';
+    // Reset form
+    document.getElementById('attach-school-select').value = '';
+    document.getElementById('manual-school-field').style.display = 'none';
+}
+
+function openEndAttachDrawer(teacherId, teacherName) {
+    document.getElementById('end-attach-teacher-name').textContent = teacherName;
+    document.getElementById('end-attach-form').action = `/principal/teachers/${teacherId}/attachments/end`;
+    document.getElementById('end-attach-drawer').style.transform = 'translateX(0)';
+    document.getElementById('drawer-backdrop').style.display = 'block';
+    document.body.style.overflow = 'hidden';
+}
+
+function toggleManualSchool(value) {
+    const field = document.getElementById('manual-school-field');
+    const select = document.getElementById('attach-school-select');
+    if (value === 'other') {
+        field.style.display = 'block';
+        select.value = ''; // clear actual value so it's not submitted
+    } else {
+        field.style.display = 'none';
+    }
+}
 </script>
 
 <style>
