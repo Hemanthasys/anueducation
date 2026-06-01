@@ -51,6 +51,11 @@ class UserResource extends Resource
         return 1;
     }
 
+   public static function canAccess(): bool
+    {
+        return auth()->user()->can('users.view') || auth()->user()->hasRole('super_admin');
+    }
+   
     public static function form(Schema $schema): Schema
     {
         return $schema->components([
@@ -92,10 +97,11 @@ class UserResource extends Resource
                 ->schema([
                     Select::make('roles')
                         ->label('Role')
-                        ->relationship('roles', 'name')
+                        ->relationship('roles', 'name', fn($query) => $query->whereNotIn('name', ['teacher', 'public']))
                         ->preload()
                         ->required()
-                        ->searchable(),
+                        ->searchable()
+                        ->helperText('Teacher & Vice Principal accounts are created via Teacher Management using the Create Login button.'),
 
                     Select::make('school_id')
                         ->label('School')
@@ -111,12 +117,6 @@ class UserResource extends Resource
                         ->nullable()
                         ->helperText('Required for divisional director role'),
 
-                    Select::make('subject_id')
-                        ->label('Appointed Subject')
-                        ->options(Subject::active()->pluck('name_en', 'id'))
-                        ->searchable()
-                        ->nullable()
-                        ->helperText('For teacher role'),
                 ]),
 
             Section::make('Employment')

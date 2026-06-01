@@ -32,6 +32,11 @@ class SliderResource extends Resource
         return 1;
     }
 
+    public static function canAccess(): bool
+    {
+        return auth()->user()->can('content.sliders') || auth()->user()->hasRole('super_admin');
+    }
+    
     public static function form(Schema $schema): Schema
     {
         return SliderForm::configure($schema);

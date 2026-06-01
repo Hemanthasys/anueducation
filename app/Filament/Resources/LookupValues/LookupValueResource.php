@@ -45,7 +45,7 @@ class LookupValueResource extends Resource
     // Only super_admin
     public static function canAccess(): bool
     {
-        return auth()->user()->hasRole('super_admin');
+       return auth()->user()->can('settings.lookup_values') || auth()->user()->hasRole('super_admin');
     }
 
     public static function form(Schema $schema): Schema

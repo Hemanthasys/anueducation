@@ -46,7 +46,7 @@ class ContactMessageResource extends Resource
     // Only super_admin and zonal_director can access
     public static function canAccess(): bool
     {
-        return auth()->user()->hasAnyRole(['super_admin', 'zonal_director']);
+        return auth()->user()->can('settings.site') || auth()->user()->hasRole('super_admin');
     }
 
     // No create — messages come from public form only

@@ -58,9 +58,7 @@ class TeacherResource extends Resource
 
     public static function canAccess(): bool
     {
-        return auth()->user()->hasAnyRole([
-            'super_admin', 'zonal_director', 'zonal_officer', 'divisional_director',
-        ]);
+        return auth()->user()->can('teachers.view') || auth()->user()->hasRole('super_admin');
     }
 
     public static function form(Schema $schema): Schema
@@ -294,7 +292,7 @@ class TeacherResource extends Resource
                     ->modalHeading('Create Login Account')
                     ->modalDescription('This will create a login account for this teacher.')
                     ->action(function (Teacher $record) {
-                        $username = strtolower(str_replace(' ', '.', $record->name)) . '.' . substr($record->nic ?? rand(1000, 9999), -4);
+                        $username = 'T' . substr(preg_replace('/[^0-9]/', '', $record->nic ?? rand(100000, 999999)), -6);
                         $password = substr(str_shuffle('abcdefghjkmnpqrstuvwxyzABCDEFGHJKMNPQRSTUVWXYZ23456789'), 0, 8);
 
                         $user = User::create([
@@ -331,7 +329,7 @@ class TeacherResource extends Resource
                         ->action(function (Collection $records) {
                             $results = [];
                             foreach ($records->where('user_id', null) as $teacher) {
-                                $username = strtolower(str_replace(' ', '.', $teacher->name)) . '.' . substr($teacher->nic ?? rand(1000, 9999), -4);
+                                $username = 'T' . substr(preg_replace('/[^0-9]/', '', $record->nic ?? rand(100000, 999999)), -6);
                                 $password = substr(str_shuffle('abcdefghjkmnpqrstuvwxyzABCDEFGHJKMNPQRSTUVWXYZ23456789'), 0, 8);
 
                                 $user = User::create([

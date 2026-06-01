@@ -1,7 +1,4 @@
-// ═══════════════════════════════════════════════════════════════
-// FILE: app/Imports/Grade5ResultsImport.php
-// Adapted from uploaded file — removed zone_id references
-// ═══════════════════════════════════════════════════════════════
+<?php
 
 namespace App\Imports;
 

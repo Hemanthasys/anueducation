@@ -24,7 +24,7 @@ class ImageService
         string $folder = 'teacher-photos'
     ): string {
         $manager  = new ImageManager(new Driver());
-        $image    = $manager->read($file->getRealPath());
+        $image = $manager->decode($file->getRealPath());
 
         // Resize keeping aspect ratio — never upscale
         $image->scaleDown(self::PHOTO_MAX_WIDTH, self::PHOTO_MAX_HEIGHT);
@@ -33,7 +33,8 @@ class ImageService
         $filename = $folder . '/' . Str::uuid() . '.jpg';
 
         // Encode as JPEG at quality 70 and save to public disk
-        $encoded = $image->toJpeg(self::PHOTO_QUALITY);
+        // NEW
+        $encoded = $image->encode(new \Intervention\Image\Encoders\JpegEncoder(quality: self::PHOTO_QUALITY));
         Storage::disk('public')->put($filename, $encoded);
 
         return $filename;

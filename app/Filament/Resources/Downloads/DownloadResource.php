@@ -32,6 +32,11 @@ class DownloadResource extends Resource
         return 5;
     }
 
+    public static function canAccess(): bool
+    {
+        return auth()->user()->can('content.downloads') || auth()->user()->hasRole('super_admin');
+    }
+
     public static function form(Schema $schema): Schema
     {
         return DownloadForm::configure($schema);

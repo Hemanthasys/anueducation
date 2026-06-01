@@ -26,7 +26,7 @@ class ExamImportManager extends Page
 
     public static function canAccess(): bool
     {
-        return Auth::user()?->hasAnyRole(['super_admin', 'zonal_director']) ?? false;
+       return auth()->user()->can('results.import') || auth()->user()->hasRole('super_admin');
     }
 
     // Delete an import record + its results

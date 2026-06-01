@@ -378,7 +378,7 @@
                                             @endif
                                         </td>
                                         <td class="px-4 py-3 text-xs" style="color: #6b7280;">
-                                            @foreach($teacher->teacherQualifications as $tq)
+                                            @foreach($teacher->teacherQualifications ?? [] as $tq)
                                                 <span class="inline-block mr-1">{{ $tq->qualification?->name_en }}</span>
                                             @endforeach
                                         </td>

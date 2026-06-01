@@ -33,8 +33,8 @@ class SiteContentManager extends Page implements HasForms
     public function getTitle(): string                  { return 'Site Content Manager'; }
     public static function getNavigationGroup(): string { return 'Settings'; }
     public static function getNavigationSort(): ?int    { return 2; }
-    public static function canAccess(): bool            { return Auth::user()?->hasRole('super_admin') ?? false; }
-
+    public static function canAccess(): bool            { return Auth::user()?->can('settings.content') || Auth::user()?->hasRole('super_admin') ?? false; }
+    
     public function mount(): void
     {
         $existing = SiteSetting::get('director_photo');

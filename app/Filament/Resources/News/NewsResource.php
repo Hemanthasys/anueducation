@@ -33,6 +33,11 @@ class NewsResource extends Resource
         return 2;
     }
 
+    public static function canAccess(): bool
+    {
+        return auth()->user()->can('content.news') || auth()->user()->hasRole('super_admin');
+    }
+    
     public static function form(Schema $schema): Schema
     {
         return NewsForm::configure($schema);

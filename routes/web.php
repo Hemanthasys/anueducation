@@ -138,22 +138,26 @@ Route::prefix('teacher')->name('teacher.')->group(function () {
     Route::post('logout', [TeacherController::class, 'logout'])->name('logout');
 
     // Protected
-    Route::middleware(['auth', 'teacher', 'must.change.password', 'set.portal.locale'])->group(function () {
+Route::middleware(['auth', 'teacher', 'must.change.password', 'set.portal.locale'])->group(function () {
 
-        Route::get('/',                       [TeacherController::class, 'dashboard'])->name('dashboard');
-        Route::get('profile',                 [TeacherController::class, 'profile'])->name('profile');
-        Route::post('profile',                [TeacherController::class, 'updateProfile'])->name('profile.update');
-        Route::post('profile/change-request', [TeacherController::class, 'submitChangeRequest'])->name('profile.change-request');
-        Route::get('working-history',         [TeacherController::class, 'workingHistory'])->name('working-history');
-        Route::post('working-history',        [TeacherController::class, 'addWorkingHistory'])->name('working-history.add');
-        Route::delete('working-history/{id}', [TeacherController::class, 'deleteWorkingHistory'])->name('working-history.delete');
-        Route::get('my-school',               [TeacherController::class, 'mySchool'])->name('my-school');
-        Route::get('mutual-transfers',        [TeacherController::class, 'mutualTransfers'])->name('mutual-transfers');
-        Route::post('mutual-transfers',       [TeacherController::class, 'postMutualTransfer'])->name('mutual-transfers.post');
-        Route::delete('mutual-transfers',     [TeacherController::class, 'removeMutualTransfer'])->name('mutual-transfers.remove');
-        Route::get('notices',                 [TeacherController::class, 'notices'])->name('notices');
-        Route::get('downloads',               [TeacherController::class, 'downloads'])->name('downloads');
-        Route::get('transfers',               [TeacherController::class, 'transfers'])->name('transfers');
+    Route::get('/',                       [TeacherController::class, 'dashboard'])->name('dashboard');
+    Route::get('profile',                 [TeacherController::class, 'profile'])->name('profile');
+    Route::post('profile',                [TeacherController::class, 'updateProfile'])->name('profile.update');
+    Route::post('profile/change-request', [TeacherController::class, 'submitChangeRequest'])->name('profile.change-request');
+
+    // Working history
+    Route::get('working-history',                      [TeacherController::class, 'workingHistory'])->name('working-history');
+    Route::post('working-history',                     [TeacherController::class, 'storeWorkingHistory'])->name('working-history.store');
+    Route::get('working-history/{id}/edit-form',       [TeacherController::class, 'editWorkingHistoryForm'])->name('working-history.edit-form');
+    Route::put('working-history/{id}',                 [TeacherController::class, 'updateWorkingHistory'])->name('working-history.update');
+
+    Route::get('my-school',               [TeacherController::class, 'mySchool'])->name('my-school');
+    Route::get('mutual-transfers',        [TeacherController::class, 'mutualTransfers'])->name('mutual-transfers');
+    Route::post('mutual-transfers',       [TeacherController::class, 'postMutualTransfer'])->name('mutual-transfers.post');
+    Route::delete('mutual-transfers',     [TeacherController::class, 'removeMutualTransfer'])->name('mutual-transfers.remove');
+    Route::get('notices',                 [TeacherController::class, 'notices'])->name('notices');
+    Route::get('downloads',               [TeacherController::class, 'downloads'])->name('downloads');
+    Route::get('transfers',               [TeacherController::class, 'transfers'])->name('transfers');
 
     });
 

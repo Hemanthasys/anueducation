@@ -2,7 +2,7 @@
     $qcRecord = \App\Models\QualityCircleRecord::where('school_id', $school->id)
         ->where('status', 'approved')
         ->with('marks.criteria')
-        ->orderByDesc('academic_year')
+        ->orderByDesc('approved_at')
         ->first();
     $isAdmin = $isAdmin ?? false;
 @endphp
@@ -79,7 +79,7 @@
                     @if($isAdmin)
                         <div class="flex items-center justify-between mt-0.5">
                             <span class="text-xs" style="color: #d1d5db;">
-                                {{ $mark->marks_obtained }} / {{ $mark->max_marks }}
+                                {{ $mark->obtained_marks }} / {{ $mark->maximum_marks }}
                             </span>
                         </div>
                     @endif

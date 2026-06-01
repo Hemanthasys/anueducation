@@ -30,7 +30,7 @@ class DeadlineManager extends Page
 
     public static function canAccess(): bool
     {
-        return auth()->user()->hasAnyRole(['super_admin', 'zonal_director']);
+        return auth()->user()->can('statistics.manage_deadlines') || auth()->user()->hasRole('super_admin');
     }
 
     public function getDeadlines()

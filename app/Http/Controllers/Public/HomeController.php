@@ -19,6 +19,7 @@ class HomeController extends Controller
             ->get();
 
         $notices = Notice::where('is_active', true)
+            ->where('target_audience', 'all')
             ->where('published_at', '<=', now())
             ->where(function ($q) {
                 $q->whereNull('expires_at')

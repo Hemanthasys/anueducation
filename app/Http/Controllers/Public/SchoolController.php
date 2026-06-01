@@ -328,16 +328,16 @@ class SchoolController extends Controller
 
         $g5Gender     = (clone $g5Base)->select('sex', DB::raw('COUNT(*) as total'))->groupBy('sex')->pluck('total', 'sex');
         $g5Qualified  = (clone $g5Base)->where('is_qualified', 1)->count();
-        $g5QualMale   = (clone $g5Base)->where('is_qualified', 1)->where('sex', 'M')->count();
-        $g5QualFemale = (clone $g5Base)->where('is_qualified', 1)->where('sex', 'F')->count();
+        $g5QualMale   = (clone $g5Base)->where('is_qualified', 1)->where('sex', '1')->count();
+        $g5QualFemale = (clone $g5Base)->where('is_qualified', 1)->where('sex', '0')->count();
         $g5Total      = $g5Gender->sum();
         $g5AvgMarks   = (clone $g5Base)->avg('total_marks');
 
         return [
             'year'          => $year,
             'total'         => $g5Total,
-            'male'          => $g5Gender->get('M', 0),
-            'female'        => $g5Gender->get('F', 0),
+            'male'          => $g5Gender->get('1', 0),
+            'female'        => $g5Gender->get('0', 0),
             'qualified'     => $g5Qualified,
             'not_qualified' => $g5Total - $g5Qualified,
             'qual_male'     => $g5QualMale,

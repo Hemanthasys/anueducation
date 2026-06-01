@@ -57,6 +57,34 @@ class DivisionController extends Controller
         $typeBreakdown = $schools->groupBy('type')->map->count();
         $mediumBreakdown = $schools->groupBy('medium')->map->count();
 
+        // Division-wide student stats from latest school_stats
+            $latestYear = \App\Models\SchoolStat::whereIn('school_id', $schoolIds)
+                ->max('academic_year');
+
+            $divisionStats = null;
+            if ($latestYear) {
+                $stats = \App\Models\SchoolStat::whereIn('school_id', $schoolIds)
+                    ->where('academic_year', $latestYear)
+                    ->get();
+
+                $totalBoys  = 0;
+                $totalGirls = 0;
+
+                foreach ($stats as $stat) {
+                    for ($g = 1; $g <= 13; $g++) {
+                        $totalBoys  += $stat->{"grade_{$g}_boys"}  ?? 0;
+                        $totalGirls += $stat->{"grade_{$g}_girls"} ?? 0;
+                    }
+                }
+
+                $divisionStats = [
+                    'year'   => $latestYear,
+                    'boys'   => $totalBoys,
+                    'girls'  => $totalGirls,
+                    'total'  => $totalBoys + $totalGirls,
+                ];
+            }
+
         // ── A/L Results — latest year for this division ────────────
         $alResults = null;
         $alYear    = AlResult::whereIn('school_id', $schoolIds)->max(DB::raw('year'));
@@ -270,8 +298,8 @@ class DivisionController extends Controller
                 ->groupBy('sex')->pluck('total', 'sex');
 
             $g5Qualified  = (clone $g5Base)->where('is_qualified', 1)->count();
-            $g5QualMale   = (clone $g5Base)->where('is_qualified', 1)->where('sex', 'M')->count();
-            $g5QualFemale = (clone $g5Base)->where('is_qualified', 1)->where('sex', 'F')->count();
+            $g5QualMale   = (clone $g5Base)->where('is_qualified', 1)->where('sex', 1)->count();
+            $g5QualFemale = (clone $g5Base)->where('is_qualified', 1)->where('sex', 0)->count();    
             $g5Total      = $g5Gender->sum();
             $g5AvgMarks   = round((clone $g5Base)->avg('total_marks'), 1);
 
@@ -291,8 +319,8 @@ class DivisionController extends Controller
             $g5Results = [
                 'year'         => $g5Year,
                 'total'        => $g5Total,
-                'male'         => $g5Gender->get('M', 0),
-                'female'       => $g5Gender->get('F', 0),
+                'male'         => $g5Gender->get('1', 0),
+                'female'       => $g5Gender->get('0', 0),
                 'qualified'    => $g5Qualified,
                 'not_qualified'=> $g5Total - $g5Qualified,
                 'qual_male'    => $g5QualMale,
@@ -305,10 +333,10 @@ class DivisionController extends Controller
             ];
         }
 
-        return view('public.divisions.show', compact(
-            'division', 'schools', 'totalSchools',
-            'typeBreakdown', 'mediumBreakdown', 'locale',
-            'alResults', 'olResults', 'g5Results'
-        ));
+                return view('public.divisions.show', compact(
+                'division', 'schools', 'totalSchools',
+                'typeBreakdown', 'mediumBreakdown', 'locale',
+                'alResults', 'olResults', 'g5Results', 'divisionStats'
+            ));
     }
 }

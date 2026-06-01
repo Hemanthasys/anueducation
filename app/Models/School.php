@@ -84,7 +84,9 @@ class School extends Model
 
     public function latestQualityCircle()
     {
-        return $this->hasOne(QualityCircleRecord::class)->latestOfMany();
+      return $this->hasOne(QualityCircleRecord::class)
+                ->where('status', 'approved')
+                ->latestOfMany();
     }
 
     // ── Bilingual name ────────────────────────────────────────

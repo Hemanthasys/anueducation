@@ -35,6 +35,10 @@ class EssentialLinkResource extends Resource
     public static function getNavigationSort(): ?int    { return 6; }
     public static function getPluralLabel(): string     { return 'Essential Links'; }
 
+    public static function canAccess(): bool
+    {
+        return auth()->user()->can('content.essential_links') || auth()->user()->hasRole('super_admin');
+    }
     public static function form(Schema $schema): Schema
     {
         return $schema

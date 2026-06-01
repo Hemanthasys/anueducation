@@ -41,6 +41,12 @@ class DivisionResource extends Resource
     {
         return 1;
     }
+
+    public static function canAccess(): bool
+    {
+        return auth()->user()->can('divisions.view') || auth()->user()->hasRole('super_admin');
+    }
+
     public static function getRelations(): array
     {
         return [

@@ -6,6 +6,10 @@ use App\Filament\Resources\QualityCircles\Pages\ListQualityCircles;
 use App\Filament\Resources\QualityCircles\Pages\ViewQualityCircle;
 use App\Models\QualityCircleRecord;
 use Filament\Actions\Action;
+use Filament\Actions\ViewAction;
+use Filament\Infolists\Components\RepeatableEntry;
+use Filament\Schemas\Components\Section;
+use Filament\Infolists\Components\TextEntry;
 use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
@@ -13,7 +17,6 @@ use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
-use Filament\Actions\ViewAction;
 
 class QualityCircleResource extends Resource
 {
@@ -34,11 +37,114 @@ class QualityCircleResource extends Resource
         return 10;
     }
 
+    public static function canAccess(): bool
+    {
+        return auth()->user()->can('quality_circles.view') || auth()->user()->hasRole('super_admin');
+    }
+
     public static function getNavigationLabel(): string
     {
         return 'Quality Circles';
     }
 
+    // -------------------------------------------------------------------------
+    // Infolist — view record detail
+    // -------------------------------------------------------------------------
+    public static function infolist(Schema $schema): Schema
+    {
+        return $schema->components([
+
+            Section::make('Inspection Details')
+                ->columns(3)
+                ->schema([
+                    TextEntry::make('school.name_en')
+                        ->label('School'),
+
+                    TextEntry::make('academic_year')
+                        ->label('Academic Year'),
+
+                    TextEntry::make('inspection_date')
+                        ->label('Inspection Date')
+                        ->date('d M Y'),
+
+                    TextEntry::make('inspector_display')
+                        ->label('Inspected By')
+                        ->getStateUsing(fn($record) => $record->inspector_display),
+
+                    TextEntry::make('inspector_designation_display')
+                        ->label('Inspector Designation')
+                        ->getStateUsing(fn($record) => $record->inspector_designation_display),
+
+                    TextEntry::make('status')
+                        ->label('Status')
+                        ->badge()
+                        ->color(fn($state) => match($state) {
+                            'approved'  => 'success',
+                            'submitted' => 'info',
+                            'rejected'  => 'danger',
+                            default     => 'gray',
+                        }),
+                ]),
+
+            Section::make('Quality Index')
+                ->columns(3)
+                ->schema([
+                    TextEntry::make('final_index')
+                        ->label('Overall Quality Index')
+                        ->suffix('%')
+                        ->color(fn($state) => $state >= 80 ? 'success' : ($state >= 60 ? 'warning' : 'danger')),
+
+                    TextEntry::make('approver.name')
+                        ->label('Approved By')
+                        ->placeholder('Not yet approved'),
+
+                    TextEntry::make('approved_at')
+                        ->label('Approved At')
+                        ->dateTime('d M Y H:i')
+                        ->placeholder('Not yet approved'),
+                ]),
+
+            // Rejection note — only shown if rejected
+            Section::make('Rejection Details')
+                ->schema([
+                    TextEntry::make('rejection_note')
+                        ->label('Reason for Rejection')
+                        ->columnSpanFull(),
+                ])
+                ->visible(fn($record) => $record->status === 'rejected'),
+
+            // Marks per criteria
+            Section::make('Criteria Marks')
+                ->schema([
+                    RepeatableEntry::make('marks')
+                        ->label('')
+                        ->schema([
+                            TextEntry::make('criteria.name_en')
+                                ->label('Criteria'),
+
+                            TextEntry::make('indicators_assessed')
+                                ->label('Indicators Assessed'),
+
+                            TextEntry::make('maximum_marks')
+                                ->label('Maximum Marks'),
+
+                            TextEntry::make('obtained_marks')
+                                ->label('Obtained Marks'),
+
+                            TextEntry::make('percentage')
+                                ->label('Percentage')
+                                ->suffix('%')
+                                ->color(fn($state) => $state >= 80 ? 'success' : ($state >= 60 ? 'warning' : 'danger')),
+                        ])
+                        ->columns(5),
+                ]),
+
+        ]);
+    }
+
+    // -------------------------------------------------------------------------
+    // Table
+    // -------------------------------------------------------------------------
     public static function table(Table $table): Table
     {
         return $table
@@ -96,18 +202,17 @@ class QualityCircleResource extends Resource
             ->actions([
                 ViewAction::make(),
 
-                // Approve
                 Action::make('approve')
                     ->label('Approve')
                     ->icon(Heroicon::OutlinedCheckCircle)
                     ->color('success')
-                    ->visible(fn($record) => $record->status === 'submitted')
+                    ->visible(fn($record) => $record->status === 'submitted' && auth()->user()->can('quality_circles.approve'))
                     ->requiresConfirmation()
                     ->action(function (QualityCircleRecord $record) {
                         $record->update([
-                            'status'      => 'approved',
-                            'approved_by' => auth()->id(),
-                            'approved_at' => now(),
+                            'status'         => 'approved',
+                            'approved_by'    => auth()->id(),
+                            'approved_at'    => now(),
                             'rejection_note' => null,
                         ]);
                         Notification::make()
@@ -116,12 +221,11 @@ class QualityCircleResource extends Resource
                             ->send();
                     }),
 
-                // Reject
                 Action::make('reject')
                     ->label('Reject')
                     ->icon(Heroicon::OutlinedXCircle)
                     ->color('danger')
-                    ->visible(fn($record) => $record->status === 'submitted')
+                    ->visible(fn($record) => $record->status === 'submitted' && auth()->user()->can('quality_circles.approve'))
                     ->form([
                         \Filament\Forms\Components\Textarea::make('rejection_note')
                             ->label('Reason for Rejection')

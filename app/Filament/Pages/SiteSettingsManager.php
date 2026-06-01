@@ -33,7 +33,7 @@ class SiteSettingsManager extends Page implements HasForms
     public function getTitle(): string                  { return 'Site Settings'; }
     public static function getNavigationGroup(): string { return 'Settings'; }
     public static function getNavigationSort(): ?int    { return 3; }
-    public static function canAccess(): bool            { return Auth::user()?->hasRole('super_admin') ?? false; }
+    public static function canAccess(): bool            { return Auth::user()?->can('settings.site') || Auth::user()?->hasRole('super_admin') ?? false; }
 
     public function mount(): void
     {

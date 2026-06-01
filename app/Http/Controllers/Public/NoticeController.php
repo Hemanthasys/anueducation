@@ -11,6 +11,7 @@ class NoticeController extends Controller
     public function index(Request $request)
     {
         $query = Notice::where('is_active', true)
+            ->where('target_audience', 'all')
             ->orderBy('date', 'desc');
 
         // Apply category filter

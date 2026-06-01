@@ -32,6 +32,11 @@ class MenuItemResource extends Resource
         return 2;
     }
 
+    public static function canAccess(): bool
+    {
+        return auth()->user()->can('content.menus') || auth()->user()->hasRole('super_admin');
+    }
+
     public static function form(Schema $schema): Schema
     {
         return MenuItemForm::configure($schema);

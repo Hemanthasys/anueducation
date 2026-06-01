@@ -28,13 +28,16 @@ class TeacherController extends Controller
         return Auth::guard('web');
     }
 
-    /**
-     * Get the Teacher record linked to the logged-in user.
-     * Returns null if no teacher record is linked.
-     */
     private function getTeacher(): ?Teacher
     {
         return Teacher::where('user_id', $this->guard()->id())->first();
+    }
+
+    // Get school — teacher record first, fall back to user record
+    private function getSchool(?Teacher $teacher, ?int $fallbackSchoolId = null): ?School
+    {
+        $schoolId = $teacher?->school_id ?? $fallbackSchoolId;
+        return $schoolId ? School::find($schoolId) : null;
     }
 
     // ── Login ──────────────────────────────────────────────────────────
@@ -44,7 +47,6 @@ class TeacherController extends Controller
         if ($this->guard()->check() && $this->guard()->user()->hasRole('teacher')) {
             return redirect()->route('teacher.dashboard');
         }
-        // Apply locale from session so language switcher works on login page
         app()->setLocale(session('locale', config('app.locale')));
         $theme = ThemeHelper::getTheme();
         return view('teacher.login', compact('theme'));
@@ -91,13 +93,10 @@ class TeacherController extends Controller
 
     public function dashboard()
     {
-        $user    = $this->guard()->user();
-        $teacher = $this->getTeacher();
-        $school  = $user->school;
-
-        // Birthday greeting — check teacher birthday
+        $user       = $this->guard()->user();
+        $teacher    = $this->getTeacher();
+        $school     = $this->getSchool($teacher, $user->school_id);
         $isBirthday = $teacher?->birthday && $teacher->birthday->isBirthday();
-
         return view('teacher.dashboard', compact('user', 'teacher', 'school', 'isBirthday'));
     }
 
@@ -105,18 +104,16 @@ class TeacherController extends Controller
 
     public function profile()
     {
-        $user            = $this->guard()->user();
-        $teacher         = $this->getTeacher();
+        $user             = $this->guard()->user();
+        $teacher          = $this->getTeacher();
         $teachingSubjects = TeachingSubject::groupedForDropdown();
         $appointmentTypes = LookupValue::optionsFor('appointment_type');
         $serviceGrades    = LookupValue::optionsFor('service_grade');
 
-        // Pending change request if any
         $pendingRequest = $teacher
             ? ProfileChangeRequest::getPendingRequest($teacher->id)
             : null;
 
-        // Recent requests history (last 5)
         $requestHistory = $teacher
             ? ProfileChangeRequest::where('teacher_id', $teacher->id)
                 ->latest()
@@ -125,17 +122,12 @@ class TeacherController extends Controller
             : collect();
 
         return view('teacher.profile', compact(
-            'user',
-            'teacher',
-            'teachingSubjects',
-            'appointmentTypes',
-            'serviceGrades',
-            'pendingRequest',
-            'requestHistory',
+            'user', 'teacher', 'teachingSubjects', 'appointmentTypes',
+            'serviceGrades', 'pendingRequest', 'requestHistory',
         ));
     }
 
-    // ── Update direct fields (phone, email, photo — no approval needed) ─
+    // ── Update direct fields ───────────────────────────────────────────
 
     public function updateProfile(Request $request)
     {
@@ -154,41 +146,30 @@ class TeacherController extends Controller
 
         $data = [];
 
-        if ($request->filled('phone')) {
-            $data['phone'] = $request->phone;
-        }
-        if ($request->filled('email')) {
-            $data['email'] = $request->email;
-        }
+        if ($request->filled('phone'))  $data['phone'] = $request->phone;
+        if ($request->filled('email'))  $data['email'] = $request->email;
+
         if ($request->hasFile('photo')) {
-            // Delete old photo
             ImageService::deletePhoto($teacher->photo);
-            // Compress and store new photo
             $data['photo'] = ImageService::compressProfilePhoto(
-                $request->file('photo'),
-                'teacher-photos'
+                $request->file('photo'), 'teacher-photos'
             );
         }
 
-        if (!empty($data)) {
-            $teacher->update($data);
-        }
+        if (!empty($data)) $teacher->update($data);
 
         return back()->with('success', __('profile_updated'));
     }
 
-    // ── Submit profile change request (requires approval) ──────────────
+    // ── Submit profile change request ──────────────────────────────────
 
     public function submitChangeRequest(Request $request)
     {
         $user    = $this->guard()->user();
         $teacher = $this->getTeacher();
 
-        if (!$teacher) {
-            return back()->with('error', __('no_teacher_record'));
-        }
+        if (!$teacher) return back()->with('error', __('no_teacher_record'));
 
-        // Block if pending request exists
         if (ProfileChangeRequest::hasPendingRequest($teacher->id)) {
             return back()->with('error', __('pending_request_exists'));
         }
@@ -214,21 +195,12 @@ class TeacherController extends Controller
             return back()->with('error', __('select_at_least_one_field'));
         }
 
-        // Build changes array: {field: {old: current_value, new: requested_value}}
         $changes = [];
         foreach ($selectedFields as $field) {
             $newValue = $request->input($field);
             $oldValue = $teacher->$field;
-
-            // Skip if new value is same as old or empty
-            if ($newValue === null || $newValue === '' || (string)$newValue === (string)$oldValue) {
-                continue;
-            }
-
-            $changes[$field] = [
-                'old' => $oldValue,
-                'new' => $newValue,
-            ];
+            if ($newValue === null || $newValue === '' || (string)$newValue === (string)$oldValue) continue;
+            $changes[$field] = ['old' => $oldValue, 'new' => $newValue];
         }
 
         if (empty($changes)) {
@@ -249,75 +221,139 @@ class TeacherController extends Controller
 
     public function workingHistory()
     {
-        $user      = $this->guard()->user();
-        $teacher   = $this->getTeacher();
-        $history   = $teacher
-            ? TeacherWorkingHistory::where('teacher_id', $teacher->id)
-                ->with(['school', 'district', 'province'])
-                ->orderBy('appointed_date', 'desc')
-                ->get()
-            : collect();
-        $schools   = School::orderBy('name_en')->get();
-        $districts = District::orderBy('name_en')->get();
-        $provinces = Province::orderBy('name_en')->get();
+        $teacher = $this->getTeacher();
+
+        if (!$teacher) {
+            return view('teacher.working-history', [
+                'currentRecord'    => null,
+                'pastRecords'      => collect(),
+                'zonalSchools'     => collect(),
+                'teachingSubjects' => collect(),
+                'subjectNames'     => collect(),
+            ]);
+        }
+
+        // Current system-calculated record — active assignment, no end date
+        $currentRecord = TeacherWorkingHistory::where('teacher_id', $teacher->id)
+            ->where('is_current', true)
+            ->whereNull('end_date')
+            ->first();
+
+        // Subject names for current record display
+        $subjectNames = collect();
+        if ($currentRecord && $currentRecord->subjects_taught) {
+            $subjectNames = TeachingSubject::whereIn('id', $currentRecord->subjects_taught)
+                ->pluck(app()->getLocale() === 'si' ? 'name_si' : 'name_en');
+        }
+
+        // Past records — all except current system record
+        $pastRecords = TeacherWorkingHistory::where('teacher_id', $teacher->id)
+            ->where(function ($q) {
+                $q->where('is_current', false)->orWhereNotNull('end_date');
+            })
+            ->orderByDesc('appointed_date')
+            ->get();
+
+        // Zonal schools for dropdown
+        $zonalSchools = School::where('is_active', true)
+            ->orderBy('name_en')
+            ->get(['id', 'name_en', 'name_si']);
+
+        // Teaching subjects for multi-select
+        $teachingSubjects = TeachingSubject::orderBy('name_en')->get(['id', 'name_en', 'name_si', 'level']);
 
         return view('teacher.working-history', compact(
-            'user', 'teacher', 'history', 'schools', 'districts', 'provinces'
+            'currentRecord', 'pastRecords', 'zonalSchools', 'teachingSubjects', 'subjectNames'
         ));
     }
 
-    public function addWorkingHistory(Request $request)
+    public function storeWorkingHistory(Request $request)
     {
         $teacher = $this->getTeacher();
 
         if (!$teacher) {
-            return back()->with('error', __('no_teacher_record'));
+            return redirect()->route('teacher.working-history')
+                ->with('error', __('wh_teacher_not_found'));
         }
 
         $request->validate([
-            'school_id'          => 'nullable|exists:schools,id',
-            'school_name_manual' => 'nullable|string|max:255',
-            'district_id'        => 'nullable|exists:districts,id',
-            'province_id'        => 'nullable|exists:provinces,id',
-            'zonal_office'       => 'nullable|string|max:255',
-            'subject_taught'     => 'required|string|max:255',
-            'appointed_date'     => 'required|date',
-            'end_date'           => 'nullable|date|after:appointed_date',
-            'is_current'         => 'boolean',
+            'appointed_date' => 'required|date',
+            'end_date'       => 'required|date|after:appointed_date',
         ]);
 
-        // If marking as current, unmark previous
-        if ($request->boolean('is_current')) {
-            TeacherWorkingHistory::where('teacher_id', $teacher->id)
-                ->where('is_current', true)
-                ->update(['is_current' => false]);
+        $schoolId         = $request->filled('school_id') ? $request->school_id : null;
+        $schoolNameManual = $request->filled('school_name_manual') ? $request->school_name_manual : null;
+
+        $history = TeacherWorkingHistory::create([
+            'teacher_id'          => $teacher->id,
+            'school_id'           => $schoolId,
+            'school_name_manual'  => $schoolNameManual,
+            'subjects_taught'     => $request->subjects_taught ?? [],
+            'appointed_date'      => $request->appointed_date,
+            'end_date'            => $request->end_date,
+            'is_current'          => false,
+            'status'              => 'pending',
+            'reason_for_transfer' => $request->reason_for_transfer,
+            'reason_other'        => $request->reason_other,
+        ]);
+
+        // Notify zonal_officer_admin and super_admin in admin panel
+        $notifyUsers = \App\Models\User::role(['zonal_officer_admin', 'super_admin'])->get();
+        foreach ($notifyUsers as $notifyUser) {
+            \Filament\Notifications\Notification::make()
+                ->title('Working History — Pending Approval')
+                ->body($teacher->name . ' submitted a working history record for ' . $history->school_display)
+                ->icon('heroicon-o-clock')
+                ->iconColor('warning')
+                ->sendToDatabase($notifyUser);
         }
 
-        TeacherWorkingHistory::create([
-            'teacher_id'         => $teacher->id,
-            'school_id'          => $request->school_id,
-            'school_name_manual' => $request->school_name_manual,
-            'district_id'        => $request->district_id,
-            'province_id'        => $request->province_id,
-            'zonal_office'       => $request->zonal_office,
-            'subject_taught'     => $request->subject_taught,
-            'appointed_date'     => $request->appointed_date,
-            'end_date'           => $request->end_date,
-            'is_current'         => $request->boolean('is_current'),
-        ]);
-
-        return back()->with('success', __('history_added'));
+        return redirect()->route('teacher.working-history')
+            ->with('success', __('wh_submitted_success'));
     }
 
-    public function deleteWorkingHistory(int $id)
+    public function editWorkingHistoryForm(int $id)
     {
         $teacher = $this->getTeacher();
-        if ($teacher) {
-            TeacherWorkingHistory::where('id', $id)
-                ->where('teacher_id', $teacher->id)
-                ->delete();
-        }
-        return back()->with('success', __('history_deleted'));
+        $record  = TeacherWorkingHistory::where('id', $id)
+            ->where('teacher_id', $teacher->id)
+            ->where('status', 'pending')
+            ->firstOrFail();
+
+        $zonalSchools     = School::where('is_active', true)->orderBy('name_en')->get(['id', 'name_en', 'name_si']);
+        $teachingSubjects = TeachingSubject::orderBy('name_en')->get(['id', 'name_en', 'name_si', 'level']);
+
+        return view('teacher.partials.working-history-edit-form', compact('record', 'zonalSchools', 'teachingSubjects'));
+    }
+
+    public function updateWorkingHistory(Request $request, int $id)
+    {
+        $teacher = $this->getTeacher();
+        $record  = TeacherWorkingHistory::where('id', $id)
+            ->where('teacher_id', $teacher->id)
+            ->where('status', 'pending')
+            ->firstOrFail();
+
+        $request->validate([
+            'appointed_date' => 'required|date',
+            'end_date'       => 'required|date|after:appointed_date',
+        ]);
+
+        $schoolId         = $request->filled('school_id') ? $request->school_id : null;
+        $schoolNameManual = $request->filled('school_name_manual') ? $request->school_name_manual : null;
+
+        $record->update([
+            'school_id'           => $schoolId,
+            'school_name_manual'  => $schoolNameManual,
+            'subjects_taught'     => $request->subjects_taught ?? [],
+            'appointed_date'      => $request->appointed_date,
+            'end_date'            => $request->end_date,
+            'reason_for_transfer' => $request->reason_for_transfer,
+            'reason_other'        => $request->reason_other,
+        ]);
+
+        return redirect()->route('teacher.working-history')
+            ->with('success', __('wh_updated_success'));
     }
 
     // ── My School ──────────────────────────────────────────────────────
@@ -326,7 +362,9 @@ class TeacherController extends Controller
     {
         $user    = $this->guard()->user();
         $teacher = $this->getTeacher();
-        $school  = $user->school;
+        $school  = School::with(['division', 'principal'])
+            ->find($teacher?->school_id ?? $user->school_id);
+
         return view('teacher.my-school', compact('user', 'teacher', 'school'));
     }
 
@@ -334,20 +372,14 @@ class TeacherController extends Controller
 
     public function mutualTransfers()
     {
-        $user      = $this->guard()->user();
-        $posts     = MutualTransfer::with(['user.school', 'preferredDivision'])
-            ->where('is_active', true)
-            ->latest()
-            ->paginate(20);
-        $myPost    = MutualTransfer::where('user_id', $user->id)->where('is_active', true)->first();
-        $divisions = \App\Models\Division::orderBy('name_en')->get();
-        $subjects  = TeachingSubject::active()->get();
-        return view('teacher.mutual-transfers', compact('user', 'posts', 'myPost', 'divisions', 'subjects'));
+        $user = $this->guard()->user();
+        return view('teacher.mutual-transfers', compact('user'));
     }
 
     public function postMutualTransfer(Request $request)
     {
-        $user = $this->guard()->user();
+        $user    = $this->guard()->user();
+        $teacher = $this->getTeacher();
 
         $request->validate([
             'preferred_division_id' => 'nullable|exists:divisions,id',
@@ -359,9 +391,12 @@ class TeacherController extends Controller
 
         MutualTransfer::where('user_id', $user->id)->update(['is_active' => false]);
 
+        // Use teacher school_id as primary source
+        $currentSchoolId = $teacher?->school_id ?? $user->school_id;
+
         MutualTransfer::create([
             'user_id'               => $user->id,
-            'current_school_id'     => $user->school_id,
+            'current_school_id'     => $currentSchoolId,
             'preferred_division_id' => $request->preferred_division_id,
             'preferred_subject'     => $request->preferred_subject,
             'notes_en'              => $request->notes_en,
@@ -385,7 +420,17 @@ class TeacherController extends Controller
     public function notices()
     {
         $user    = $this->guard()->user();
-        $notices = Notice::where('is_active', true)->latest()->paginate(20);
+        $notices = Notice::where('is_active', true)
+            ->whereIn('target_audience', ['all', 'teachers'])
+            ->where(function ($q) {
+                $q->whereNull('published_at')->orWhere('published_at', '<=', now());
+            })
+            ->where(function ($q) {
+                $q->whereNull('expires_at')->orWhere('expires_at', '>=', now());
+            })
+            ->orderByDesc('date')
+            ->paginate(15);
+    
         return view('teacher.notices', compact('user', 'notices'));
     }
 
@@ -393,9 +438,27 @@ class TeacherController extends Controller
 
     public function downloads()
     {
-        $user      = $this->guard()->user();
-        $downloads = Download::where('is_active', true)->latest()->paginate(20);
-        return view('teacher.downloads', compact('user', 'downloads'));
+        $user  = $this->guard()->user();
+        $query = Download::where('is_active', true);
+    
+        if (request('category')) {
+            $query->where('category', request('category'));
+        }
+        if (request('year')) {
+            $query->where('year', request('year'));
+        }
+        if (request('search')) {
+            $query->where(function ($q) {
+                $q->where('title_en', 'like', '%' . request('search') . '%')
+                ->orWhere('title_si', 'like', '%' . request('search') . '%');
+            });
+        }
+    
+        $downloads  = $query->orderByDesc('created_at')->paginate(15)->withQueryString();
+        $categories = Download::where('is_active', true)->whereNotNull('category')->distinct()->pluck('category')->sort()->values();
+        $years      = Download::where('is_active', true)->whereNotNull('year')->distinct()->pluck('year')->sortDesc()->values();
+    
+        return view('teacher.downloads', compact('user', 'downloads', 'categories', 'years'));
     }
 
     // ── Transfers placeholder ──────────────────────────────────────────

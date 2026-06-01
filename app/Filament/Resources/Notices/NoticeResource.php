@@ -32,6 +32,11 @@ class NoticeResource extends Resource
         return 3;
     }
 
+    public static function canAccess(): bool
+    {
+        return auth()->user()->can('content.notices') || auth()->user()->hasRole('super_admin');
+    }
+
     public static function form(Schema $schema): Schema
     {
         return NoticeForm::configure($schema);

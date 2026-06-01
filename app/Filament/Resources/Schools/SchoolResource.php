@@ -42,6 +42,11 @@ class SchoolResource extends Resource
         return 2;
     }
 
+    public static function canAccess(): bool
+    {
+        return auth()->user()->can('schools.view') || auth()->user()->hasRole('super_admin');
+    }
+    
     public static function getRelations(): array
     {
         return [

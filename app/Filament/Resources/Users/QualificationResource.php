@@ -35,6 +35,11 @@ class QualificationResource extends Resource
         return 2;
     }
 
+    public static function canAccess(): bool
+    {
+        return auth()->user()->can('settings.lookup_values') || auth()->user()->hasRole('super_admin');
+    }
+    
     public static function form(Schema $schema): Schema
     {
         return $schema->components([

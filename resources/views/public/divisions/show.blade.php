@@ -94,15 +94,15 @@
                 <div class="grid grid-cols-3 gap-2 mb-3">
                     <div class="stat-pill">
                         <p class="stat-pill-label">{{ __('male') }}</p>
-                        <p class="stat-pill-value">—</p>
+                        <p class="stat-pill-value">{{ $divisionStats ? number_format($divisionStats['boys']) : '—' }}</p>
                     </div>
                     <div class="stat-pill">
                         <p class="stat-pill-label">{{ __('female') }}</p>
-                        <p class="stat-pill-value">—</p>
+                        <p class="stat-pill-value">{{ $divisionStats ? number_format($divisionStats['girls']) : '—' }}</p>
                     </div>
                     <div class="stat-pill">
                         <p class="stat-pill-label">{{ __('total') }}</p>
-                        <p class="stat-pill-value">—</p>
+                        <p class="stat-pill-value">{{ $divisionStats ? number_format($divisionStats['total']) : '—' }}</p>
                     </div>
                 </div>
                 {{-- Schools / ISAs --}}

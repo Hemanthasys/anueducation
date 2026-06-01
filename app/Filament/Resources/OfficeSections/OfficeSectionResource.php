@@ -33,6 +33,11 @@ class OfficeSectionResource extends Resource
         return 6;
     }
 
+    public static function canAccess(): bool
+    {
+        return auth()->user()->can('office_sections.manage') || auth()->user()->hasRole('super_admin');
+    }
+    
     public static function form(Schema $schema): Schema
     {
         return OfficeSectionForm::configure($schema);

@@ -66,14 +66,25 @@ class NoticeForm
                                 Select::make('category')
                                     ->label('Category')
                                     ->options([
-                                        'general'      => 'General',
-                                        'academic'     => 'Academic',
+                                        'general'        => 'General',
+                                        'academic'       => 'Academic',
                                         'administrative' => 'Administrative',
-                                        'circular'     => 'Circular',
-                                        'examination'  => 'Examination',
-                                        'transfer'     => 'Transfer',
+                                        'circular'       => 'Circular',
+                                        'examination'    => 'Examination',
+                                        'transfer'       => 'Transfer',
                                     ])
                                     ->searchable(),
+
+                                Select::make('target_audience')
+                                    ->label('Target Audience')
+                                    ->options([
+                                        'all'        => 'Everyone (Public + All Portals)',
+                                        'teachers'   => 'Teachers Only',
+                                        'principals' => 'Principals Only',
+                                        'officers'   => 'Officers Only',
+                                    ])
+                                    ->default('all')
+                                    ->required(),
 
                                 DatePicker::make('date')
                                     ->label('Notice Date')

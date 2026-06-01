@@ -49,9 +49,7 @@ class SchoolStaffResource extends Resource
 
     public static function canAccess(): bool
     {
-        return auth()->user()->hasAnyRole([
-            'super_admin', 'zonal_director', 'zonal_officer', 'divisional_director',
-        ]);
+        return auth()->user()->can('staff.view') || auth()->user()->hasRole('super_admin');
     }
 
     public static function form(Schema $schema): Schema

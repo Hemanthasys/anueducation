@@ -32,6 +32,11 @@ class ProgrammeResource extends Resource
         return 4;
     }
 
+    public static function canAccess(): bool
+    {
+        return auth()->user()->can('content.programmes') || auth()->user()->hasRole('super_admin');
+    }
+    
     public static function form(Schema $schema): Schema
     {
         return ProgrammeForm::configure($schema);
