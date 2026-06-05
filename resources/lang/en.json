@@ -851,7 +851,48 @@
   "g5_medium_breakdown": "Medium Breakdown",
   "g5_division_comparison": "Division Comparison",
   "g5_year_trend": "Year-on-Year Trend",
-  "g5_top_schools": "Top Schools by Qualification Rate"
+  "g5_top_schools": "Top Schools by Qualification Rate",
+
+  "g5_marks_threshold": "Marks Threshold",
+
+
+ 
+    "project.type.construction" : "Building / Construction",
+    "project.type.equipment"    : "Equipment Supply",
+    "project.type.library"      : "Library Books Purchase",
+    "project.type.training"     : "Training Program",
+    "project.type.sanitation"   : "Sanitation / Cleaning",
+    "project.type.other"        : "Other",
+ 
+    
+    "project.nature.new"         : "New Development",
+    "project.nature.renovation"  : "Renovation / Repair",
+    "project.nature.upgrade"     : "Upgrade / Improvement",
+    "project.nature.replacement" : "Replacement",
+ 
+
+    "project.status.planning"   : "Planning",
+    "project.status.active"     : "Active",
+    "project.status.on_hold"    : "On Hold",
+    "project.status.completed"  : "Completed",
+    "project.status.cancelled"  : "Cancelled",
+ 
+    
+    "milestone.status.pending"     : "Pending",
+    "milestone.status.in_progress" : "In Progress",
+    "milestone.status.completed"   : "Completed",
+ 
+   
+    "project.overall_progress"       : "Overall Progress",
+    "project.milestones"             : "Milestones",
+    "project.milestone_updates"      : "Progress Updates",
+    "project.submit_update"          : "Submit Progress Update",
+    "project.weight_must_total_100"  : "Milestone weights must total 100%. Current total: :total%",
+    "project.no_milestones"          : "No milestones have been added to this project yet.",
+    "project.no_projects"            : "No projects have been assigned to your school yet.",
+    "project.assigned_to_school"     : "This project has been assigned to your school."
+
+
   
 
     }

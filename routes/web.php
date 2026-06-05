@@ -15,6 +15,7 @@ use App\Http\Controllers\Public\AlResultsController;
 use App\Http\Controllers\Public\OlResultsController;
 use App\Http\Controllers\Public\Grade5ResultsController;
 use App\Http\Controllers\Admin\ExamImportController;
+use App\Http\Controllers\Admin\ProjectPdfController;
 use App\Http\Controllers\Portal\PasswordChangeController;
 use App\Http\Controllers\Portal\PrincipalController;
 use App\Http\Controllers\Portal\TeacherController;
@@ -75,7 +76,6 @@ Route::get('/lang/{locale}', function ($locale) {
         session(['locale' => $locale]);
         app()->setLocale($locale);
     }
-    // Redirect back to the same page (login page stays on login page)
     $back = url()->previous();
     $fallback = url('/principal');
     return redirect($back ?: $fallback);
@@ -106,6 +106,14 @@ Route::prefix('principal')->name('principal.')->group(function () {
         Route::get('profile',            [PrincipalController::class, 'profile'])->name('profile');
         Route::post('profile',           [PrincipalController::class, 'updateProfile'])->name('profile.update');
 
+
+        Route::get('projects/{assignment}',                        [PrincipalController::class, 'projectDetail'])->name('project-detail');
+        Route::post('projects/{assignment}/milestone-update',      [PrincipalController::class, 'submitMilestoneUpdate'])->name('milestone-update.store');
+        Route::get('milestone-update/{update}/edit',               [PrincipalController::class, 'editMilestoneUpdate'])->name('milestone-update.edit');
+        Route::put('milestone-update/{update}',                    [PrincipalController::class, 'updateMilestoneUpdate'])->name('milestone-update.update');
+
+        Route::delete('milestone-update/{update}', [PrincipalController::class, 'deleteMilestoneUpdate'])->name('milestone-update.destroy');
+
         // ── Teachers & Staff ──────────────────────────────────
         Route::get('teachers',                                   [PrincipalController::class, 'teachers'])->name('teachers');
         Route::post('teachers/store',                            [PrincipalController::class, 'storeTeacher'])->name('teachers.store');
@@ -114,9 +122,9 @@ Route::prefix('principal')->name('principal.')->group(function () {
         Route::put('teachers/{teacher}',                         [PrincipalController::class, 'updateTeacher'])->name('teachers.update');
         Route::post('teachers/{teacher}/subjects',               [PrincipalController::class, 'addTeachingSubject'])->name('teachers.subjects.add');
         Route::delete('teachers/{teacher}/subjects/{subject}',   [PrincipalController::class, 'removeTeachingSubject'])->name('teachers.subjects.remove');
-        Route::post('teachers/{teacher}/attachments',              [PrincipalController::class, 'storeAttachment'])->name('teachers.attachments.store');
-        Route::delete('teachers/{teacher}/attachments/end',        [PrincipalController::class, 'endAttachment'])->name('teachers.attachments.end');
-        Route::get('teachers/{teacher}/attachment-data',           [PrincipalController::class, 'attachmentData'])->name('teachers.attachment-data');
+        Route::post('teachers/{teacher}/attachments',            [PrincipalController::class, 'storeAttachment'])->name('teachers.attachments.store');
+        Route::delete('teachers/{teacher}/attachments/end',      [PrincipalController::class, 'endAttachment'])->name('teachers.attachments.end');
+        Route::get('teachers/{teacher}/attachment-data',         [PrincipalController::class, 'attachmentData'])->name('teachers.attachment-data');
 
         // ── Quality Circles ───────────────────────────────────
         Route::get('quality-circles',               [QualityCircleController::class, 'index'])->name('quality-circles');
@@ -138,34 +146,35 @@ Route::prefix('teacher')->name('teacher.')->group(function () {
     Route::post('logout', [TeacherController::class, 'logout'])->name('logout');
 
     // Protected
-Route::middleware(['auth', 'teacher', 'must.change.password', 'set.portal.locale'])->group(function () {
+    Route::middleware(['auth', 'teacher', 'must.change.password', 'set.portal.locale'])->group(function () {
 
-    Route::get('/',                       [TeacherController::class, 'dashboard'])->name('dashboard');
-    Route::get('profile',                 [TeacherController::class, 'profile'])->name('profile');
-    Route::post('profile',                [TeacherController::class, 'updateProfile'])->name('profile.update');
-    Route::post('profile/change-request', [TeacherController::class, 'submitChangeRequest'])->name('profile.change-request');
+        Route::get('/',                       [TeacherController::class, 'dashboard'])->name('dashboard');
+        Route::get('profile',                 [TeacherController::class, 'profile'])->name('profile');
+        Route::post('profile',                [TeacherController::class, 'updateProfile'])->name('profile.update');
+        Route::post('profile/change-request', [TeacherController::class, 'submitChangeRequest'])->name('profile.change-request');
 
-    // Working history
-    Route::get('working-history',                      [TeacherController::class, 'workingHistory'])->name('working-history');
-    Route::post('working-history',                     [TeacherController::class, 'storeWorkingHistory'])->name('working-history.store');
-    Route::get('working-history/{id}/edit-form',       [TeacherController::class, 'editWorkingHistoryForm'])->name('working-history.edit-form');
-    Route::put('working-history/{id}',                 [TeacherController::class, 'updateWorkingHistory'])->name('working-history.update');
+        // Working history
+        Route::get('working-history',                [TeacherController::class, 'workingHistory'])->name('working-history');
+        Route::post('working-history',               [TeacherController::class, 'storeWorkingHistory'])->name('working-history.store');
+        Route::get('working-history/{id}/edit-form', [TeacherController::class, 'editWorkingHistoryForm'])->name('working-history.edit-form');
+        Route::put('working-history/{id}',           [TeacherController::class, 'updateWorkingHistory'])->name('working-history.update');
 
-    Route::get('my-school',               [TeacherController::class, 'mySchool'])->name('my-school');
-    Route::get('mutual-transfers',        [TeacherController::class, 'mutualTransfers'])->name('mutual-transfers');
-    Route::post('mutual-transfers',       [TeacherController::class, 'postMutualTransfer'])->name('mutual-transfers.post');
-    Route::delete('mutual-transfers',     [TeacherController::class, 'removeMutualTransfer'])->name('mutual-transfers.remove');
-    Route::get('notices',                 [TeacherController::class, 'notices'])->name('notices');
-    Route::get('downloads',               [TeacherController::class, 'downloads'])->name('downloads');
-    Route::get('transfers',               [TeacherController::class, 'transfers'])->name('transfers');
+        Route::get('my-school',           [TeacherController::class, 'mySchool'])->name('my-school');
+        Route::get('mutual-transfers',    [TeacherController::class, 'mutualTransfers'])->name('mutual-transfers');
+        Route::post('mutual-transfers',   [TeacherController::class, 'postMutualTransfer'])->name('mutual-transfers.post');
+        Route::delete('mutual-transfers', [TeacherController::class, 'removeMutualTransfer'])->name('mutual-transfers.remove');
+        Route::get('notices',             [TeacherController::class, 'notices'])->name('notices');
+        Route::get('downloads',           [TeacherController::class, 'downloads'])->name('downloads');
+        Route::get('transfers',           [TeacherController::class, 'transfers'])->name('transfers');
 
     });
 
 }); // end teacher portal
 
-// ── Admin exam import routes ──────────────────────────────────
+// ── Admin routes ──────────────────────────────────────────────
 Route::prefix('admin')->middleware(['web', 'auth'])->group(function () {
 
+    // Exam imports
     Route::post('exam-import/al', [ExamImportController::class, 'importAl'])->name('admin.exam.import.al');
     Route::post('exam-import/ol', [ExamImportController::class, 'importOl'])->name('admin.exam.import.ol');
     Route::post('exam-import/g5', [ExamImportController::class, 'importG5'])->name('admin.exam.import.g5');
@@ -175,5 +184,10 @@ Route::prefix('admin')->middleware(['web', 'auth'])->group(function () {
     Route::get('exam-import/template/g5', [ExamImportController::class, 'templateG5'])->name('admin.exam.template.g5');
 
     Route::delete('exam-import/{type}/{id}', [ExamImportController::class, 'deleteImport'])->name('admin.exam.import.delete');
+
+    // Project PDF reports
+    Route::get('projects/{project}/pdf/summary', [ProjectPdfController::class, 'summary'])->name('admin.projects.pdf.summary');
+    Route::get('projects/{project}/pdf/preview', [ProjectPdfController::class, 'preview'])
+    ->name('admin.projects.pdf.preview');
 
 }); // end admin group

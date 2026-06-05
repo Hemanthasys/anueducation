@@ -330,6 +330,8 @@ class DivisionController extends Controller
                 'top_schools'  => $g5TopSchools,
                 'male_label'   => 'M',
                 'female_label' => 'F',
+                'above_70_pct'  => $g5Total > 0 ? round((clone $g5Base)->where('total_marks', '>=', 70)->count() / $g5Total * 100, 1) : 0,
+                'above_100_pct' => $g5Total > 0 ? round((clone $g5Base)->where('total_marks', '>=', 100)->count() / $g5Total * 100, 1) : 0
             ];
         }
 

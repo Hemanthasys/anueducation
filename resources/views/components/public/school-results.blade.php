@@ -5,7 +5,6 @@
 --}}
 
 @php
-    // Build list of available exams for this school
     $availableExams = [];
     if (!empty($alResults)) $availableExams[] = 'al';
     if (!empty($olResults)) $availableExams[] = 'ol';
@@ -13,7 +12,6 @@
 @endphp
 
 @if(count($availableExams) === 0)
-    {{-- No results for this school --}}
     <div class="text-center py-8 rounded-xl border-2 border-dashed border-gray-100">
         <p class="text-sm text-gray-400">{{ __('no_results_available') }}</p>
     </div>
@@ -21,7 +19,7 @@
 
 <div x-data="{ activeTab: '{{ $availableExams[0] }}' }">
 
-    {{-- Tab buttons — only show if more than one exam --}}
+    {{-- Tab buttons --}}
     @if(count($availableExams) > 1)
     <div class="flex gap-1 mb-5 border-b border-gray-100">
         @if(!empty($alResults))
@@ -69,10 +67,8 @@
     @if(!empty($alResults))
     <div x-show="activeTab === 'al'" x-cloak>
 
-        {{-- 3 stat cards --}}
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-5">
 
-            {{-- Total Sat --}}
             <div class="bg-gray-50 rounded-xl p-4 flex items-center gap-4">
                 <div class="relative w-16 h-16 flex-shrink-0">
                     <canvas id="al_gender_chart" width="64" height="64"></canvas>
@@ -87,7 +83,6 @@
                 </div>
             </div>
 
-            {{-- Qualified % --}}
             <div class="bg-gray-50 rounded-xl p-4 flex items-center gap-4">
                 <div class="relative w-16 h-16 flex-shrink-0">
                     <canvas id="al_qual_chart" width="64" height="64"></canvas>
@@ -102,7 +97,6 @@
                 </div>
             </div>
 
-            {{-- Not Qualified --}}
             <div class="bg-gray-50 rounded-xl p-4 flex items-center gap-4">
                 <div class="w-16 h-16 flex-shrink-0 flex items-center justify-center">
                     <div class="text-center">
@@ -121,7 +115,6 @@
 
         </div>
 
-        {{-- Subject breakdown horizontal bar chart --}}
         @if($alResults['subjects']->isNotEmpty())
         <div class="bg-gray-50 rounded-xl p-4">
             <p class="text-xs text-gray-400 uppercase tracking-wide mb-3">{{ __('al_subject_pass_rates') }}</p>
@@ -204,6 +197,7 @@
 
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-5">
 
+            {{-- Total Sat --}}
             <div class="bg-gray-50 rounded-xl p-4 flex items-center gap-4">
                 <div class="relative w-16 h-16 flex-shrink-0">
                     <canvas id="g5_gender_chart" width="64" height="64"></canvas>
@@ -218,6 +212,7 @@
                 </div>
             </div>
 
+            {{-- Qualified --}}
             <div class="bg-gray-50 rounded-xl p-4 flex items-center gap-4">
                 <div class="relative w-16 h-16 flex-shrink-0">
                     <canvas id="g5_qual_chart" width="64" height="64"></canvas>
@@ -232,19 +227,30 @@
                 </div>
             </div>
 
-            <div class="bg-gray-50 rounded-xl p-4 flex items-center gap-4">
-                <div class="w-16 h-16 flex-shrink-0 flex items-center justify-center">
-                    <div class="text-center">
-                        <p class="text-2xl font-bold" style="color: var(--color-accent);">{{ $g5Results['avg_marks'] }}</p>
-                        <p class="text-xs text-gray-400">{{ __('g5_avg_marks') }}</p>
+            {{-- Marks threshold --}}
+            <div class="bg-gray-50 rounded-xl p-4">
+                <p class="text-xs text-gray-400 uppercase tracking-wide mb-3">{{ __('g5_marks_threshold') }}</p>
+                <div class="space-y-2">
+                    <div>
+                        <div class="flex justify-between text-xs mb-1">
+                            <span class="text-gray-600">{{ __('g5_above_70') }}</span>
+                            <span class="font-semibold text-amber-600">{{ $g5Results['above_70_pct'] ?? 0 }}%</span>
+                        </div>
+                        <div class="h-1.5 rounded-full bg-gray-200">
+                            <div class="h-full rounded-full bg-amber-400"
+                                 style="width: {{ $g5Results['above_70_pct'] ?? 0 }}%"></div>
+                        </div>
                     </div>
-                </div>
-                <div>
-                    <p class="text-xs text-gray-400 uppercase tracking-wide mb-1">{{ __('al_pass_rate') }}</p>
-                    <div class="w-24 h-2 rounded-full bg-gray-200 mt-1">
-                        <div class="h-full rounded-full bg-green-500" style="width: {{ $g5Results['qual_pct'] }}%"></div>
+                    <div>
+                        <div class="flex justify-between text-xs mb-1">
+                            <span class="text-gray-600">{{ __('g5_above_100') }}</span>
+                            <span class="font-semibold text-blue-600">{{ $g5Results['above_100_pct'] ?? 0 }}%</span>
+                        </div>
+                        <div class="h-1.5 rounded-full bg-gray-200">
+                            <div class="h-full rounded-full bg-blue-400"
+                                 style="width: {{ $g5Results['above_100_pct'] ?? 0 }}%"></div>
+                        </div>
                     </div>
-                    <p class="text-xs text-green-600 font-semibold mt-1">{{ $g5Results['qual_pct'] }}%</p>
                 </div>
             </div>
 
@@ -275,22 +281,16 @@
         });
     }
 
-    function makeHBar(id, labels, data, height) {
+    function makeHBar(id, labels, data) {
         const el = document.getElementById(id);
         if (!el) return;
         const colors = data.map(v => v >= 70 ? '#16a34a' : v >= 50 ? '#d97706' : '#ef4444');
         new Chart(el, {
             type: 'bar',
-            data: {
-                labels,
-                datasets: [{ data, backgroundColor: colors, borderRadius: 3, barThickness: 16 }]
-            },
+            data: { labels, datasets: [{ data, backgroundColor: colors, borderRadius: 3, barThickness: 16 }] },
             options: {
                 indexAxis: 'y', responsive: true, maintainAspectRatio: false,
-                plugins: {
-                    legend: { display: false },
-                    tooltip: { callbacks: { label: c => ` ${c.raw}% pass rate` } }
-                },
+                plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => ` ${c.raw}% pass rate` } } },
                 scales: {
                     x: { min: 0, max: 100, grid: { display: false }, ticks: { callback: v => v + '%' } },
                     y: { grid: { display: false }, ticks: { font: { size: 11 } } }
@@ -299,7 +299,6 @@
         });
     }
 
-    // ── A/L Charts ───────────────────────────────────────────────
     @if(!empty($alResults))
     makeDoughnut('al_gender_chart',
         ['{{ __("al_male") }}', '{{ __("al_female") }}'],
@@ -319,7 +318,6 @@
     @endif
     @endif
 
-    // ── O/L Charts ───────────────────────────────────────────────
     @if(!empty($olResults))
     makeDoughnut('ol_gender_chart',
         ['{{ __("al_male") }}', '{{ __("al_female") }}'],
@@ -339,7 +337,6 @@
     @endif
     @endif
 
-    // ── Grade 5 Charts ───────────────────────────────────────────
     @if(!empty($g5Results))
     makeDoughnut('g5_gender_chart',
         ['{{ __("al_male") }}', '{{ __("al_female") }}'],

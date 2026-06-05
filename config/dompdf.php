@@ -21,6 +21,15 @@ return [
     'convert_entities' => true,
 
     'options' => [
+
+    'default_paper_size'        => 'a4',
+    'default_paper_orientation' => 'portrait',
+
+    'default_margin_top'    => '15mm',
+    'default_margin_right'  => '12mm',
+    'default_margin_bottom' => '15mm',
+    'default_margin_left'   => '12mm',
+
         /**
          * The location of the DOMPDF font directory
          *

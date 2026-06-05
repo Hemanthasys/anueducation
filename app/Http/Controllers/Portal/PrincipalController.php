@@ -21,6 +21,11 @@ use App\Models\LookupValue;
 use App\Rules\SriLankaNic;
 use App\Models\TeacherAttachment;
 use App\Models\School;
+use App\Models\ProjectAssignment;
+use App\Models\MilestoneUpdate;
+use App\Models\MilestoneUpdatePhoto;
+use App\Services\ImageService;
+
 
 class PrincipalController extends Controller
 {
@@ -688,14 +693,174 @@ class PrincipalController extends Controller
 
     // ── Projects ───────────────────────────────────────────────────────
 
+      
     public function projects()
     {
-        $user   = $this->guard()->user();
-        $school = $user->school;
-        $theme  = ThemeHelper::getTheme();
-
-        return view('principal.projects', compact('user', 'school', 'theme'));
+        $school = auth()->user()->school;
+    
+        if (! $school) {
+            return view('principal.projects', ['assignments' => collect()]);
+        }
+    
+        $assignments = \App\Models\ProjectAssignment::with([
+                'project.milestones.latestUpdates',
+                'project.fundingSource',
+                'project.expenditureVotes',
+                'assignedTo',
+            ])
+            ->where('school_id', $school->id)
+            ->where('status', 'active')
+            ->latest()
+            ->get();
+    
+        return view('principal.projects', compact('assignments'));
     }
+    
+    public function projectDetail(\App\Models\ProjectAssignment $assignment)
+    {
+        // Ensure this assignment belongs to the principal's school
+        $school = auth()->user()->school;
+        abort_if($assignment->school_id !== $school?->id, 403);
+    
+        $assignment->load([
+            'project.milestones',
+            'project.fundingSource',
+            'project.expenditureVotes.category',
+            'project.createdBy',
+            'assignedTo',
+        ]);
+    
+        // Load milestone updates for THIS school's assignment only
+        $milestoneUpdates = \App\Models\MilestoneUpdate::with(['photos', 'comments.commentedBy', 'submittedBy'])
+            ->where('project_assignment_id', $assignment->id)
+            ->get()
+            ->groupBy(fn ($update) => $update->milestone_id ?? 'general');
+    
+        return view('principal.project-detail', compact('assignment', 'milestoneUpdates'));
+    }
+    
+    public function submitMilestoneUpdate(\Illuminate\Http\Request $request, \App\Models\ProjectAssignment $assignment)
+    {
+        $school = auth()->user()->school;
+        abort_if($assignment->school_id !== $school?->id, 403);
+    
+        $request->validate([
+            'milestone_id'       => 'required|integer',
+            'description'        => 'required|string|min:10',
+            'completion_percent' => 'required|integer|min:0|max:100',
+            'photos.*'           => 'nullable|image|max:5120',
+        ]);
+    
+        $update = \App\Models\MilestoneUpdate::create([
+            'milestone_id' => $request->milestone_id ?: null,
+            'project_assignment_id'  => $assignment->id,
+            'submitted_by'           => auth()->id(),
+            'description'            => $request->description,
+            'completion_percent'     => $request->completion_percent,
+            'submitted_at'           => now(),
+            'status'                 => 'pending',
+        ]);
+    
+        // Handle photo uploads
+        if ($request->hasFile('photos')) {
+            $imageService = app(\App\Services\ImageService::class);
+    
+            foreach ($request->file('photos') as $photo) {
+                $path = $imageService->encodeProjectPhoto($photo);
+                $update->photos()->create(['photo_path' => $path]);
+            }
+        }
+    
+        // Notify overseer
+        if ($assignment->assignedTo) {
+            \Filament\Notifications\Notification::make()
+                ->title(__('Milestone Update Submitted'))
+                ->body($school->name_en . ' submitted a progress update for: ' . $assignment->project->title)
+                ->icon('heroicon-o-flag')
+                ->iconColor('info')
+                ->sendToDatabase($assignment->assignedTo);
+        }
+    
+        // Also notify zonal_officer_planning
+        $planningOfficers = \App\Models\User::role('zonal_officer_planning')->get();
+        foreach ($planningOfficers as $officer) {
+            \Filament\Notifications\Notification::make()
+                ->title(__('Milestone Update Submitted'))
+                ->body($school->name_en . ' submitted a progress update for: ' . $assignment->project->title)
+                ->sendToDatabase($officer);
+        }
+    
+        return redirect()->route('principal.project-detail', $assignment)
+    ->with('success', __('Progress update submitted successfully.'));
+    }
+    
+    public function editMilestoneUpdate(\App\Models\MilestoneUpdate $update)
+    {
+        $school = auth()->user()->school;
+        abort_if($update->assignment->school_id !== $school?->id, 403);
+        abort_if(! $update->canBeEdited(), 403);
+    
+        return response()->json([
+            'id'                 => $update->id,
+            'description'        => $update->description,
+            'completion_percent' => $update->completion_percent,
+            'photos'             => $update->photos->map(fn ($p) => [
+                'id'  => $p->id,
+                'url' => asset('storage/' . $p->photo_path),
+            ]),
+        ]);
+    }
+    
+    public function updateMilestoneUpdate(\Illuminate\Http\Request $request, \App\Models\MilestoneUpdate $update)
+    {
+        $school = auth()->user()->school;
+        abort_if($update->assignment->school_id !== $school?->id, 403);
+        abort_if(! $update->canBeEdited(), 403);
+    
+        $request->validate([
+            'description'        => 'required|string|min:10',
+            'completion_percent' => 'required|integer|min:0|max:100',
+            'photos.*'           => 'nullable|image|max:5120',
+            'remove_photos'      => 'nullable|array',
+            'remove_photos.*'    => 'exists:milestone_update_photos,id',
+        ]);
+    
+        $update->update([
+            'description'        => $request->description,
+            'completion_percent' => $request->completion_percent,
+        ]);
+    
+        // Remove selected photos
+        if ($request->remove_photos) {
+            $update->photos()->whereIn('id', $request->remove_photos)
+                ->each(fn ($photo) => $photo->delete());
+        }
+    
+        // Add new photos
+        if ($request->hasFile('photos')) {
+            $imageService = app(\App\Services\ImageService::class);
+            foreach ($request->file('photos') as $photo) {
+                $path = $imageService->encodeProjectPhoto($photo);
+                $update->photos()->create(['photo_path' => $path]);
+            }
+        }       
+    
+        return back()->with('success', __('Progress update saved successfully.'));
+    }
+
+            public function deleteMilestoneUpdate(\App\Models\MilestoneUpdate $update)
+            {
+                $school = auth()->user()->school;
+                abort_if($update->assignment->school_id !== $school?->id, 403);
+                abort_if(! $update->canBeEdited(), 403);
+
+                $update->delete();
+
+                return redirect()->route('principal.project-detail', $update->assignment)
+                    ->with('success', __('Progress update deleted successfully.'));
+            }
+
+
 
     // ── Profile ────────────────────────────────────────────────────────
 

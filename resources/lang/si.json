@@ -850,5 +850,79 @@
     "g5_medium_breakdown": "මාධ්‍ය විශ්ලේෂණය",
     "g5_division_comparison": "කොට්ඨාශ සංසන්දනය",
     "g5_year_trend": "වාර්ෂික ප්‍රවණතාව",
-    "g5_top_schools": "සුදුසුකම් ලැබීමේ අනුපාතයෙන් ඉහළ පාසල්"
+    "g5_top_schools": "සුදුසුකම් ලැබීමේ අනුපාතයෙන් ඉහළ පාසල්",
+
+    "g5_marks_threshold": "ලකුණු සීමාව",
+
+    "project.type.construction" : "ගොඩනැගිලි / ඉදිකිරීම්",
+    "project.type.equipment"    : "උපකරණ සැපයීම",
+    "project.type.library"      : "පුස්තකාල පොත් මිලදී ගැනීම",
+    "project.type.training"     : "පුහුණු වැඩසටහන",
+    "project.type.sanitation"   : "පිරිසිදු කිරීම් / පවිත්‍රතා",
+    "project.type.other"        : "වෙනත්",
+ 
+  
+    "project.nature.new"         : "නව සංවර්ධනය",
+    "project.nature.renovation"  : "අලුත්වැඩියා / ප්‍රතිසංස්කරණ",
+    "project.nature.upgrade"     : "උසස් කිරීම / වැඩිදියුණු කිරීම",
+    "project.nature.replacement" : "ප්‍රතිස්ථාපනය",
+ 
+    
+    "project.status.planning"   : "සැලසුම් කිරීම",
+    "project.status.active"     : "ක්‍රියාත්මක",
+    "project.status.on_hold"    : "තාවකාලිකව නවතා ඇත",
+    "project.status.completed"  : "සම්පූර්ණ කරන ලදී",
+    "project.status.cancelled"  : "අවලංගු කරන ලදී",
+ 
+   
+    "milestone.status.pending"     : "පොරොත්තුව",
+    "milestone.status.in_progress" : "ක්‍රියාත්මක වෙමින්",
+    "milestone.status.completed"   : "සම්පූර්ණයි",
+ 
+   
+    "project.overall_progress"       : "සමස්ත ප්‍රගතිය",
+    "project.milestones"             : "සන්ධිස්ථාන",
+    "project.milestone_updates"      : "ප්‍රගති යාවත්කාලීන",
+    "project.submit_update"          : "ප්‍රගති යාවත්කාලීනයක් ඉදිරිපත් කරන්න",
+    "project.weight_must_total_100"  : "සන්ධිස්ථාන බර ගණනය 100% විය යුතුය. දැනට: :total%", 
+    "project.no_milestones"          : "මෙම ව්‍යාපෘතියට තවම සන්ධිස්ථාන එකතු කර නොමැත.",
+    "project.no_projects"            : "ඔබේ පාසලට තවම ව්‍යාපෘති පවරා නොමැත.",
+    "project.assigned_to_school"     : "මෙම ව්‍යාපෘතිය ඔබේ පාසලට පවරා ඇත.",
+    "My Projects": "මගේ ව්‍යාපෘති",
+    "Projects assigned to your school": "ඔබේ පාසලට පවරා ඇති ව්‍යාපෘති",
+    "No projects have been assigned to your school yet.": "ඔබේ පාසලට තවම ව්‍යාපෘති පවරා නොමැත.",
+    "Your Allocation": "ඔබේ වෙන්කිරීම",
+    "Overall Progress": "සමස්ත ප්‍රගතිය",
+    "Due": "නියමිත දිනය",
+    "Overseer": "අධීක්ෂක",
+    "Milestones": "සන්ධිස්ථාන",
+    "View Details": "විස්තර බලන්න",
+    "Back to Projects": "ව්‍යාපෘති වෙත ආපසු",
+    "Submit Progress Update": "ප්‍රගති යාවත්කාලීනයක් ඉදිරිපත් කරන්න",
+    "Progress Updates": "ප්‍රගති යාවත්කාලීන",
+    "Director Comments": "අධ්‍යක්ෂ අදහස්",
+    "Completion": "සම්පූර්ණ කිරීම",
+    "Description": "විස්තරය",
+    "Edit": "සංස්කරණය",
+    "Cancel": "අවලංගු කරන්න",
+    "Save Changes": "වෙනස්කම් සුරකින්න",
+    "Submit Update": "යාවත්කාලීනය ඉදිරිපත් කරන්න",
+    "Add More Photos": "තවත් ඡායාරූප එකතු කරන්න",
+    "Existing Photos": "පවතින ඡායාරූප",
+    "Click X to remove a photo": "ඡායාරූපයක් ඉවත් කිරීමට X ක්ලික් කරන්න",
+    "Max 5MB per photo. JPG, PNG, WebP.": "ඡායාරූපයකට උපරිම 5MB. JPG, PNG, WebP.",
+    "No milestones have been defined for this project.": "මෙම ව්‍යාපෘතිය සඳහා සන්ධිස්ථාන නිර්වචනය කර නොමැත.",
+    
+    "Rejection Note": "ප්‍රතික්ෂේප කිරීමේ සටහන",
+    "weight": "බර",
+    "Type": "වර්ගය",
+    "Nature": "ස්වභාවය",
+    "Start Date": "ආරම්භක දිනය",
+    "Expected End": "අපේක්ෂිත අවසානය",
+    "Funding Source": "අරමුදල් මූලාශ්‍රය",
+    "Expenditure Votes": "වියදම් ඡන්ද",
+
+    "Your Budget": "ඔබේ අයවැය",
+    "Contractor": "කොන්ත්‍රාත්කරු"
+
 }

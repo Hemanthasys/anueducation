@@ -305,21 +305,29 @@
                 </div>
             </div>
 
-            <div class="bg-gray-50 rounded-xl p-4 flex items-center gap-4">
-                <div class="w-16 h-16 flex-shrink-0 flex items-center justify-center">
-                    <div class="text-center">
-                        <p class="text-2xl font-bold" style="color: var(--color-accent);">{{ $g5Results['avg_marks'] }}</p>
-                        <p class="text-xs text-gray-400">{{ __('g5_avg_marks') }}</p>
+                <div class="bg-gray-50 rounded-xl p-4">
+                    <p class="text-xs text-gray-400 uppercase tracking-wide mb-3">{{ __('g5_marks_threshold') }}</p>
+                    <div class="space-y-2">
+                        <div>
+                            <div class="flex justify-between text-xs mb-1">
+                                <span class="text-gray-600">{{ __('g5_above_70') }}</span>
+                                <span class="font-semibold text-amber-600">{{ $g5Results['above_70_pct'] }}%</span>
+                            </div>
+                            <div class="h-1.5 rounded-full bg-gray-200">
+                                <div class="h-full rounded-full bg-amber-400" style="width: {{ $g5Results['above_70_pct'] }}%"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-xs mb-1">
+                                <span class="text-gray-600">{{ __('g5_above_100') }}</span>
+                                <span class="font-semibold text-blue-600">{{ $g5Results['above_100_pct'] }}%</span>
+                            </div>
+                            <div class="h-1.5 rounded-full bg-gray-200">
+                                <div class="h-full rounded-full bg-blue-400" style="width: {{ $g5Results['above_100_pct'] }}%"></div>
+                            </div>
+                        </div>
                     </div>
                 </div>
-                <div>
-                    <p class="text-xs text-gray-400 uppercase tracking-wide mb-1">{{ __('al_pass_rate') }}</p>
-                    <div class="w-24 h-2 rounded-full bg-gray-200 mt-1">
-                        <div class="h-full rounded-full bg-green-500" style="width: {{ $g5Results['qual_pct'] }}%"></div>
-                    </div>
-                    <p class="text-xs text-green-600 font-semibold mt-1">{{ $g5Results['qual_pct'] }}%</p>
-                </div>
-            </div>
         </div>
 
         @if($g5Results['top_schools']->isNotEmpty())

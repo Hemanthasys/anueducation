@@ -152,11 +152,11 @@ class PermissionSeeder extends Seeder
                 'group'       => 'Human Resources',
                 'phase'       => 2,
                 'permissions' => [
-                    'transfers.view',         // View transfer applications
-                    'transfers.process',      // Process transfers (zonal_officer_admin level)
-                    'transfers.approve',      // Final approval (zonal_director level)
+                    'transfers.view',           // View transfer applications
+                    'transfers.process',        // Process transfers (zonal_officer_admin level)
+                    'transfers.approve',        // Final approval (zonal_director level)
                     'transfers.manage_windows', // Open / close transfer windows
-                    'transfers.reports',      // Export transfer reports
+                    'transfers.reports',        // Export transfer reports
                 ],
             ],
 
@@ -216,9 +216,9 @@ class PermissionSeeder extends Seeder
                 'group'       => 'School Welfare',
                 'phase'       => 2,
                 'permissions' => [
-                    'meal_programmes.view',   // View meal programme data
-                    'meal_programmes.manage', // Manage meal programme records
-                    'meal_programmes.reports',// Generate meal programme reports
+                    'meal_programmes.view',    // View meal programme data
+                    'meal_programmes.manage',  // Manage meal programme records
+                    'meal_programmes.reports', // Generate meal programme reports
                 ],
             ],
 
@@ -231,15 +231,15 @@ class PermissionSeeder extends Seeder
                 'group'       => 'Education Development',
                 'phase'       => 1,
                 'permissions' => [
-                    'quality_circles.view',   // View quality circle records
-                    'quality_circles.manage', // Create / edit quality circle records
-                    'quality_circles.approve',// Approve / reject QC submissions
-                    'quality_circles.reports',// Generate QC reports
+                    'quality_circles.view',    // View quality circle records
+                    'quality_circles.manage',  // Create / edit quality circle records
+                    'quality_circles.approve', // Approve / reject QC submissions
+                    'quality_circles.reports', // Generate QC reports
                 ],
             ],
 
             // ----------------------------------------------------------------
-            // TRAINING & WORKSHOPS
+            // TRAINING & WORKSHOPS  (PHASE 2)
             // ----------------------------------------------------------------
 
             'training' => [
@@ -247,30 +247,57 @@ class PermissionSeeder extends Seeder
                 'group'       => 'Education Development',
                 'phase'       => 2,
                 'permissions' => [
-                    'training.view',          // View training programmes and workshops
-                    'training.manage',        // Create / edit training events
-                    'training.attendance',    // Manage attendance records
-                    'training.reports',       // Generate training reports
+                    'training.view',           // View training programmes and workshops
+                    'training.manage',         // Create / edit training events
+                    'training.attendance',     // Manage attendance records
+                    'training.reports',        // Generate training reports
                 ],
             ],
 
             // ----------------------------------------------------------------
-            // PROJECT MONITORING  (PHASE 2)
+            // PROJECT MONITORING
             // ----------------------------------------------------------------
 
             'projects' => [
                 'label'       => 'Project Monitoring',
                 'group'       => 'Planning & Development',
-                'phase'       => 2,
+                'phase'       => 1,
                 'permissions' => [
-                    'projects.view',              // View all projects
-                    'projects.manage',            // Create / edit projects
-                    'projects.assign_schools',    // Assign projects to schools (under Zonal Director)
-                    'projects.update_milestones', // Update milestone progress
-                    'projects.approve_milestones',// Approve milestone updates (Zonal Director level)
-                    'projects.view_budget',       // View budget and expenditure
-                    'projects.manage_budget',     // Edit budget allocations
-                    'projects.reports',           // Generate project reports
+                    'projects.view',              // View all projects & details
+                    'projects.create',            // Create new projects
+                    'projects.edit',              // Edit project details & milestones
+                    'projects.delete',            // Delete projects (also deletes all photos via observer)
+                    'projects.submit_update',     // Principal submits milestone progress update
+                    'projects.comment',           // Divisional director comments on updates
+                    'projects.export_pdf',        // Export project summary or milestone PDF report
+                ],
+            ],
+
+            // ----------------------------------------------------------------
+            // FUNDING SOURCE CODES
+            // ----------------------------------------------------------------
+
+            'funding_sources' => [
+                'label'       => 'Funding Source Codes',
+                'group'       => 'Planning & Development',
+                'phase'       => 1,
+                'permissions' => [
+                    'funding_sources.view',   // View funding categories & sources list
+                    'funding_sources.manage', // Create / edit / deactivate funding sources
+                ],
+            ],
+
+            // ----------------------------------------------------------------
+            // EXPENDITURE VOTE CODES
+            // ----------------------------------------------------------------
+
+            'expenditure_votes' => [
+                'label'       => 'Expenditure Vote Codes',
+                'group'       => 'Planning & Development',
+                'phase'       => 1,
+                'permissions' => [
+                    'expenditure_votes.view',   // View expenditure categories & votes list
+                    'expenditure_votes.manage', // Create / edit / deactivate expenditure votes
                 ],
             ],
 
@@ -283,9 +310,9 @@ class PermissionSeeder extends Seeder
                 'group'       => 'Planning & Development',
                 'phase'       => 2,
                 'permissions' => [
-                    'physical_resources.view',   // View physical resource records
-                    'physical_resources.manage', // Create / edit resource records
-                    'physical_resources.reports',// Generate resource reports
+                    'physical_resources.view',    // View physical resource records
+                    'physical_resources.manage',  // Create / edit resource records
+                    'physical_resources.reports', // Generate resource reports
                 ],
             ],
 

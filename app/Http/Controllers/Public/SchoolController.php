@@ -323,27 +323,29 @@ class SchoolController extends Controller
 
     // ── Private: Grade 5 result builder ───────────────────────
     private function getG5Results(int $schoolId, $year): array
-    {
-        $g5Base = Grade5Result::where('school_id', $schoolId)->where('year', $year);
-
-        $g5Gender     = (clone $g5Base)->select('sex', DB::raw('COUNT(*) as total'))->groupBy('sex')->pluck('total', 'sex');
-        $g5Qualified  = (clone $g5Base)->where('is_qualified', 1)->count();
-        $g5QualMale   = (clone $g5Base)->where('is_qualified', 1)->where('sex', '1')->count();
-        $g5QualFemale = (clone $g5Base)->where('is_qualified', 1)->where('sex', '0')->count();
-        $g5Total      = $g5Gender->sum();
-        $g5AvgMarks   = (clone $g5Base)->avg('total_marks');
-
-        return [
-            'year'          => $year,
-            'total'         => $g5Total,
-            'male'          => $g5Gender->get('1', 0),
-            'female'        => $g5Gender->get('0', 0),
-            'qualified'     => $g5Qualified,
-            'not_qualified' => $g5Total - $g5Qualified,
-            'qual_male'     => $g5QualMale,
-            'qual_female'   => $g5QualFemale,
-            'qual_pct'      => $g5Total > 0 ? round($g5Qualified / $g5Total * 100, 1) : 0,
-            'avg_marks'     => round($g5AvgMarks, 1),
-        ];
-    }
+        {
+            $g5Base = Grade5Result::where('school_id', $schoolId)->where('year', $year);
+        
+            $g5Gender     = (clone $g5Base)->select('sex', DB::raw('COUNT(*) as total'))->groupBy('sex')->pluck('total', 'sex');
+            $g5Qualified  = (clone $g5Base)->where('is_qualified', 1)->count();
+            $g5QualMale   = (clone $g5Base)->where('is_qualified', 1)->where('sex', 1)->count();
+            $g5QualFemale = (clone $g5Base)->where('is_qualified', 1)->where('sex', 0)->count();
+            $g5Total      = $g5Gender->sum();
+            $g5Above70    = (clone $g5Base)->where('total_marks', '>=', 70)->count();
+            $g5Above100   = (clone $g5Base)->where('total_marks', '>=', 100)->count();
+        
+            return [
+                'year'          => $year,
+                'total'         => $g5Total,
+                'male'          => $g5Gender->get(1, 0),
+                'female'        => $g5Gender->get(0, 0),
+                'qualified'     => $g5Qualified,
+                'not_qualified' => $g5Total - $g5Qualified,
+                'qual_male'     => $g5QualMale,
+                'qual_female'   => $g5QualFemale,
+                'qual_pct'      => $g5Total > 0 ? round($g5Qualified / $g5Total * 100, 1) : 0,
+                'above_70_pct'  => $g5Total > 0 ? round($g5Above70  / $g5Total * 100, 1) : 0,
+                'above_100_pct' => $g5Total > 0 ? round($g5Above100 / $g5Total * 100, 1) : 0,
+            ];
+        }
 }

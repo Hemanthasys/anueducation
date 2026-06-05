@@ -472,6 +472,7 @@
                                             :style="activeTab==='al' ? 'background: var(--color-primary);' : ''"
                                             class="text-xs px-3 py-1.5 rounded-lg font-medium transition-all">
                                         {{ __('al_exam') }}
+                                        <span class="ml-1 opacity-75">{{ $alResults['year'] }}</span>
                                     </button>
                                 @endif
                                 @if($olResults)
@@ -480,6 +481,7 @@
                                             :style="activeTab==='ol' ? 'background: var(--color-primary);' : ''"
                                             class="text-xs px-3 py-1.5 rounded-lg font-medium transition-all">
                                         {{ __('ol_exam') }}
+                                        <span class="ml-1 opacity-75">{{ $olResults['year'] }}</span>
                                     </button>
                                 @endif
                                 @if($g5Results)
@@ -488,6 +490,7 @@
                                             :style="activeTab==='g5' ? 'background: var(--color-primary);' : ''"
                                             class="text-xs px-3 py-1.5 rounded-lg font-medium transition-all">
                                         {{ __('grade5_exam') }}
+                                        <span class="ml-1 opacity-75">{{ $g5Results['year'] }}</span>
                                     </button>
                                 @endif
                             </div>
@@ -516,8 +519,9 @@
 
                             @include('components.public.school-results', [
                                 'alResults' => $alResults,
-                                'olResults' => $olResults,
-                                'g5Results' => $g5Results,
+                                    'alResults' => $alResults,
+                                    'olResults' => null,
+                                    'g5Results' => null,
                             ])
                         </div>
                     @endif
@@ -542,9 +546,9 @@
                             @endif
 
                             @include('components.public.school-results', [
-                                'alResults' => $alResults,
+                                 'alResults' => null,
                                 'olResults' => $olResults,
-                                'g5Results' => $g5Results,
+                                'g5Results' => null,
                             ])
                         </div>
                     @endif
@@ -569,8 +573,8 @@
                             @endif
 
                             @include('components.public.school-results', [
-                                'alResults' => $alResults,
-                                'olResults' => $olResults,
+                                 'alResults' => null,
+                                'olResults' => null,
                                 'g5Results' => $g5Results,
                             ])
                         </div>
