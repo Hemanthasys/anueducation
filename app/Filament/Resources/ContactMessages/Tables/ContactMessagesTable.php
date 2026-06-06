@@ -14,6 +14,17 @@ class ContactMessagesTable
     public static function configure(Table $table): Table
     {
         return $table
+
+            ->modifyQueryUsing(function ($query) {
+                    $user = auth()->user();
+
+                    if ($user->hasRole(['super_admin', 'zonal_director'])) {
+                        return $query;
+                    }
+
+                    // Other users only see messages assigned to them
+                    return $query->where('assigned_to', $user->id);
+                })
             ->columns([
                 // Status indicator
                 TextColumn::make('status')

@@ -473,6 +473,20 @@ class ProjectResource extends Resource
                                     ->sendToDatabase($principal);
                             }
 
+                            // Notify overseer if assigned
+                            if ($assignedTo) {
+                                $overseer = User::find($assignedTo);
+                                $schoolName = School::find($schoolId)?->name_en ?? '';
+                                if ($overseer) {
+                                    Notification::make()
+                                        ->title(__('Project Oversight Assigned'))
+                                        ->body(__('You have been assigned as overseer for ') . $record->title . ' — ' . $schoolName)
+                                        ->icon('heroicon-o-clipboard-document-check')
+                                        ->iconColor('warning')
+                                        ->sendToDatabase($overseer);
+                                }
+                            }
+
                             $assigned++;
                         }
 

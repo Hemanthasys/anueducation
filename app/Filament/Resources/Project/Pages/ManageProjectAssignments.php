@@ -145,11 +145,47 @@ class ManageProjectAssignments extends Page implements HasTable
                             ->required(),
                     ])
                     ->action(function (ProjectAssignment $record, array $data) {
+                        $oldAssignedTo = $record->assigned_to;
+                        $oldStatus     = $record->status;
+                        $newAssignedTo = $data['assigned_to'] ?? null;
+                        $newStatus     = $data['status'];
+
                         $record->update([
                             'allocated_budget' => ! empty($data['allocated_budget']) ? $data['allocated_budget'] : null,
-                            'assigned_to'      => $data['assigned_to'] ?? null,
-                            'status'           => $data['status'],
+                            'assigned_to'      => $newAssignedTo,
+                            'status'           => $newStatus,
                         ]);
+
+                        $projectTitle = $this->record->title;
+                        $schoolName   = $record->school?->name_en ?? '';
+
+                        // Notify new overseer if assigned_to changed
+                        if ($newAssignedTo && $newAssignedTo !== $oldAssignedTo) {
+                            $overseer = \App\Models\User::find($newAssignedTo);
+                            if ($overseer) {
+                                \Filament\Notifications\Notification::make()
+                                    ->title(__('Project Oversight Assigned'))
+                                    ->body(__('You have been assigned as overseer for ') . $projectTitle . ' — ' . $schoolName)
+                                    ->icon('heroicon-o-clipboard-document-check')
+                                    ->iconColor('warning')
+                                    ->sendToDatabase($overseer);
+                            }
+                        }
+
+                        // Notify principal if status changed to active
+                        if ($newStatus === 'active' && $oldStatus !== 'active') {
+                            $principal = \App\Models\User::where('school_id', $record->school_id)
+                                ->role('school_principal')
+                                ->first();
+                            if ($principal) {
+                                \Filament\Notifications\Notification::make()
+                                    ->title(__('Project Now Active'))
+                                    ->body(__('Your school project is now active: ') . $projectTitle)
+                                    ->icon('heroicon-o-clipboard-document-list')
+                                    ->iconColor('success')
+                                    ->sendToDatabase($principal);
+                            }
+                        }
 
                         Notification::make()
                             ->title(__('Assignment Updated'))

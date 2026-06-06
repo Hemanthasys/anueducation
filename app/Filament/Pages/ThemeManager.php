@@ -36,6 +36,11 @@ class ThemeManager extends Page
         return 1;
     }
 
+    public static function canAccess(): bool
+    {
+        return auth()->user()->hasAnyRole(['super_admin', 'zonal_director']);
+    }
+    
     public function mount(): void
     {
         $this->selectedTheme = SiteSetting::get('theme', 'royal_blue_gold');

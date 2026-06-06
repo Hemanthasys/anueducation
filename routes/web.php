@@ -20,6 +20,7 @@ use App\Http\Controllers\Portal\PasswordChangeController;
 use App\Http\Controllers\Portal\PrincipalController;
 use App\Http\Controllers\Portal\TeacherController;
 use App\Http\Controllers\Portal\QualityCircleController;
+use App\Http\Controllers\Portal\PrincipalNotificationController;
 
 // ── Default login redirect ────────────────────────────────────
 Route::get('/login', fn() => redirect()->route('principal.login'))->name('login');
@@ -113,6 +114,13 @@ Route::prefix('principal')->name('principal.')->group(function () {
         Route::put('milestone-update/{update}',                    [PrincipalController::class, 'updateMilestoneUpdate'])->name('milestone-update.update');
 
         Route::delete('milestone-update/{update}', [PrincipalController::class, 'deleteMilestoneUpdate'])->name('milestone-update.destroy');
+
+        Route::delete('milestone-update/{update}', [PrincipalController::class, 'deleteMilestoneUpdate'])->name('milestone-update.destroy');
+
+        // Notifications
+        Route::get('notifications',                [PrincipalNotificationController::class, 'index'])->name('notifications.index');
+        Route::post('notifications/{id}/read',     [PrincipalNotificationController::class, 'markAsRead'])->name('notifications.read');
+        Route::post('notifications/mark-all-read', [PrincipalNotificationController::class, 'markAllRead'])->name('notifications.mark-all-read');
 
         // ── Teachers & Staff ──────────────────────────────────
         Route::get('teachers',                                   [PrincipalController::class, 'teachers'])->name('teachers');

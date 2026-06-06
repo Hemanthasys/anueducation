@@ -32,11 +32,20 @@ class ContactMessageResource extends Resource
     }
 
     // Badge showing unread count in navigation
-    public static function getNavigationBadge(): ?string
-    {
-        $count = ContactMessage::where('status', 'new')->count();
-        return $count > 0 ? (string) $count : null;
-    }
+        public static function getNavigationBadge(): ?string
+        {
+            $user = auth()->user();
+
+            if ($user->hasRole(['super_admin', 'zonal_director'])) {
+                $count = ContactMessage::where('status', 'new')->count();
+            } else {
+                $count = ContactMessage::where('assigned_to', $user->id)
+                    ->where('status', 'assigned')
+                    ->count();
+            }
+
+            return $count > 0 ? (string) $count : null;
+        }
 
     public static function getNavigationBadgeColor(): ?string
     {
@@ -46,7 +55,13 @@ class ContactMessageResource extends Resource
     // Only super_admin and zonal_director can access
     public static function canAccess(): bool
     {
-        return auth()->user()->can('settings.site') || auth()->user()->hasRole('super_admin');
+        $user = auth()->user();
+
+        if ($user->hasRole(['super_admin', 'zonal_director'])) {
+            return true;
+        }
+
+        return \App\Models\ContactMessage::where('assigned_to', $user->id)->exists();
     }
 
     // No create — messages come from public form only

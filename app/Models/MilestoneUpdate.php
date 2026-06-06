@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Notifications\MilestoneUpdateReviewed;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -97,5 +98,63 @@ class MilestoneUpdate extends Model
             'approved' => 'success',
             'rejected' => 'danger',
         ];
+    }
+
+    // ─── Review Actions ───────────────────────────────────────────────────────
+
+    public function approve(int $reviewerId, ?string $note = null): void
+    {
+        $this->update([
+            'status'      => 'approved',
+            'reviewed_by' => $reviewerId,
+            'reviewed_at' => now(),
+            'review_note' => $note,
+        ]);
+
+        $this->refresh();
+        $this->notifyPrincipal('approved', $note);
+    }
+
+    public function reject(int $reviewerId, string $note): void
+    {
+        $this->update([
+            'status'      => 'rejected',
+            'reviewed_by' => $reviewerId,
+            'reviewed_at' => now(),
+            'review_note' => $note,
+        ]);
+
+        $this->refresh();
+        $this->notifyPrincipal('rejected', $note);
+    }
+
+    private function notifyPrincipal(string $status, ?string $note): void
+    {
+        $principal = $this->submittedBy;
+
+        if (! $principal) {
+            $assignment = $this->assignment()->with('school')->first();
+            if ($assignment) {
+                $principal = User::where('school_id', $assignment->school_id)
+                    ->whereHas('roles', fn ($q) => $q->where('name', 'school_principal'))
+                    ->first();
+            }
+        }
+
+        if ($principal) {
+            $principal->notify(new MilestoneUpdateReviewed($this, $status, $note));
+        }
+    }
+
+    // ─── Scopes ───────────────────────────────────────────────────────────────
+
+    public function scopePending($query)
+    {
+        return $query->where('status', 'pending');
+    }
+
+    public function scopeApproved($query)
+    {
+        return $query->where('status', 'approved');
     }
 }

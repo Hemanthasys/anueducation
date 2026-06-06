@@ -20,6 +20,11 @@ class FilamentAdminAccess
             'zonal_director',
             'divisional_director',
             'zonal_officer',
+            'zonal_officer_admin',
+            'zonal_officer_planning',
+            'zonal_officer_schools',
+            'zonal_officer_accounts',
+            'zonal_officer_development',
             'content_creator',
         ];
 

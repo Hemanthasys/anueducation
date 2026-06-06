@@ -45,13 +45,23 @@ class ViewContactMessage extends ViewRecord
                 ->label('Assign to User')
                 ->icon(Heroicon::OutlinedUserPlus)
                 ->color('warning')
+                ->visible(fn () => auth()->user()->hasRole(['super_admin', 'zonal_director']))
                 ->form([
                     Select::make('user_id')
                         ->label('Assign To')
                         ->options(
-                            User::role(['zonal_officer', 'zonal_director'])
-                                ->get()
-                                ->pluck('name', 'id')
+                            User::role([
+                                'zonal_director',
+                                'zonal_officer',
+                                'zonal_officer_admin',
+                                'zonal_officer_planning',
+                                'zonal_officer_schools',
+                                'zonal_officer_accounts',
+                                'zonal_officer_development',
+                                'divisional_director',
+                            ])
+                            ->orderBy('name')
+                            ->pluck('name', 'id')
                         )
                         ->required()
                         ->searchable(),
@@ -67,6 +77,13 @@ class ViewContactMessage extends ViewRecord
 
                     // Notify assigned user by email + database
                     $user->notify(new ContactMessageAssigned($this->record));
+
+                    \Filament\Notifications\Notification::make()
+                    ->title(__('New Contact Message Assigned'))
+                    ->body($this->record->subject . ' — ' . __('From') . ': ' . $this->record->name)
+                    ->icon('heroicon-o-envelope')
+                    ->iconColor('warning')
+                    ->sendToDatabase($user);
 
                     Notification::make()
                         ->title('Message assigned to ' . $user->name)
