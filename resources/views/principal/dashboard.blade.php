@@ -112,12 +112,17 @@
 </div>
 @endif
 
-{{-- Quick stats --}}
-<div class="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mb-6">
-    <div class="bg-white rounded-2xl shadow-sm p-4 sm:p-5 text-center" style="border: 1px solid #f3f4f6;">
+        {{-- Quick stats --}}
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mb-6">
+            <div class="bg-white rounded-2xl shadow-sm p-4 sm:p-5 text-center" style="border: 1px solid #f3f4f6;">
         @if($totalStudents !== null)
             <p class="text-2xl font-bold" style="color: var(--color-primary);">{{ number_format($totalStudents) }}</p>
             <p class="text-xs mt-1" style="color: #6b7280;">{{ __('total_students') }}</p>
+            @if($totalBoys !== null)
+                <p class="text-xs mt-0.5" style="color: #9ca3af;">
+                    ♂ {{ $totalBoys }} &nbsp; ♀ {{ $totalGirls }}
+                </p>
+            @endif
         @else
             <p class="text-2xl font-bold" style="color: #e5e7eb;">—</p>
             <p class="text-xs mt-1" style="color: #6b7280;">{{ __('total_students') }}</p>
@@ -128,6 +133,11 @@
         @if($totalTeachers !== null && $totalTeachers > 0)
             <p class="text-2xl font-bold" style="color: var(--color-accent);">{{ number_format($totalTeachers) }}</p>
             <p class="text-xs mt-1" style="color: #6b7280;">{{ __('total_teachers') }}</p>
+            @if($attachedTeachers > 0)
+                <p class="text-xs mt-0.5" style="color: #9ca3af;">
+                    +{{ $attachedTeachers }} {{ __('attached') }}
+                </p>
+            @endif
         @else
             <p class="text-2xl font-bold" style="color: #e5e7eb;">—</p>
             <p class="text-xs mt-1" style="color: #6b7280;">{{ __('total_teachers') }}</p>

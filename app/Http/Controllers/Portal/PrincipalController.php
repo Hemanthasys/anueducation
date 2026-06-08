@@ -93,10 +93,26 @@ class PrincipalController extends Controller
 
         $latestStats   = $school?->latestStats;
         $totalStudents = $latestStats?->total_students ?? null;
-        $totalTeachers = $school ? Teacher::where('school_id', $school->id)
-                            ->where('staff_type', 'teacher')
-                            ->where('is_active', true)
-                            ->count() : null;
+            // School's own teachers (not attached out)
+            $totalTeachers = $school ? Teacher::where('school_id', $school->id)
+                                ->where('is_active', true)
+                                ->where('is_attached', false)
+                                ->count() : null;
+
+            // Teachers attached to this school from other schools
+            $attachedTeachers = $school ? Teacher::where('attached_school_id', $school->id)
+                                ->where('is_active', true)
+                                ->where('is_attached', true)
+                                ->count() : null;
+
+            // Student M/F breakdown from latest stats
+            $totalBoys  = null;
+            $totalGirls = null;
+            if ($latestStats) {
+                $grades = range(1, 13);
+                $totalBoys  = collect($grades)->sum(fn($g) => $latestStats->{"grade_{$g}_boys"} ?? 0);
+                $totalGirls = collect($grades)->sum(fn($g) => $latestStats->{"grade_{$g}_girls"} ?? 0);
+            }
         $pendingNews   = $school ? News::where('submitted_by', $user->id)
                             ->whereIn('status', ['draft', 'review'])
                             ->count() : null;
@@ -107,7 +123,9 @@ class PrincipalController extends Controller
 
         return view('principal.dashboard', compact(
             'user', 'school', 'theme',
-            'totalStudents', 'totalTeachers', 'pendingNews', 'activeProjects'
+            'totalStudents', 'totalTeachers', 'attachedTeachers',
+            'totalBoys', 'totalGirls',
+            'pendingNews', 'activeProjects'
         ));
     }
 
