@@ -101,9 +101,13 @@ class PrincipalController extends Controller
                             ->whereIn('status', ['draft', 'review'])
                             ->count() : null;
 
+        $activeProjects = $school ? \App\Models\ProjectAssignment::where('school_id', $school->id)
+                            ->where('status', 'active')
+                            ->count() : null;
+
         return view('principal.dashboard', compact(
             'user', 'school', 'theme',
-            'totalStudents', 'totalTeachers', 'pendingNews'
+            'totalStudents', 'totalTeachers', 'pendingNews', 'activeProjects'
         ));
     }
 
@@ -673,7 +677,10 @@ class PrincipalController extends Controller
     {
         $user    = $this->guard()->user();
         $school  = $user->school;
-        $notices = \App\Models\Notice::where('is_active', true)->latest()->paginate(20);
+        $notices = \App\Models\Notice::where('is_active', true)
+                ->whereIn('target_audience', ['all', 'principals'])
+                ->latest()
+                ->paginate(20);
         $theme   = ThemeHelper::getTheme();
 
         return view('principal.notices', compact('user', 'school', 'notices', 'theme'));

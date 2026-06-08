@@ -957,7 +957,13 @@
       "Project Oversight Assigned": "Project Oversight Assigned",
 "You have been assigned as overseer for ": "You have been assigned as overseer for ",
 "Project Now Active": "Project Now Active",
-"Your school project is now active: ": "Your school project is now active: "
+"Your school project is now active: ": "Your school project is now active: ",
+
+"projects_assigned_to_school": "Projects assigned to your school",
+"no_projects_assigned": "No projects have been assigned to your school yet.",
+"your_allocation": "Your Allocation",
+"due": "Due",
+"view_details": "View Details"
 
 
   

@@ -44,7 +44,6 @@
                     ['route' => 'teacher.my-school',        'label' => __('nav_my_school')],
                     ['route' => 'teacher.mutual-transfers', 'label' => __('nav_mutual_transfers')],
                     ['route' => 'teacher.transfers',        'label' => __('nav_transfers')],
-                    ['route' => 'teacher.notices',          'label' => __('nav_notices')],
                     ['route' => 'teacher.downloads',        'label' => __('nav_downloads')],
                 ];
             @endphp

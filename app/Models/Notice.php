@@ -13,6 +13,7 @@ class Notice extends Model
         'body_en',
         'file_path',
         'category',
+        'target_audience',
         'date',
         'is_active',
         'published_at',

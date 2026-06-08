@@ -39,6 +39,65 @@
     </div>
 </div>
 
+{{-- Notices ticker --}}
+@php
+    $tickerNotices = \App\Models\Notice::where('is_active', true)
+        ->whereIn('target_audience', ['all', 'principals'])
+        ->where(function ($q) {
+            $q->whereNull('published_at')->orWhere('published_at', '<=', now());
+        })
+        ->where(function ($q) {
+            $q->whereNull('expires_at')->orWhere('expires_at', '>=', now());
+        })
+        ->orderByDesc('date')
+        ->take(10)
+        ->get();
+@endphp
+
+@if($tickerNotices->count())
+<div class="rounded-2xl overflow-hidden mb-6" style="border: 1px solid #e5e7eb; background: #fff;">
+    <div class="flex items-center">
+        <div class="flex-shrink-0 px-4 py-3 text-white text-xs font-bold uppercase tracking-wide"
+             style="background: var(--color-primary);">
+            {{ __('notices') }}
+        </div>
+        <div class="flex-1 overflow-hidden" style="height: 42px; position: relative;">
+            <div class="ticker-track flex items-center gap-8 h-full"
+                 style="position: absolute; white-space: nowrap; animation: ticker-scroll 30s linear infinite;">
+                @foreach($tickerNotices as $notice)
+                    <a href="{{ route('principal.notices') }}"
+                       class="text-sm font-medium hover:underline flex-shrink-0"
+                       style="color: var(--color-primary);">
+                        &bull;
+                        {{ app()->getLocale() === 'si' && $notice->title_si ? $notice->title_si : $notice->title_en }}
+                    </a>
+                @endforeach
+                @foreach($tickerNotices as $notice)
+                    <a href="{{ route('principal.notices') }}"
+                       class="text-sm font-medium hover:underline flex-shrink-0"
+                       style="color: var(--color-primary);">
+                        &bull;
+                        {{ app()->getLocale() === 'si' && $notice->title_si ? $notice->title_si : $notice->title_en }}
+                    </a>
+                @endforeach
+            </div>
+        </div>
+    </div>
+</div>
+
+@push('scripts')
+<style>
+@keyframes ticker-scroll {
+    0%   { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+}
+.ticker-track:hover {
+    animation-play-state: paused;
+}
+</style>
+@endpush
+@endif
+
 {{-- No school notice --}}
 @if(!$school)
 <div class="rounded-2xl p-5 mb-6 flex items-start gap-3"
@@ -76,9 +135,12 @@
         @endif
     </div>
     <div class="bg-white rounded-2xl shadow-sm p-4 sm:p-5 text-center" style="border: 1px solid #f3f4f6;">
-        <p class="text-2xl font-bold text-green-400">—</p>
+        @if($activeProjects !== null)
+            <p class="text-2xl font-bold text-green-500">{{ $activeProjects }}</p>
+        @else
+            <p class="text-2xl font-bold" style="color: #e5e7eb;">—</p>
+        @endif
         <p class="text-xs mt-1" style="color: #6b7280;">{{ __('active_projects') }}</p>
-        <p class="text-xs mt-0.5" style="color: #d1d5db;">{{ __('phase2_placeholder') }}</p>
     </div>
     <div class="bg-white rounded-2xl shadow-sm p-4 sm:p-5 text-center" style="border: 1px solid #f3f4f6;">
         @if($pendingNews !== null)
@@ -174,16 +236,7 @@
                 'disabled' => false,
                 'icon'     => 'M12 7.5h1.5m-1.5 3h1.5m-7.5 3h7.5m-7.5 3h7.5m3-9h3.375c.621 0 1.125.504 1.125 1.125V18a2.25 2.25 0 01-2.25 2.25M16.5 7.5V18a2.25 2.25 0 002.25 2.25M16.5 7.5V4.875c0-.621-.504-1.125-1.125-1.125H4.125C3.504 3.75 3 4.254 3 4.875V18a2.25 2.25 0 002.25 2.25h13.5M6 7.5h3v3H6v-3z',
             ],
-            [
-                'route'    => 'principal.notices',
-                'label'    => __('nav_notices'),
-                'desc'     => __('nav_notices_desc'),
-                'color'    => '#fff1f2',
-                'text'     => '#be123c',
-                'border'   => '#fecdd3',
-                'disabled' => false,
-                'icon'     => 'M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0',
-            ],
+
             [
                 'route'    => 'principal.downloads',
                 'label'    => __('nav_downloads'),

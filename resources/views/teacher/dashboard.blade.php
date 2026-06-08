@@ -46,7 +46,7 @@
             ['route' => 'teacher.my-school',        'label' => __('nav_my_school'),         'color' => 'bg-purple-50 text-purple-700 border-purple-100'],
             ['route' => 'teacher.mutual-transfers', 'label' => __('nav_mutual_transfers'),  'color' => 'bg-amber-50 text-amber-700 border-amber-100'],
             ['route' => 'teacher.transfers',        'label' => __('nav_transfers'),         'color' => 'bg-red-50 text-red-700 border-red-100'],
-            ['route' => 'teacher.notices',          'label' => __('nav_notices'),           'color' => 'bg-gray-50 text-gray-700 border-gray-200'],
+
             ['route' => 'teacher.downloads',        'label' => __('nav_downloads'),         'color' => 'bg-teal-50 text-teal-700 border-teal-100'],
         ];
     @endphp
@@ -58,5 +58,69 @@
     </a>
     @endforeach
 </div>
+
+
+{{-- Notices ticker --}}
+@php
+    $tickerNotices = \App\Models\Notice::where('is_active', true)
+        ->whereIn('target_audience', ['all', 'teachers'])
+        ->where(function ($q) {
+            $q->whereNull('published_at')->orWhere('published_at', '<=', now());
+        })
+        ->where(function ($q) {
+            $q->whereNull('expires_at')->orWhere('expires_at', '>=', now());
+        })
+        ->orderByDesc('date')
+        ->take(10)
+        ->get();
+@endphp
+
+@if($tickerNotices->count())
+<div class="mt-6 rounded-2xl overflow-hidden" style="border: 1px solid #e5e7eb; background: #fff;">
+    <div class="flex items-center">
+        {{-- Label --}}
+        <div class="flex-shrink-0 px-4 py-3 text-white text-xs font-bold uppercase tracking-wide"
+             style="background: var(--color-primary);">
+            {{ __('notices') }}
+        </div>
+        {{-- Scrolling ticker --}}
+        <div class="flex-1 overflow-hidden" style="height: 42px; position: relative;">
+            <div class="ticker-track flex items-center gap-8 h-full"
+                 style="position: absolute; white-space: nowrap; animation: ticker-scroll 30s linear infinite;">
+                @foreach($tickerNotices as $notice)
+                    <a href="{{ route('teacher.notices') }}"
+                       class="text-sm font-medium hover:underline flex-shrink-0"
+                       style="color: var(--color-primary);">
+                        &bull;
+                        {{ app()->getLocale() === 'si' && $notice->title_si ? $notice->title_si : $notice->title_en }}
+                    </a>
+                @endforeach
+                {{-- Duplicate for seamless loop --}}
+                @foreach($tickerNotices as $notice)
+                    <a href="{{ route('notices.show', $notice->slug ?? $notice->id) }}"
+                       target="_blank"
+                       class="text-sm font-medium hover:underline flex-shrink-0"
+                       style="color: var(--color-primary);">
+                        &bull;
+                        {{ app()->getLocale() === 'si' && $notice->title_si ? $notice->title_si : $notice->title_en }}
+                    </a>
+                @endforeach
+            </div>
+        </div>
+    </div>
+</div>
+
+@push('scripts')
+<style>
+@keyframes ticker-scroll {
+    0%   { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+}
+.ticker-track:hover {
+    animation-play-state: paused;
+}
+</style>
+@endpush
+@endif
 
 @endsection

@@ -116,12 +116,19 @@ class TeacherResource extends Resource
                         ->searchable()
                         ->required(),
 
-                    Select::make('subject_id')
-                        ->label('Main Subject')
-                        ->options(Subject::active()->pluck('name_en', 'id'))
-                        ->searchable()
-                        ->nullable(),
-
+                Select::make('appointed_subject_id')
+                    ->label('Main Subject')
+                    ->options(function () {
+                            $grouped = \App\Models\TeachingSubject::groupedForDropdown();
+                            return [
+                                'Primary'          => $grouped['primary'] ?? [],
+                                'O/L Subjects'     => $grouped['ol'] ?? [],
+                                'A/L Subjects'     => $grouped['al'] ?? [],
+                            ];
+                        })
+                    ->searchable()
+                    ->optionsLimit(150)
+                    ->nullable(),
                     Select::make('user_id')
                         ->label('Login Account')
                         ->options(
@@ -182,6 +189,7 @@ class TeacherResource extends Resource
                 ->schema([
                     Repeater::make('qualifications')
                         ->relationship('qualifications')
+                        ->key('teacher-qualifications')
                         ->label('Qualifications')
                         ->schema([
                             Select::make('qualification_id')
