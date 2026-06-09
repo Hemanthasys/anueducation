@@ -31,9 +31,8 @@ class StatisticsService
         }
 
         // Count active teachers from users table
-        $totalTeachers = User::whereNotNull('school_id')
-            ->where('staff_type', 'teacher')
-            ->where('is_active', true)
+        $totalTeachers = \App\Models\Teacher::where('is_active', true)
+            ->where('is_attached', false)
             ->count();
 
         $snapshot = StatSnapshot::updateOrCreate(

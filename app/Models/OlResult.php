@@ -265,7 +265,7 @@ class OlResult extends Model
         if (!empty($filters['school_id'])) {
             $query->where('school_id', $filters['school_id']);
         } elseif (!empty($filters['division_id'])) {
-            $query->where('division_id', $filters['division_id']);
+            $query->where('ol_results.division_id', $filters['division_id']);
         }
 
         // Subject filter
