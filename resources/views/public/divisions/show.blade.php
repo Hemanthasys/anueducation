@@ -5,6 +5,13 @@
 
 @section('content')
 
+@include('components.public.breadcrumb', [
+    'items' => [
+        ['label' => __('divisions_page'), 'url' => route('divisions.index')],
+        ['label' => $division->{'name_' . app()->getLocale()}, 'url' => null],
+    ]
+])
+
 {{-- Back link --}}
 <div class="w-full py-3" style="background: var(--color-primary);">
     <div class="max-w-7xl mx-auto px-4">
@@ -228,9 +235,16 @@
                             allowfullscreen>
                     </iframe>
                 </div>
-                <a href="{{ $division->google_map_url }}" target="_blank"
-                   class="inline-flex items-center gap-2 mt-3 px-4 py-2 rounded-lg text-sm font-semibold no-underline text-white transition"
-                   style="background: var(--color-primary);">
+                @php
+                    preg_match('/!2d([\d.]+)/', $division->google_map_url, $lngMatch);
+                    preg_match('/!3d([\d.-]+)/', $division->google_map_url, $latMatch);
+                    $directionsUrl = (isset($latMatch[1]) && isset($lngMatch[1]))
+                        ? 'https://www.google.com/maps/dir/?api=1&destination=' . $latMatch[1] . ',' . $lngMatch[1]
+                        : 'https://www.google.com/maps';
+                @endphp
+                <a href="{{ $directionsUrl }}" target="_blank"
+                class="inline-flex items-center gap-2 mt-3 px-4 py-2 rounded-lg text-sm font-semibold no-underline text-white transition"
+                style="background: var(--color-primary);">
                     <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M9 6.75V15m6-6v8.25m.503 3.498l4.875-2.437c.381-.19.622-.58.622-1.006V4.82c0-.836-.88-1.38-1.628-1.006l-3.869 1.934c-.317.159-.69.159-1.006 0L9.503 3.252a1.125 1.125 0 00-1.006 0L3.622 5.689C3.24 5.88 3 6.27 3 6.695V19.18c0 .836.88 1.38 1.628 1.006l3.869-1.934c-.317-.159.69-.159 1.006 0l4.994 2.497c.317.158.69.158 1.006 0z" />
                     </svg>
@@ -273,6 +287,40 @@
                 @endif
             </div>
 
+            {{-- ISA list --}}
+            @if($division->isas->isNotEmpty())
+            <div class="profile-card">
+                <p class="profile-section-title">{{ __('inspection_advisors') }}</p>
+                <div class="flex flex-col gap-3">
+                    @foreach($division->isas as $isa)
+                    @if($isa->is_active)
+                    <div class="flex items-center gap-3 p-3 rounded-xl" style="background: #f9fafb;">
+                        @if($isa->photo)
+                            <img src="{{ Storage::url($isa->photo) }}" class="w-10 h-10 rounded-full object-cover flex-shrink-0">
+                        @else
+                            <div class="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 text-sm font-semibold"
+                                 style="background: #eeedfe; color: #3c3489;">
+                                {{ strtoupper(substr($isa->name, 0, 1)) }}
+                            </div>
+                        @endif
+                        <div class="flex-1 min-w-0">
+                            <p class="text-sm font-semibold truncate" style="color: var(--color-primary);">{{ $isa->name }}</p>
+                            <p class="text-xs truncate" style="color: #6b7280;">{{ $isa->subject_area }}</p>
+                        </div>
+                        @if($isa->phone)
+                        <a href="tel:{{ $isa->phone }}"
+                           class="flex-shrink-0 text-xs no-underline px-2 py-1 rounded-lg hidden sm:block"
+                           style="background: var(--color-primary); color: white;">
+                            {{ $isa->phone }}
+                        </a>
+                        @endif
+                    </div>
+                    @endif
+                    @endforeach
+                </div>
+            </div>
+            @endif
+
         </div>
     </div>
 
@@ -289,7 +337,7 @@
             </div>
 
     {{-- Schools table: full width --}}
-    <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 md:p-6"
+    <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 md:p-6 mt-6"
          x-data="schoolDirectory({{ json_encode($schools) }}, '{{ app()->getLocale() }}')">
 
         {{-- Section heading --}}

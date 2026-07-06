@@ -173,14 +173,20 @@ class SchoolForm
                             ->schema([
                                 Select::make('principal_id')
                                     ->label('Principal')
-                                    ->options(
-                                        User::role('school_principal')
+                                    ->options(function ($record) {
+                                        $assignedElsewhere = \App\Models\School::query()
+                                            ->whereNotNull('principal_id')
+                                            ->when($record, fn ($query) => $query->where('id', '!=', $record->id))
+                                            ->pluck('principal_id');
+
+                                        return User::role('school_principal')
+                                            ->whereNotIn('id', $assignedElsewhere)
                                             ->get()
-                                            ->pluck('name', 'id')
-                                    )
+                                            ->pluck('name', 'id');
+                                    })
                                     ->searchable()
                                     ->nullable()
-                                    ->helperText('Assign the principal user account to this school.'),
+                                    ->helperText('Assign the principal user account to this school. Principals already assigned to another school are hidden.'),
                             ]),
 
                     ])

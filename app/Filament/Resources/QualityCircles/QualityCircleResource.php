@@ -17,9 +17,15 @@ use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
+use App\Filament\Traits\HasViewManagePermissions;
 
 class QualityCircleResource extends Resource
 {
+    use HasViewManagePermissions;
+
+    protected static string $viewPermission   = 'quality_circles.view';
+    protected static string $managePermission = 'quality_circles.manage';
+    
     protected static ?string $model = QualityCircleRecord::class;
 
     public static function getNavigationIcon(): string|\BackedEnum|null
@@ -37,14 +43,20 @@ class QualityCircleResource extends Resource
         return 10;
     }
 
-    public static function canAccess(): bool
-    {
-        return auth()->user()->can('quality_circles.view') || auth()->user()->hasRole('super_admin');
-    }
 
     public static function getNavigationLabel(): string
     {
         return 'Quality Circles';
+    }
+
+    public static function getNavigationBadge(): ?string
+    {
+        return (string) static::getModel()::where('status', 'submitted')->count() ?: null;
+    }
+
+    public static function getNavigationBadgeColor(): string
+    {
+        return 'warning';
     }
 
     // -------------------------------------------------------------------------
@@ -201,6 +213,7 @@ class QualityCircleResource extends Resource
             ])
             ->actions([
                 ViewAction::make(),
+                
 
                 Action::make('approve')
                     ->label('Approve')

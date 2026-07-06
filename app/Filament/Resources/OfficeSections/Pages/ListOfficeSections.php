@@ -13,7 +13,8 @@ class ListOfficeSections extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
-            CreateAction::make(),
+           CreateAction::make()
+    ->visible(fn () => auth()->user()->can('schools.manage') || auth()->user()->hasRole('super_admin')),
         ];
     }
 }

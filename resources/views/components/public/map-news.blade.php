@@ -101,6 +101,59 @@
                 </h2>
 
                 {{-- News list --}}
+                @if($news->count() > 5)
+                {{-- Infinite vertical auto-scroll when more than 5 news items --}}
+                <div class="news-scroll-wrapper" style="max-height: 480px;">
+                    <div class="news-scroll-track">
+                        @foreach($news->concat($news) as $item)
+                            <a href="{{ route('news.show', $item->slug) }}"
+                               class="block p-3 rounded-xl border border-gray-100 no-underline bg-white transition-colors hover:border-yellow-400 mb-3">
+                                <div class="flex items-center gap-2 mb-1">
+                                    <span class="text-xs font-semibold" style="color: var(--color-accent);">
+                                        {{ $item->published_at?->format('M d, Y') }}
+                                    </span>
+                                    @if($item->category)
+                                        <span class="text-xs px-2 py-0.5 rounded-full text-white"
+                                              style="background: var(--color-primary);">
+                                            {{ ucfirst($item->category) }}
+                                        </span>
+                                    @endif
+                                </div>
+                                <div class="text-sm font-semibold leading-snug" style="color: var(--color-primary);">
+                                    {{ Str::limit($item->{'title_' . app()->getLocale()}, 90) }}
+                                </div>
+                            </a>
+                        @endforeach
+                    </div>
+                </div>
+
+                <style>
+                    .news-scroll-wrapper {
+                        overflow: hidden;
+                        position: relative;
+                        -webkit-mask-image: linear-gradient(to bottom, transparent, black 4%, black 96%, transparent);
+                        mask-image: linear-gradient(to bottom, transparent, black 4%, black 96%, transparent);
+                    }
+                    .news-scroll-track {
+                        animation: news-scroll-up 28s linear infinite;
+                    }
+                    .news-scroll-wrapper:hover .news-scroll-track {
+                        animation-play-state: paused;
+                    }
+                    @keyframes news-scroll-up {
+                        from { transform: translateY(0); }
+                        to   { transform: translateY(-50%); }
+                    }
+                </style>
+
+                <a href="{{ route('news.index') }}"
+                   class="block text-center py-2.5 text-sm font-semibold no-underline rounded-lg border-2 transition-colors mt-3"
+                   style="color: var(--color-primary); border-color: var(--color-primary);">
+                    {{ __('view_all_news') }} →
+                </a>
+
+                @else
+                {{-- Static list for 5 or fewer news items --}}
                 <div class="flex flex-col gap-3 overflow-y-auto pr-1" style="max-height: 480px;">
                     @forelse($news as $item)
                         {{-- Single news card --}}
@@ -142,6 +195,7 @@
                         </a>
                     @endif
                 </div>
+                @endif
 
             </div>
         </div>

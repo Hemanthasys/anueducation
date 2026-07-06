@@ -79,5 +79,20 @@ class ViewServiceProvider extends ServiceProvider
                 'visitorTotal' => $visitorTotal,
             ]);
         });
+
+        // Teacher & Principal portals — share the theme + real favicon URL
+        // (lighter than the public composer above: these layouts only need
+        // $theme and $faviconUrl, not the full public site settings/visitor stats)
+        View::composer(['layouts.teacher', 'layouts.principal'], function ($view) {
+            $faviconPath = SiteSetting::get('favicon');
+            $faviconUrl  = $faviconPath
+                ? asset('storage/' . $faviconPath)
+                : asset('images/favicon.png');
+
+            $view->with([
+                'theme'      => ThemeHelper::getTheme(),
+                'faviconUrl' => $faviconUrl,
+            ]);
+        });
     }
 }

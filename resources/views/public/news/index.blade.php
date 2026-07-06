@@ -4,6 +4,10 @@
 
 @section('content')
 
+@include('components.public.breadcrumb', [
+    'items' => [['label' => __('news'), 'url' => null]]
+])
+
 {{-- Page Header --}}
 <div style="background: var(--color-primary); padding: 40px 0;">
     <div style="max-width: 1280px; margin: 0 auto; padding: 0 16px;">

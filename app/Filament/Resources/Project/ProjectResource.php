@@ -68,17 +68,17 @@ class ProjectResource extends Resource
 
     public static function canCreate(): bool
     {
-        return auth()->user()?->can('projects.create') ?? false;
+        return auth()->user()?->hasAnyRole(['super_admin', 'zonal_director', 'zonal_officer_planning']) ?? false;
     }
 
     public static function canEdit($record): bool
     {
-        return auth()->user()?->can('projects.edit') ?? false;
+    return auth()->user()?->hasAnyRole(['super_admin', 'zonal_director', 'zonal_officer_planning']) ?? false;
     }
 
     public static function canDelete($record): bool
     {
-        return auth()->user()?->can('projects.delete') ?? false;
+        return auth()->user()?->hasAnyRole(['super_admin', 'zonal_director', 'zonal_officer_planning']) ?? false;
     }
 
     // ─── Form ─────────────────────────────────────────────────────────────────
@@ -372,13 +372,14 @@ class ProjectResource extends Resource
             ])
             ->recordActions([
                 ViewAction::make(),
-                EditAction::make(),
+                EditAction::make()
+                ->visible(fn () => auth()->user()?->hasAnyRole(['super_admin', 'zonal_director', 'zonal_officer_planning'])),
 
-                Action::make('assign_schools')
-                    ->label(__('Assign Schools'))
-                    ->icon('heroicon-o-building-office-2')
-                    ->color('info')
-                    ->visible(fn () => auth()->user()?->can('projects.edit'))
+            Action::make('assign_schools')
+                ->label(__('Assign Schools'))
+                ->icon('heroicon-o-building-office-2')
+                ->color('info')
+                ->visible(fn () => auth()->user()?->hasAnyRole(['super_admin', 'zonal_director', 'zonal_officer_planning']))
                     ->form([
                         Select::make('assignment_method')
                             ->label(__('Assignment Method'))
@@ -500,7 +501,9 @@ class ProjectResource extends Resource
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
-                    DeleteBulkAction::make()->requiresConfirmation(),
+                    DeleteBulkAction::make()
+                        ->requiresConfirmation()
+                        ->visible(fn () => auth()->user()?->hasAnyRole(['super_admin', 'zonal_director', 'zonal_officer_planning'])),
                 ]),
             ])
             ->defaultSort('created_at', 'desc')

@@ -76,7 +76,11 @@ class NewsTable
                     ]),
             ])
             ->recordActions([
-                EditAction::make(),
+                EditAction::make()
+                ->visible(fn (News $record) =>
+                    auth()->user()?->hasAnyRole(['super_admin', 'zonal_director']) ||
+                    (auth()->user()?->can('content.news') && $record->status === 'draft')
+                ),
 
                 Action::make('submit_review')
                     ->label('Submit for Review')
@@ -127,7 +131,8 @@ class NewsTable
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
-                    DeleteBulkAction::make(),
+                    DeleteBulkAction::make()
+                      ->visible(fn () => auth()->user()?->hasAnyRole(['super_admin', 'zonal_director'])),
                 ]),
             ])
             ->defaultSort('created_at', 'desc');

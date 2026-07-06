@@ -32,6 +32,13 @@ class School extends Model
         return $this->belongsTo(User::class, 'principal_id');
     }
 
+    public function isas()
+    {
+        return $this->belongsToMany(DivisionIsa::class, 'division_isa_schools', 'school_id', 'isa_id')
+                    ->where('is_active', true)
+                    ->orderBy('order');
+    }
+
     // ── Teachers & Vice Principals (teachers table) ───────────
     public function teacherRecords()
     {

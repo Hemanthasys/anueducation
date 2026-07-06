@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@yield('title', __('teacher_portal')) — {{ config('app.name') }}</title>
-    <link rel="icon" type="image/png" href="{{ $faviconUrl ?? asset('favicon.png') }}">
+    <link rel="icon" type="image/png" href="{{ $faviconUrl ?? asset('images/favicon.png') }}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Sinhala:wght@400;500;600;700&family=Noto+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -57,6 +57,11 @@
         </div>
     </div>
 </nav>
+
+{{-- Breadcrumb — shown when page provides breadcrumb items --}}
+@hasSection('breadcrumbs')
+    @yield('breadcrumbs')
+@endif
 
 {{-- Flash messages --}}
 <div class="max-w-7xl mx-auto px-4 mt-4">

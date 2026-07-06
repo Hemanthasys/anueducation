@@ -27,7 +27,7 @@ class ViewProject extends ViewRecord
     {
         $actions = [];
 
-        if (auth()->user()->can('projects.edit')) {
+        if (auth()->user()->hasAnyRole(['super_admin', 'zonal_director', 'zonal_officer_planning'])) {
             $actions[] = EditAction::make();
         }
 
@@ -40,11 +40,13 @@ class ViewProject extends ViewRecord
                 ->openUrlInNewTab();
         }
 
-        $actions[] = Action::make('manage_assignments')
-            ->label(__('Manage Assignments'))
-            ->icon('heroicon-o-building-office-2')
-            ->color('info')
-            ->url(fn () => ProjectResource::getUrl('assignments', ['record' => $this->record]));
+        if (auth()->user()->hasAnyRole(['super_admin', 'zonal_director', 'zonal_officer_planning'])) {
+            $actions[] = Action::make('manage_assignments')
+                ->label(__('Manage Assignments'))
+                ->icon('heroicon-o-building-office-2')
+                ->color('info')
+                ->url(fn () => ProjectResource::getUrl('assignments', ['record' => $this->record]));
+        }
 
         return $actions;
     }

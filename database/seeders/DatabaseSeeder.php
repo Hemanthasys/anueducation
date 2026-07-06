@@ -18,7 +18,16 @@ class DatabaseSeeder extends Seeder
             SuperAdminSeeder::class,
             SchoolSeeder::class,
             SiteSettingSeeder::class,
-            DirectorContentSeeder::class
+            SiteSettingsSeeder::class,
+            DirectorContentSeeder::class,
+            LookupValueSeeder::class,
+            ProvincesDistrictsSeeder::class,
+            QualificationsSeeder::class,
+            OlSubjectsSeeder::class,
+            TeachingSubjectsSeeder::class,
+            QualityCircleCriteriaSeeder::class,
+            FundingSourceSeeder::class,
+            ExpenditureVoteSeeder::class,
         ]);
     }
 }

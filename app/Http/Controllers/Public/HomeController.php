@@ -31,7 +31,7 @@ class HomeController extends Controller
 
         $news = News::where('status', 'published')
             ->orderBy('published_at', 'desc')
-            ->take(6)
+            ->take(15)
             ->get();
 
         $programmes = Programme::where('status', 'published')

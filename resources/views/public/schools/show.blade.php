@@ -762,6 +762,45 @@
             {{-- ── QUALITY CIRCLE ──────────────────────────────── --}}
             @include('components.public.quality-circle', ['school' => $school, 'isAdmin' => $isAdmin])
 
+            {{-- ── ISA (Inspection Service Advisors) ──────────────────── --}}
+            @if($school->isas->isNotEmpty())
+            <div class="bg-white rounded-2xl shadow-sm overflow-hidden" style="border: 1px solid #e5e7eb;">
+                <div class="px-6 py-4" style="border-bottom: 1px solid #f3f4f6;">
+                    <h2 class="font-semibold text-base" style="color: var(--color-primary);">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="inline w-4 h-4 mr-1.5 -mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0zM2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                        </svg>
+                        {{ __('inspection_advisors') }}
+                    </h2>
+                </div>
+                <div class="divide-y divide-gray-50">
+                    @foreach($school->isas as $isa)
+                    <div class="px-6 py-4 flex items-center gap-4">
+                        @if($isa->photo)
+                            <img src="{{ asset('storage/' . $isa->photo) }}"
+                                class="w-12 h-12 rounded-full object-cover flex-shrink-0">
+                        @else
+                            <div class="w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0 text-sm font-bold"
+                                style="background: #eeedfe; color: #3c3489;">
+                                {{ strtoupper(substr($isa->name, 0, 1)) }}
+                            </div>
+                        @endif
+                        <div class="flex-1 min-w-0">
+                            <p class="font-semibold text-sm truncate" style="color: var(--color-primary);">{{ $isa->name }}</p>
+                            <p class="text-xs mt-0.5" style="color: #6b7280;">{{ $isa->subject_area }}</p>
+                            @if($isa->phone)
+                            <a href="tel:{{ $isa->phone }}" class="text-xs mt-1 inline-block no-underline" style="color: var(--color-primary);">
+                                {{ $isa->phone }}
+                            </a>
+                            @endif
+                        </div>
+                    </div>
+                    @endforeach
+                </div>
+            </div>
+            @endif
+
+
             {{-- ── PUBLIC FACILITIES (from physical resources) ─── --}}
             @php $res = $school->physicalResources; @endphp
             @if($res)

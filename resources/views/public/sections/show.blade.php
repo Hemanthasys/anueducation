@@ -5,6 +5,13 @@
 
 @section('content')
 
+@include('components.public.breadcrumb', [
+    'items' => [
+        ['label' => __('sections_page'), 'url' => route('sections.index')],
+        ['label' => app()->getLocale() === 'si' ? ($section->name_si ?? $section->name_en) : $section->name_en, 'url' => null],
+    ]
+])
+
 {{-- Back link --}}
 <div class="w-full py-3" style="background: var(--color-primary);">
     <div class="max-w-7xl mx-auto px-4">

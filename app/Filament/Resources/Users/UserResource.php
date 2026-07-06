@@ -31,9 +31,14 @@ use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Hash;
+use App\Filament\Traits\HasViewManagePermissions;
 
 class UserResource extends Resource
 {
+    
+    use HasViewManagePermissions;
+    protected static string $viewPermission   = 'users.view';
+    protected static string $managePermission = 'users.manage';
     protected static ?string $model = User::class;
 
     public static function getNavigationIcon(): string|\BackedEnum|null
@@ -51,11 +56,7 @@ class UserResource extends Resource
         return 1;
     }
 
-   public static function canAccess(): bool
-    {
-        return auth()->user()->can('users.view') || auth()->user()->hasRole('super_admin');
-    }
-   
+
     public static function form(Schema $schema): Schema
     {
         return $schema->components([
@@ -222,7 +223,8 @@ class UserResource extends Resource
                     ->label('Password Change Required'),
             ])
             ->actions([
-                EditAction::make(),
+                EditAction::make()
+                ->visible(fn () => auth()->user()?->can('users.manage') || auth()->user()?->hasRole('super_admin')),
 
                 Action::make('reset_password')
                     ->label('Reset Password')
@@ -257,7 +259,8 @@ class UserResource extends Resource
             ])
             ->bulkActions([
                 BulkActionGroup::make([
-                    DeleteBulkAction::make(),
+                    DeleteBulkAction::make()
+                    ->visible(fn () => auth()->user()?->can('users.manage') || auth()->user()?->hasRole('super_admin')),
 
                     BulkAction::make('generate_passwords')
                         ->label('Generate Passwords')

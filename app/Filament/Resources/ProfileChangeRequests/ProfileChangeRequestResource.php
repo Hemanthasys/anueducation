@@ -18,9 +18,14 @@ use Filament\Actions\ViewAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
+use App\Filament\Traits\HasViewManagePermissions;
 
 class ProfileChangeRequestResource extends Resource
 {
+    use HasViewManagePermissions;
+    protected static string $viewPermission   = 'profile_changes.review';
+    protected static string $managePermission = 'profile_changes.review';
+    
     protected static ?string $model = ProfileChangeRequest::class;
 
     public static function getNavigationIcon(): string|\BackedEnum|null
@@ -43,9 +48,14 @@ class ProfileChangeRequestResource extends Resource
         return 4;
     }
 
-    public static function canAccess(): bool
+    public static function getNavigationBadge(): ?string
     {
-        return auth()->user()->can('profile_changes.review') || auth()->user()->hasRole('super_admin');
+        return (string) static::getModel()::where('status', 'pending')->count() ?: null;
+    }
+
+    public static function getNavigationBadgeColor(): string
+    {
+        return 'warning';
     }
 
     // -------------------------------------------------------------------------
@@ -288,7 +298,8 @@ class ProfileChangeRequestResource extends Resource
             ])
             ->bulkActions([
                 BulkActionGroup::make([
-                    DeleteBulkAction::make(),
+                    DeleteBulkAction::make()
+                    ->visible(fn () => auth()->user()?->can('profile_changes.review') || auth()->user()?->hasRole('super_admin')),
                 ]),
             ])
             ->defaultSort('created_at', 'desc');

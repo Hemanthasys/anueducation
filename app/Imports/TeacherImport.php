@@ -65,13 +65,25 @@ class TeacherImport implements ToCollection, WithHeadingRow
 
 
             // Optional: phone — max 10 digits
+            // Excel stores the Phone column as a number, which drops any leading zero
+            // (e.g. 0712592874 becomes 712592874). If we get exactly 9 digits, restore
+            // the leading zero before validating, since Sri Lankan mobile numbers are
+            // always 10 digits starting with 0.
             $phone = trim((string) ($rowData['phone'] ?? ''));
+            if (! empty($phone) && preg_match('/^[0-9]{9}$/', $phone)) {
+                $phone = '0' . $phone;
+            }
             if (! empty($phone) && ! preg_match('/^[0-9]{10}$/', $phone)) {
                 $errors[] = 'Phone must be exactly 10 digits';
                 $phone = '';
             }
 
             // Birthday
+            // Header "Birthday * (DD/MM/YYYY)" normalizes to 'birthday_ddmmyyyy' —
+            // slashes/asterisks/parentheses are stripped entirely, not converted to
+            // underscores, so this key was correct all along. The real problem was
+            // that parseDate() didn't recognise the dot-separated date format actually
+            // used in the data (see parseDate() below).
             $birthday = $this->parseDate($rowData['birthday_ddmmyyyy'] ?? '');
             if (! $birthday) {
                 $errors[] = 'Birthday is required and must be in DD/MM/YYYY format';
@@ -159,7 +171,7 @@ class TeacherImport implements ToCollection, WithHeadingRow
                 'nic'                  => $nic,
                 'gender'               => $gender,
                 'birthday'             => $birthday,
-                'phone'                => $phone ?: null,,
+                'phone'                => $phone ?: null,
                 'email'                => trim((string) ($rowData['email'] ?? '')) ?: null,
                 'school_id'            => $this->schools[$censusNo],
                 'staff_type'           => $staffType,
@@ -181,6 +193,10 @@ class TeacherImport implements ToCollection, WithHeadingRow
     {
         if (empty($value)) return null;
 
+        if ($value instanceof \DateTimeInterface) {
+            return $value->format('Y-m-d');
+        }
+
         if (is_numeric($value)) {
             try {
                 $date = \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject((float) $value);
@@ -192,12 +208,25 @@ class TeacherImport implements ToCollection, WithHeadingRow
 
         $value = trim((string) $value);
 
+        // DD/MM/YYYY (the template's instructed format)
         if (preg_match('/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/', $value, $m)) {
             return sprintf('%04d-%02d-%02d', $m[3], $m[2], $m[1]);
         }
 
+        // Already in Y-m-d
         if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $value)) {
             return $value;
+        }
+
+        // YYYY.MM.DD (dot-separated, year-first — seen in real uploaded data,
+        // likely from Excel auto-formatting a typed date differently than expected)
+        if (preg_match('/^(\d{4})\.(\d{1,2})\.(\d{1,2})$/', $value, $m)) {
+            return sprintf('%04d-%02d-%02d', $m[1], $m[2], $m[3]);
+        }
+
+        // DD.MM.YYYY (dot-separated, day-first — in case some rows use this instead)
+        if (preg_match('/^(\d{1,2})\.(\d{1,2})\.(\d{4})$/', $value, $m)) {
+            return sprintf('%04d-%02d-%02d', $m[3], $m[2], $m[1]);
         }
 
         return null;

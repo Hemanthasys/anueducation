@@ -13,9 +13,15 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
+use App\Filament\Traits\HasViewManagePermissions;
 
 class SchoolResource extends Resource
 {
+    use HasViewManagePermissions;
+
+    protected static string $viewPermission   = 'schools.view';
+    protected static string $managePermission = 'schools.manage';
+
     protected static ?string $model = School::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
@@ -42,10 +48,6 @@ class SchoolResource extends Resource
         return 2;
     }
 
-    public static function canAccess(): bool
-    {
-        return auth()->user()->can('schools.view') || auth()->user()->hasRole('super_admin');
-    }
     
     public static function getRelations(): array
     {

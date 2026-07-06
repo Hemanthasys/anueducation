@@ -16,9 +16,13 @@ use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Filament\Actions\ViewAction;
 use Filament\Infolists\Components\TextEntry;
+use App\Filament\Traits\HasViewManagePermissions;
 
 class WorkingHistoryResource extends Resource
 {
+    use HasViewManagePermissions;
+    protected static string $viewPermission   = 'teachers.manage';
+    protected static string $managePermission = 'teachers.manage';
     protected static ?string $model = TeacherWorkingHistory::class;
 
     public static function getNavigationIcon(): string|\BackedEnum|null
@@ -41,10 +45,17 @@ class WorkingHistoryResource extends Resource
         return 4;
     }
 
-    public static function canAccess(): bool
+    public static function getNavigationBadge(): ?string
     {
-        return auth()->user()->can('teachers.manage') || auth()->user()->hasRole('super_admin');
+        return (string) static::getModel()::where('status', 'pending')->count() ?: null;
     }
+
+    public static function getNavigationBadgeColor(): string
+    {
+        return 'warning';
+    }
+
+
 
     // -------------------------------------------------------------------------
     // Infolist — view record detail

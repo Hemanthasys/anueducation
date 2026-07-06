@@ -190,6 +190,13 @@
                     @enderror
                 </div>
 
+                <div style="text-align:right;margin-bottom:16px;margin-top:-8px;">
+                    <a href="{{ route('password.request') }}"
+                        style="font-size:12px;color:var(--color-primary);text-decoration:none;font-weight:600;">
+                        {{ __('forgot_password') }}?
+                    </a>
+                </div>
+
                 <button type="submit" class="btn-login">
                     {{ __('login') }}
                 </button>

@@ -56,6 +56,7 @@ class SchoolController extends Controller
                 'physicalResources',
                 'resourcePrograms',
                 'latestQualityCircle.marks.criteria',
+                'isas',
             ])
             ->firstOrFail();
 

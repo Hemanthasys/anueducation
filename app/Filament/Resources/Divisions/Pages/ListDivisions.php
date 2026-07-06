@@ -13,7 +13,8 @@ class ListDivisions extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
-            CreateAction::make(),
+            CreateAction::make()
+            ->visible(fn () => auth()->user()->can('divisions.manage') || auth()->user()->hasRole('super_admin')),
         ];
     }
 }

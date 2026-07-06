@@ -120,6 +120,15 @@ class TeacherTemplateExport implements WithEvents, WithTitle
                     ]);
                 }
 
+                // Force explicit cell formats so Excel can't silently reformat/misinterpret
+                // data based on the user's locale (this was causing valid dates/phones to
+                // fail import validation depending on each user's Excel regional settings).
+                $lastRow = $dataRows + 1;
+                $sheet->getStyle("D2:D{$lastRow}")->getNumberFormat()->setFormatCode('dd/mm/yyyy');
+                $sheet->getStyle("M2:M{$lastRow}")->getNumberFormat()->setFormatCode('dd/mm/yyyy');
+                $sheet->getStyle("N2:N{$lastRow}")->getNumberFormat()->setFormatCode('dd/mm/yyyy');
+                $sheet->getStyle("E2:E{$lastRow}")->getNumberFormat()->setFormatCode('@');
+
                 // Gender dropdown (M/F)
                 $this->addInlineDropdown($sheet, 'C', 2, $dataRows + 1, '"M,F"');
 

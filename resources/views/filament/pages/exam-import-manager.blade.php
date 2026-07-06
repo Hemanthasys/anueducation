@@ -359,6 +359,7 @@
             'imports' => $g5Imports,
             'type'    => 'g5',
             'label'   => 'Grade 5',
+            'deletable' => true,
             'fields'  => [
                 ['label'=>'Year',     'key'=>'year',        'bold'=>true],
                 ['label'=>'Total',    'key'=>'total_rows',  'format'=>'number'],

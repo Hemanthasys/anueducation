@@ -1,5 +1,14 @@
 @extends('layouts.teacher')
 @section('title', __('nav_profile'))
+
+@section('breadcrumbs')
+    @include('teacher.partials.breadcrumb', [
+        'items' => [
+            ['label' => __('nav_profile'), 'url' => null],
+        ]
+    ])
+@endsection
+
 @section('content')
 
 {{-- ── Page Header ──────────────────────────────────────────────────── --}}
@@ -126,6 +135,25 @@
             {{ __('save_changes') }}
         </button>
     </form>
+</div>
+
+{{-- ══════════════════════════════════════════════════════════════════ --}}
+{{-- SECTION 2B — CHANGE PASSWORD                                     --}}
+{{-- ══════════════════════════════════════════════════════════════════ --}}
+<div class="bg-white rounded-2xl shadow-sm mb-6" style="border:1px solid #e5e7eb;">
+    <div style="padding:20px 24px;border-bottom:1px solid #f3f4f6;">
+        <h3 style="font-size:15px;font-weight:700;color:#111827;margin:0;">{{ __('change_password') }}</h3>
+        <p style="font-size:12px;color:#6b7280;margin:4px 0 0;">{{ __('change_password_desc') }}</p>
+    </div>
+    <div style="padding:24px;">
+        <a href="{{ route('password.change') }}"
+           style="display:inline-flex;align-items:center;gap:8px;padding:10px 24px;background:var(--color-primary);color:#fff;font-size:14px;font-weight:600;border-radius:8px;text-decoration:none;">
+            <svg xmlns="http://www.w3.org/2000/svg" style="width:16px;height:16px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
+            </svg>
+            {{ __('change_password') }}
+        </a>
+    </div>
 </div>
 
 {{-- ══════════════════════════════════════════════════════════════════ --}}

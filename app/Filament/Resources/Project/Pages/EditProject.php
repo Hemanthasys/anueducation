@@ -8,12 +8,23 @@ use Filament\Resources\Pages\EditRecord;
 
 class EditProject extends EditRecord
 {
+    public function mount(int|string $record): void
+    {
+        parent::mount($record);
+        
+        abort_unless(
+            auth()->user()->hasAnyRole(['super_admin', 'zonal_director', 'zonal_officer_planning']),
+            403
+        );
+    }
+
     protected static string $resource = ProjectResource::class;
 
     protected function getHeaderActions(): array
     {
         return [
             DeleteAction::make()
+                ->visible(fn () => auth()->user()->hasAnyRole(['super_admin', 'zonal_director', 'zonal_officer_planning']))
                 ->before(function () {
                     // Explicitly delete all photos before cascade so observer fires per file
                     foreach ($this->record->milestones as $milestone) {

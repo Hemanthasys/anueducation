@@ -7,6 +7,7 @@ use App\Helpers\ThemeHelper;
 use App\Models\Download;
 use App\Models\News;
 use App\Models\Notice;
+use App\Models\ProfileChangeRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -226,9 +227,9 @@ class PrincipalController extends Controller
             }
             $boolFields = [
                 'multi_story_buildings','library','staff_room','administrative_block',
-                'hostel','teachers_quarters','canteen','electricity','drinking_water',
-                'hand_washing','solar_power','waste_management','computer_lab',
-                'internet_access','wifi','school_mis','cctv','digital_attendance',
+                'hostel','teachers_quarters','principals_quarters','canteen',
+                'electricity','drinking_water','hand_washing','solar_power','waste_management',
+                'computer_lab','internet_access','wifi','school_mis','cctv','digital_attendance',
                 'science_lab','home_economics_unit','music_room','dancing_room',
                 'playground','volleyball_court','netball_court','athletic_track',
                 'cctv_monitoring','security_fence','fire_extinguishers',
@@ -236,9 +237,17 @@ class PrincipalController extends Controller
                 'public_transport_access','school_van','disabled_accessibility',
             ];
             $numFields = [
-                'classrooms_count','smart_classrooms_count','toilets_boys',
-                'toilets_girls','toilets_disabled','computers_count','laptops_count',
-                'smart_boards_count','projectors_count','printers_count',
+                'classrooms_count','classrooms_usable','classrooms_unusable',
+                'classrooms_to_repair','classrooms_to_demolish',
+                'smart_classrooms_count',
+                'teachers_quarters_count','teachers_quarters_usable','teachers_quarters_unusable',
+                'teachers_quarters_to_repair','teachers_quarters_to_demolish',
+                'principals_quarters_count','principals_quarters_usable','principals_quarters_unusable',
+                'principals_quarters_to_repair','principals_quarters_to_demolish',
+                'hostel_count','hostel_boys','hostel_girls',
+                'toilets_boys','toilets_girls','toilets_disabled',
+                'computers_count','laptops_count','smart_boards_count',
+                'projectors_count','printers_count',
             ];
             $data = ['updated_by' => $user->id];
             foreach ($boolFields as $field) { $data[$field] = $request->boolean($field); }
@@ -272,6 +281,32 @@ class PrincipalController extends Controller
                 'new_values' => $data,
                 'notes'      => 'Principal confirmed responsibility for this data.',
             ]);
+
+            // ── Save budget income & expenditure ──────────────────────
+            if ($request->has('section_budget')) {
+                $budgetYear = $request->input('budget_academic_year', date('Y'));
+
+                // Income
+                if ($request->has('income')) {
+                    foreach ($request->input('income', []) as $sourceId => $amount) {
+                        \App\Models\SchoolBudgetIncome::updateOrCreate(
+                            ['school_id' => $school->id, 'academic_year' => $budgetYear, 'funding_source_id' => (int)$sourceId],
+                            ['expected_amount' => (float)$amount ?: 0]
+                        );
+                    }
+                }
+
+                // Expenditure
+                if ($request->has('expenditure')) {
+                    foreach ($request->input('expenditure', []) as $voteId => $amount) {
+                        \App\Models\SchoolBudgetExpenditure::updateOrCreate(
+                            ['school_id' => $school->id, 'academic_year' => $budgetYear, 'expenditure_vote_id' => (int)$voteId],
+                            ['expected_amount' => (float)$amount ?: 0]
+                        );
+                    }
+                }
+            }
+
             return back()->with('success', __('physical_resources_saved'));
         }
 
@@ -289,8 +324,30 @@ class PrincipalController extends Controller
         $canSubmit      = $school ? app(\App\Services\StatisticsService::class)->canSubmit($school->id) : false;
         $activeDeadline = \App\Models\StatDeadline::where('is_active', true)->first();
 
+        // Budget data
+        $budgetYear          = date('Y');
+        $fundingCategories   = \App\Models\FundingCategory::where('is_active', true)->orderBy('code')->get();
+        $fundingSources      = \App\Models\FundingSource::where('is_active', true)->orderBy('code')->get();
+        $expenditureCategories = \App\Models\ExpenditureCategory::where('is_active', true)->orderBy('code')->get();
+        $expenditureVotes    = \App\Models\ExpenditureVote::where('is_active', true)->orderBy('code')->get();
+
+        $budgetIncome = $school
+            ? \App\Models\SchoolBudgetIncome::where('school_id', $school->id)
+                ->where('academic_year', $budgetYear)
+                ->pluck('expected_amount', 'funding_source_id')->toArray()
+            : [];
+
+        $budgetExpenditure = $school
+            ? \App\Models\SchoolBudgetExpenditure::where('school_id', $school->id)
+                ->where('academic_year', $budgetYear)
+                ->pluck('expected_amount', 'expenditure_vote_id')->toArray()
+            : [];
+
         return view('principal.physical-resources', compact(
-            'user', 'school', 'theme', 'res', 'canSubmit', 'activeDeadline'
+            'user', 'school', 'theme', 'res', 'canSubmit', 'activeDeadline',
+            'budgetYear', 'fundingCategories', 'fundingSources',
+            'expenditureCategories', 'expenditureVotes',
+            'budgetIncome', 'budgetExpenditure',
         ));
     }
 
@@ -407,6 +464,22 @@ class PrincipalController extends Controller
             'joined_school_date'   => ['nullable', 'date', 'before_or_equal:today'],
         ]);
 
+        // NIC duplicate check — zone-wide
+        if (!empty($validated['nic'])) {
+            $existing = Teacher::where('nic', $validated['nic'])->first();
+            if ($existing) {
+                $schoolName = $existing->school?->name_en ?? __('another school');
+                return back()
+                    ->withInput()
+                    ->withErrors([
+                        'nic' => __('A teacher with NIC :nic already exists in the system (at :school). Please verify before adding.', [
+                            'nic'    => $validated['nic'],
+                            'school' => $schoolName,
+                        ]),
+                    ]);
+            }
+        }
+
         Teacher::create([
             ...$validated,
             'school_id' => $school->id,
@@ -509,6 +582,69 @@ class PrincipalController extends Controller
         return redirect()->route('principal.teachers')
             ->with('success', __('staff_updated_success'));
     }
+
+    // ── Request teacher status change ──────────────────────────────────
+
+    public function requestStatusChange(Request $request, Teacher $teacher)
+    {
+        $school = $this->guard()->user()->school;
+
+        // Ensure teacher belongs to this principal's school
+        if (! $school || $teacher->school_id !== $school->id) {
+            abort(403);
+        }
+
+        $request->validate([
+            'status'            => ['required', 'in:maternity_leave,medical_leave,other_leave,transferred_out,deceased,resigned'],
+            'status_note'       => ['required', 'string', 'max:500'],
+            'status_changed_at' => ['required', 'date'],
+        ]);
+
+        // Check if there's already a pending status request for this teacher
+        $hasPending = ProfileChangeRequest::where('teacher_id', $teacher->id)
+            ->where('status', 'pending')
+            ->whereRaw("JSON_EXTRACT(requested_fields, '$.status') IS NOT NULL")
+            ->exists();
+
+        if ($hasPending) {
+            return back()->with('error', __('status_request_pending'));
+        }
+
+        $changeRequest = ProfileChangeRequest::create([
+                'teacher_id'       => $teacher->id,
+                'requested_by'     => $this->guard()->id(),
+                'requested_fields' => [
+                    'status' => [
+                        'old' => $teacher->status?->value ?? 'active',
+                        'new' => $request->status,
+                    ],
+                    'status_note' => [
+                        'old' => $teacher->status_note,
+                        'new' => $request->status_note,
+                    ],
+                    'status_changed_at' => [
+                        'old' => $teacher->status_changed_at?->toDateString(),
+                        'new' => $request->status_changed_at,
+                    ],
+                ],
+                'status' => 'pending',
+            ]);
+
+                // Notify admins
+
+                $admins = \App\Models\User::role(['super_admin', 'zonal_director', 'zonal_officer_admin'])->get();
+                foreach ($admins as $admin) {
+                    $admin->notify(new \App\Notifications\TeacherStatusChangeRequested(
+                        teacherName:            $teacher->name,
+                        requestedStatus:        $request->status,
+                        requestedBy:            $this->guard()->user()->name,
+                        profileChangeRequestId: $changeRequest->id,
+                    ));
+                }
+            return back()->with('success', __('status_request_submitted'));
+
+                    return back()->with('success', __('status_request_submitted'));
+                }
 
     // ── Add a teaching subject to a teacher ───────────────────────────
 
@@ -718,15 +854,14 @@ class PrincipalController extends Controller
 
     // ── Projects ───────────────────────────────────────────────────────
 
-      
     public function projects()
     {
         $school = auth()->user()->school;
-    
+
         if (! $school) {
             return view('principal.projects', ['assignments' => collect()]);
         }
-    
+
         $assignments = \App\Models\ProjectAssignment::with([
                 'project.milestones.latestUpdates',
                 'project.fundingSource',
@@ -737,16 +872,16 @@ class PrincipalController extends Controller
             ->where('status', 'active')
             ->latest()
             ->get();
-    
+
         return view('principal.projects', compact('assignments'));
     }
-    
+
     public function projectDetail(\App\Models\ProjectAssignment $assignment)
     {
         // Ensure this assignment belongs to the principal's school
         $school = auth()->user()->school;
         abort_if($assignment->school_id !== $school?->id, 403);
-    
+
         $assignment->load([
             'project.milestones',
             'project.fundingSource',
@@ -754,48 +889,48 @@ class PrincipalController extends Controller
             'project.createdBy',
             'assignedTo',
         ]);
-    
+
         // Load milestone updates for THIS school's assignment only
         $milestoneUpdates = \App\Models\MilestoneUpdate::with(['photos', 'comments.commentedBy', 'submittedBy'])
             ->where('project_assignment_id', $assignment->id)
             ->get()
             ->groupBy(fn ($update) => $update->milestone_id ?? 'general');
-    
+
         return view('principal.project-detail', compact('assignment', 'milestoneUpdates'));
     }
-    
+
     public function submitMilestoneUpdate(\Illuminate\Http\Request $request, \App\Models\ProjectAssignment $assignment)
     {
         $school = auth()->user()->school;
         abort_if($assignment->school_id !== $school?->id, 403);
-    
+
         $request->validate([
             'milestone_id'       => 'required|integer',
             'description'        => 'required|string|min:10',
             'completion_percent' => 'required|integer|min:0|max:100',
             'photos.*'           => 'nullable|image|max:5120',
         ]);
-    
+
         $update = \App\Models\MilestoneUpdate::create([
-            'milestone_id' => $request->milestone_id ?: null,
-            'project_assignment_id'  => $assignment->id,
-            'submitted_by'           => auth()->id(),
-            'description'            => $request->description,
-            'completion_percent'     => $request->completion_percent,
-            'submitted_at'           => now(),
-            'status'                 => 'pending',
+            'milestone_id'          => $request->milestone_id ?: null,
+            'project_assignment_id' => $assignment->id,
+            'submitted_by'          => auth()->id(),
+            'description'           => $request->description,
+            'completion_percent'    => $request->completion_percent,
+            'submitted_at'          => now(),
+            'status'                => 'pending',
         ]);
-    
+
         // Handle photo uploads
         if ($request->hasFile('photos')) {
             $imageService = app(\App\Services\ImageService::class);
-    
+
             foreach ($request->file('photos') as $photo) {
                 $path = $imageService->encodeProjectPhoto($photo);
                 $update->photos()->create(['photo_path' => $path]);
             }
         }
-    
+
         // Notify overseer
         if ($assignment->assignedTo) {
             \Filament\Notifications\Notification::make()
@@ -805,7 +940,7 @@ class PrincipalController extends Controller
                 ->iconColor('info')
                 ->sendToDatabase($assignment->assignedTo);
         }
-    
+
         // Also notify zonal_officer_planning
         $planningOfficers = \App\Models\User::role('zonal_officer_planning')->get();
         foreach ($planningOfficers as $officer) {
@@ -814,17 +949,17 @@ class PrincipalController extends Controller
                 ->body($school->name_en . ' submitted a progress update for: ' . $assignment->project->title)
                 ->sendToDatabase($officer);
         }
-    
+
         return redirect()->route('principal.project-detail', $assignment)
-    ->with('success', __('Progress update submitted successfully.'));
+            ->with('success', __('Progress update submitted successfully.'));
     }
-    
+
     public function editMilestoneUpdate(\App\Models\MilestoneUpdate $update)
     {
         $school = auth()->user()->school;
         abort_if($update->assignment->school_id !== $school?->id, 403);
         abort_if(! $update->canBeEdited(), 403);
-    
+
         return response()->json([
             'id'                 => $update->id,
             'description'        => $update->description,
@@ -835,13 +970,13 @@ class PrincipalController extends Controller
             ]),
         ]);
     }
-    
+
     public function updateMilestoneUpdate(\Illuminate\Http\Request $request, \App\Models\MilestoneUpdate $update)
     {
         $school = auth()->user()->school;
         abort_if($update->assignment->school_id !== $school?->id, 403);
         abort_if(! $update->canBeEdited(), 403);
-    
+
         $request->validate([
             'description'        => 'required|string|min:10',
             'completion_percent' => 'required|integer|min:0|max:100',
@@ -849,18 +984,18 @@ class PrincipalController extends Controller
             'remove_photos'      => 'nullable|array',
             'remove_photos.*'    => 'exists:milestone_update_photos,id',
         ]);
-    
+
         $update->update([
             'description'        => $request->description,
             'completion_percent' => $request->completion_percent,
         ]);
-    
+
         // Remove selected photos
         if ($request->remove_photos) {
             $update->photos()->whereIn('id', $request->remove_photos)
                 ->each(fn ($photo) => $photo->delete());
         }
-    
+
         // Add new photos
         if ($request->hasFile('photos')) {
             $imageService = app(\App\Services\ImageService::class);
@@ -868,24 +1003,22 @@ class PrincipalController extends Controller
                 $path = $imageService->encodeProjectPhoto($photo);
                 $update->photos()->create(['photo_path' => $path]);
             }
-        }       
-    
+        }
+
         return back()->with('success', __('Progress update saved successfully.'));
     }
 
-            public function deleteMilestoneUpdate(\App\Models\MilestoneUpdate $update)
-            {
-                $school = auth()->user()->school;
-                abort_if($update->assignment->school_id !== $school?->id, 403);
-                abort_if(! $update->canBeEdited(), 403);
+    public function deleteMilestoneUpdate(\App\Models\MilestoneUpdate $update)
+    {
+        $school = auth()->user()->school;
+        abort_if($update->assignment->school_id !== $school?->id, 403);
+        abort_if(! $update->canBeEdited(), 403);
 
-                $update->delete();
+        $update->delete();
 
-                return redirect()->route('principal.project-detail', $update->assignment)
-                    ->with('success', __('Progress update deleted successfully.'));
-            }
-
-
+        return redirect()->route('principal.project-detail', $update->assignment)
+            ->with('success', __('Progress update deleted successfully.'));
+    }
 
     // ── Profile ────────────────────────────────────────────────────────
 

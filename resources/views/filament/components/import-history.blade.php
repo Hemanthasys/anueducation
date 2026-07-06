@@ -23,10 +23,11 @@
                 <tr style="background:#f9fafb; border-bottom:1px solid #e5e7eb;">
                     <th style="padding:10px 16px; text-align:left; font-weight:600; color:#6b7280; text-transform:uppercase; font-size:10px; letter-spacing:0.05em; white-space:nowrap;">Year</th>
                     <th style="padding:10px 12px; text-align:right; font-weight:600; color:#6b7280; text-transform:uppercase; font-size:10px; letter-spacing:0.05em; white-space:nowrap;">Total</th>
-                    <th style="padding:10px 12px; text-align:right; font-weight:600; color:#6b7280; text-transform:uppercase; font-size:10px; letter-spacing:0.05em; white-space:nowrap;">Matched</th>
+                    <th style="padding:10px 12px; text-align:right; font-weight:600; color:#6b7280; text-transform:uppercase; font-size:10px; letter-spacing:0.05em; white-space:nowrap;">{{ ($type ?? '') === 'g5' ? 'Imported' : 'Matched' }}</th>
                     <th style="padding:10px 12px; text-align:right; font-weight:600; color:#6b7280; text-transform:uppercase; font-size:10px; letter-spacing:0.05em; white-space:nowrap;">Unmatched</th>
                     <th style="padding:10px 12px; text-align:left; font-weight:600; color:#6b7280; text-transform:uppercase; font-size:10px; letter-spacing:0.05em;">Remarks</th>
                     <th style="padding:10px 12px; text-align:left; font-weight:600; color:#6b7280; text-transform:uppercase; font-size:10px; letter-spacing:0.05em; white-space:nowrap;">Imported</th>
+                    <th style="padding:10px 12px; text-align:center; font-weight:600; color:#6b7280; text-transform:uppercase; font-size:10px; letter-spacing:0.05em; white-space:nowrap;">Detail</th>
                     @if($deletable ?? false)
                     <th style="padding:10px 16px; text-align:center; font-weight:600; color:#6b7280; text-transform:uppercase; font-size:10px; letter-spacing:0.05em; white-space:nowrap;">Delete</th>
                     @endif
@@ -34,6 +35,11 @@
             </thead>
             <tbody>
                 @foreach($imports as $import)
+                @php
+                    $isG5      = ($type ?? '') === 'g5';
+                    $matched   = $isG5 ? ($import->imported    ?? 0) : ($import->matched_rows   ?? 0);
+                    $unmatched = $isG5 ? ($import->unmatched   ?? 0) : ($import->unmatched_rows ?? 0);
+                @endphp
                 <tr style="border-bottom:1px solid #f3f4f6; {{ $loop->last ? 'border-bottom:none;' : '' }}">
 
                     {{-- Year --}}
@@ -46,14 +52,14 @@
                         {{ number_format($import->total_rows ?? 0) }}
                     </td>
 
-                    {{-- Matched --}}
+                    {{-- Matched / Imported --}}
                     <td style="padding:12px 12px; text-align:right; color:#16a34a; font-weight:600;">
-                        {{ number_format($import->matched_rows ?? 0) }}
+                        {{ number_format($matched) }}
                     </td>
 
                     {{-- Unmatched --}}
-                    <td style="padding:12px 12px; text-align:right; color:{{ ($import->unmatched_rows ?? 0) > 0 ? '#d97706' : '#9ca3af' }}; font-weight:{{ ($import->unmatched_rows ?? 0) > 0 ? '600' : '400' }};">
-                        {{ number_format($import->unmatched_rows ?? 0) }}
+                    <td style="padding:12px 12px; text-align:right; color:{{ $unmatched > 0 ? '#d97706' : '#9ca3af' }}; font-weight:{{ $unmatched > 0 ? '600' : '400' }};">
+                        {{ number_format($unmatched) }}
                     </td>
 
                     {{-- Remarks --}}
@@ -71,6 +77,18 @@
                         <span style="font-size:11px;">
                             {{ ($import->created_at ?? $import->imported_at)?->format('d M Y') ?? '—' }}
                         </span>
+                    </td>
+
+                    {{-- View Detail --}}
+                    <td style="padding:12px 12px; text-align:center;">
+                        <a href="{{ route('admin.exam.import.detail', [$type, $import->id]) }}"
+                           style="display:inline-flex; align-items:center; gap:4px; padding:4px 10px; border-radius:6px; border:1px solid #bfdbfe; background:#eff6ff; color:#1d4ed8; font-size:11px; font-weight:500; text-decoration:none; white-space:nowrap;">
+                            <svg style="width:11px;height:11px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                            </svg>
+                            View
+                        </a>
                     </td>
 
                     {{-- Delete button --}}

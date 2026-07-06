@@ -3,13 +3,13 @@
 namespace App\Filament\Resources\Qualifications;
 
 use App\Models\Qualification;
+use Filament\Actions\EditAction;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
-use Filament\Tables;
 use Filament\Tables\Columns\BadgeColumn;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
@@ -88,7 +88,7 @@ class QualificationResource extends Resource
                     'professional' => 'Professional',
                 ]),
             ])
-            ->actions([Tables\Actions\EditAction::make()])
+            ->actions([EditAction::make()])
             ->reorderable('order')
             ->defaultSort('order');
     }

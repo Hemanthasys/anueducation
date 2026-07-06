@@ -6,6 +6,7 @@ use App\Http\Controllers\Public\HomeController;
 use App\Http\Controllers\Public\NewsController;
 use App\Http\Controllers\Public\NoticeController;
 use App\Http\Controllers\Public\ProgrammeController;
+use App\Http\Controllers\Public\EventController;
 use App\Http\Controllers\Public\SchoolController;
 use App\Http\Controllers\Public\DownloadController;
 use App\Http\Controllers\Public\ContactController;
@@ -16,11 +17,14 @@ use App\Http\Controllers\Public\OlResultsController;
 use App\Http\Controllers\Public\Grade5ResultsController;
 use App\Http\Controllers\Admin\ExamImportController;
 use App\Http\Controllers\Admin\ProjectPdfController;
+use App\Http\Controllers\Admin\AnalysisController;
 use App\Http\Controllers\Portal\PasswordChangeController;
+use App\Http\Controllers\Portal\ForgotPasswordController;
 use App\Http\Controllers\Portal\PrincipalController;
 use App\Http\Controllers\Portal\TeacherController;
 use App\Http\Controllers\Portal\QualityCircleController;
 use App\Http\Controllers\Portal\PrincipalNotificationController;
+
 
 // ── Default login redirect ────────────────────────────────────
 Route::get('/login', fn() => redirect()->route('principal.login'))->name('login');
@@ -37,9 +41,12 @@ Route::group([
     Route::get('news/{slug}', [NewsController::class, 'show'])->name('news.show');
 
     Route::get('notices',        [NoticeController::class, 'index'])->name('notices.index');
+    
     Route::get('notices/{slug}', [NoticeController::class, 'show'])->name('notices.show');
 
     Route::get('programmes', [ProgrammeController::class, 'index'])->name('programmes.index');
+
+    Route::get('events', [EventController::class, 'index'])->name('events.index');
 
     Route::get('schools',             [SchoolController::class, 'index'])->name('schools.index');
     Route::get('schools/{census_no}', [SchoolController::class, 'show'])->name('schools.show');
@@ -70,6 +77,12 @@ Route::group([
 // ── Forced Password Change — shared by both portals ──────────
 Route::get('/change-password',  [PasswordChangeController::class, 'show'])->name('password.change');
 Route::post('/change-password', [PasswordChangeController::class, 'update'])->name('password.update');
+
+// ── Forgot Password — shared by teacher & principal portals ──
+Route::get('/forgot-password',         [ForgotPasswordController::class, 'show'])->name('password.request');
+Route::post('/forgot-password',        [ForgotPasswordController::class, 'send'])->name('password.email');
+Route::get('/reset-password/{token}',  [ForgotPasswordController::class, 'showReset'])->name('password.reset');
+Route::post('/reset-password',         [ForgotPasswordController::class, 'reset'])->name('password.update.reset');
 
 // ── Language switcher — for portals (outside localization group) ──
 Route::get('/lang/{locale}', function ($locale) {
@@ -107,15 +120,13 @@ Route::prefix('principal')->name('principal.')->group(function () {
         Route::get('profile',            [PrincipalController::class, 'profile'])->name('profile');
         Route::post('profile',           [PrincipalController::class, 'updateProfile'])->name('profile.update');
 
+        Route::post('teachers/{teacher}/status-request', [PrincipalController::class, 'requestStatusChange'])->name('teachers.status-request');
 
         Route::get('projects/{assignment}',                        [PrincipalController::class, 'projectDetail'])->name('project-detail');
         Route::post('projects/{assignment}/milestone-update',      [PrincipalController::class, 'submitMilestoneUpdate'])->name('milestone-update.store');
         Route::get('milestone-update/{update}/edit',               [PrincipalController::class, 'editMilestoneUpdate'])->name('milestone-update.edit');
         Route::put('milestone-update/{update}',                    [PrincipalController::class, 'updateMilestoneUpdate'])->name('milestone-update.update');
-
-        Route::delete('milestone-update/{update}', [PrincipalController::class, 'deleteMilestoneUpdate'])->name('milestone-update.destroy');
-
-        Route::delete('milestone-update/{update}', [PrincipalController::class, 'deleteMilestoneUpdate'])->name('milestone-update.destroy');
+        Route::delete('milestone-update/{update}',                 [PrincipalController::class, 'deleteMilestoneUpdate'])->name('milestone-update.destroy');
 
         // Notifications
         Route::get('notifications',                [PrincipalNotificationController::class, 'index'])->name('notifications.index');
@@ -192,10 +203,24 @@ Route::prefix('admin')->middleware(['web', 'auth'])->group(function () {
     Route::get('exam-import/template/g5', [ExamImportController::class, 'templateG5'])->name('admin.exam.template.g5');
 
     Route::delete('exam-import/{type}/{id}', [ExamImportController::class, 'deleteImport'])->name('admin.exam.import.delete');
+    Route::get('exam-import/{type}/{id}/detail', [ExamImportController::class, 'importDetail'])->name('admin.exam.import.detail');
 
     // Project PDF reports
     Route::get('projects/{project}/pdf/summary', [ProjectPdfController::class, 'summary'])->name('admin.projects.pdf.summary');
-    Route::get('projects/{project}/pdf/preview', [ProjectPdfController::class, 'preview'])
-    ->name('admin.projects.pdf.preview');
+    Route::get('projects/{project}/pdf/preview', [ProjectPdfController::class, 'preview'])->name('admin.projects.pdf.preview');
+
+    // Analysis routes
+    Route::prefix('analysis')->group(function () {
+        Route::get('/',            [AnalysisController::class, 'index'])->name('admin.analysis.index');
+        Route::get('/hr',          [AnalysisController::class, 'hr'])->name('admin.analysis.hr');
+        Route::get('/students',    [AnalysisController::class, 'students'])->name('admin.analysis.students');
+        Route::get('/schools',     [AnalysisController::class, 'schools'])->name('admin.analysis.schools');
+        Route::get('/physical',    [AnalysisController::class, 'physical'])->name('admin.analysis.physical');
+        Route::get('/quality',     [AnalysisController::class, 'quality'])->name('admin.analysis.quality');
+        Route::get('/projects',    [AnalysisController::class, 'projects'])->name('admin.analysis.projects');
+        Route::get('/compliance',  [AnalysisController::class, 'compliance'])->name('admin.analysis.compliance');
+        Route::get('/results',     [AnalysisController::class, 'results'])->name('admin.analysis.results');
+        Route::get('/hr/export', [AnalysisController::class, 'hrExport'])->name('admin.analysis.hr.export');
+    });
 
 }); // end admin group

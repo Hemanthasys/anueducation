@@ -2,6 +2,14 @@
 
 @section('title', __('nav_dashboard'))
 
+@section('breadcrumbs')
+    @include('teacher.partials.breadcrumb', [
+        'items' => [
+            ['label' => __('nav_dashboard'), 'url' => null],
+        ]
+    ])
+@endsection
+
 @section('content')
 
 {{-- Birthday greeting --}}

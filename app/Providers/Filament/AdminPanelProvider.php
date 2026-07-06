@@ -2,7 +2,9 @@
 
 namespace App\Providers\Filament;
 
+use App\Filament\Pages\Auth\EditProfile;
 use App\Http\Middleware\FilamentAdminAccess;
+use App\Http\Middleware\MustChangePasswordAdmin;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -29,6 +31,13 @@ class AdminPanelProvider extends PanelProvider
             ->id('admin')
             ->path('admin')
             ->login()
+            ->passwordReset()
+            ->profile(EditProfile::class)
+            ->favicon(
+                \App\Models\SiteSetting::get('favicon')
+                    ? asset('storage/' . \App\Models\SiteSetting::get('favicon'))
+                    : asset('images/favicon.png')
+            )
             ->colors([
                 'primary' => Color::Amber,
             ])
@@ -58,6 +67,7 @@ class AdminPanelProvider extends PanelProvider
             ->authMiddleware([
                 Authenticate::class,
                 FilamentAdminAccess::class,
+                MustChangePasswordAdmin::class,
             ]);
     }
 }

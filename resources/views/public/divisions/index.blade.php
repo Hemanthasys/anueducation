@@ -5,6 +5,10 @@
 
 @section('content')
 
+@include('components.public.breadcrumb', [
+    'items' => [['label' => __('divisions_page'), 'url' => null]]
+])
+
 {{-- Page header --}}
 <div class="w-full py-10" style="background: var(--color-primary);">
     <div class="max-w-7xl mx-auto px-4">

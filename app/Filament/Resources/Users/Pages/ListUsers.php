@@ -12,7 +12,9 @@ class ListUsers extends ListRecords
     protected static string $resource = UserResource::class;
 
     protected function getHeaderActions(): array
-    {
-        return [CreateAction::make()];
+    {CreateAction::make()
+    ->visible(fn () => auth()->user()->can('users.manage') || auth()->user()->hasRole('super_admin'));
+        return [CreateAction::make()
+        ];
     }
 }

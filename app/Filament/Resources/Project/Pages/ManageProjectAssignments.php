@@ -32,6 +32,24 @@ class ManageProjectAssignments extends Page implements HasTable
     public function mount(Project $record): void
     {
         $this->record = $record;
+
+        $user = auth()->user();
+
+        // Allow: super_admin, zonal_director, zonal_officer_planning
+        $isManager = $user->hasAnyRole(['super_admin', 'zonal_director', 'zonal_officer_planning']);
+
+        // Allow: assigned overseer for this project
+        $isOverseer = ProjectAssignment::where('project_id', $record->id)
+            ->where('assigned_to', $user->id)
+            ->exists();
+
+        abort_unless($isManager || $isOverseer, 403);
+    }
+
+    // Helper to check if current user is a manager (not just overseer)
+    private function isManager(): bool
+    {
+        return auth()->user()->hasAnyRole(['super_admin', 'zonal_director', 'zonal_officer_planning']);
     }
 
     protected function getHeaderActions(): array
@@ -111,6 +129,7 @@ class ManageProjectAssignments extends Page implements HasTable
                     ->label(__('Edit'))
                     ->icon('heroicon-o-pencil')
                     ->color('warning')
+                    ->visible(fn () => $this->isManager())
                     ->fillForm(fn (ProjectAssignment $record) => [
                         'allocated_budget' => $record->allocated_budget,
                         'assigned_to'      => $record->assigned_to,
@@ -197,6 +216,7 @@ class ManageProjectAssignments extends Page implements HasTable
                     ->label(__('Remove'))
                     ->icon('heroicon-o-trash')
                     ->color('danger')
+                    ->visible(fn () => $this->isManager())
                     ->requiresConfirmation()
                     ->modalDescription(__('This will remove the school from this project. Any submitted milestone updates will also be deleted.'))
                     ->action(function (ProjectAssignment $record) {
@@ -213,6 +233,7 @@ class ManageProjectAssignments extends Page implements HasTable
                 BulkActionGroup::make([
                     DeleteBulkAction::make()
                         ->label(__('Remove Selected'))
+                        ->visible(fn () => $this->isManager())
                         ->requiresConfirmation()
                         ->modalDescription(__('This will remove the selected schools from this project.')),
                 ]),

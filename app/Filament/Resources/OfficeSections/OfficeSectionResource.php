@@ -14,9 +14,14 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
+use App\Filament\Traits\HasViewManagePermissions;
 
 class OfficeSectionResource extends Resource
 {
+    use HasViewManagePermissions;
+    protected static string $viewPermission   = 'schools.manage';
+    protected static string $managePermission = 'schools.manage';
+    
     protected static ?string $model = OfficeSection::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedBuildingOffice;
@@ -33,11 +38,7 @@ class OfficeSectionResource extends Resource
         return 6;
     }
 
-    public static function canAccess(): bool
-    {
-        return auth()->user()->can('office_sections.manage') || auth()->user()->hasRole('super_admin');
-    }
-    
+   
     public static function form(Schema $schema): Schema
     {
         return OfficeSectionForm::configure($schema);

@@ -13,9 +13,14 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
+use App\Filament\Traits\HasViewManagePermissions;
 
 class ProgrammeResource extends Resource
 {
+    use HasViewManagePermissions;
+    protected static string $viewPermission   = 'content.programmes';
+    protected static string $managePermission = 'content.programmes';
+
     protected static ?string $model = Programme::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
@@ -32,10 +37,6 @@ class ProgrammeResource extends Resource
         return 4;
     }
 
-    public static function canAccess(): bool
-    {
-        return auth()->user()->can('content.programmes') || auth()->user()->hasRole('super_admin');
-    }
     
     public static function form(Schema $schema): Schema
     {

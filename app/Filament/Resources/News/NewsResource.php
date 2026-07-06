@@ -14,9 +14,15 @@ use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use App\Filament\Traits\HasViewManagePermissions;
+
 
 class NewsResource extends Resource
 {
+    use HasViewManagePermissions;
+    protected static string $viewPermission   = 'content.news';
+    protected static string $managePermission = 'content.news';
+
     protected static ?string $model = News::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedNewspaper;
@@ -33,10 +39,7 @@ class NewsResource extends Resource
         return 2;
     }
 
-    public static function canAccess(): bool
-    {
-        return auth()->user()->can('content.news') || auth()->user()->hasRole('super_admin');
-    }
+
     
     public static function form(Schema $schema): Schema
     {
@@ -46,6 +49,16 @@ class NewsResource extends Resource
     public static function table(Table $table): Table
     {
         return NewsTable::configure($table);
+    }
+
+    public static function getNavigationBadge(): ?string
+    {
+        return (string) static::getModel()::where('status', 'review')->count() ?: null;
+    }
+
+    public static function getNavigationBadgeColor(): string
+    {
+        return 'warning';
     }
 
     // Scope: content_creators see only their own news

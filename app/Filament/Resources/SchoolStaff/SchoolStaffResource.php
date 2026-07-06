@@ -22,9 +22,14 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
+use App\Filament\Traits\HasViewManagePermissions;
 
 class SchoolStaffResource extends Resource
 {
+    use HasViewManagePermissions;
+    protected static string $viewPermission   = 'staff.view';
+    protected static string $managePermission = 'staff.manage';
+
     protected static ?string $model = SchoolStaff::class;
 
     public static function getNavigationIcon(): string|\BackedEnum|null
@@ -45,11 +50,6 @@ class SchoolStaffResource extends Resource
     public static function getNavigationSort(): ?int
     {
         return 3;
-    }
-
-    public static function canAccess(): bool
-    {
-        return auth()->user()->can('staff.view') || auth()->user()->hasRole('super_admin');
     }
 
     public static function form(Schema $schema): Schema
@@ -189,11 +189,13 @@ class SchoolStaffResource extends Resource
                     ->label('Active'),
             ])
             ->actions([
-                EditAction::make(),
+                EditAction::make()
+                ->visible(fn () => auth()->user()?->can('staff.manage') || auth()->user()?->hasRole('super_admin')),
             ])
             ->bulkActions([
                 BulkActionGroup::make([
-                    DeleteBulkAction::make(),
+                    DeleteBulkAction::make()
+                        ->visible(fn () => auth()->user()?->can('staff.manage') || auth()->user()?->hasRole('super_admin')),
                 ]),
             ])
             ->defaultSort('name');

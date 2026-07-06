@@ -13,9 +13,14 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
+use App\Filament\Traits\HasViewManagePermissions;
 
 class NoticeResource extends Resource
 {
+    use HasViewManagePermissions;
+    protected static string $viewPermission   = 'content.notices';
+    protected static string $managePermission = 'content.notices';
+
     protected static ?string $model = Notice::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
@@ -32,10 +37,7 @@ class NoticeResource extends Resource
         return 3;
     }
 
-    public static function canAccess(): bool
-    {
-        return auth()->user()->can('content.notices') || auth()->user()->hasRole('super_admin');
-    }
+
 
     public static function form(Schema $schema): Schema
     {

@@ -12,8 +12,10 @@ use App\Models\OlExamImport;
 use App\Models\OlResult;
 use App\Models\Grade5ExamImport;
 use App\Models\Grade5Result;
+use App\Models\School;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
 use Maatwebsite\Excel\Facades\Excel;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
@@ -69,7 +71,7 @@ class ExamImportController extends Controller
             $fullPath = $request->file('file')->getRealPath();
 
             $importer = new AlResultsImport($import);
-            $importer->import($fullPath);
+            $importer->import($fullPath, null, \Maatwebsite\Excel\Excel::XLSX);
 
             return back()->with('al_success', [
                 'year'      => $year,
@@ -124,7 +126,7 @@ class ExamImportController extends Controller
             $fullPath = $request->file('file')->getRealPath();
 
             $importer = new OlResultsImport($import);
-            Excel::import($importer, $fullPath);
+            Excel::import($importer, $fullPath, null, \Maatwebsite\Excel\Excel::XLSX);
 
             $import->update([
                 'total_rows'     => $importer->totalRows,
@@ -190,13 +192,19 @@ class ExamImportController extends Controller
 
         try {
             $fullPath = $request->file('file')->getRealPath();
+            $extension = strtolower($request->file('file')->getClientOriginalExtension());
+            $readerType = $extension === 'csv' ? \Maatwebsite\Excel\Excel::CSV : \Maatwebsite\Excel\Excel::XLSX;
 
             $importer = new Grade5ResultsImport($import);
-            Excel::import($importer, $fullPath);
+            Excel::import($importer, $fullPath, null, $readerType);
+
+            $import->update([
+                'total_rows' => $importer->imported + $importer->skipped,
+            ]);
 
             return back()->with('g5_success', [
                 'year'      => $year,
-                'total'     => $importer->imported + $importer->skipped + $importer->unmatched,
+                'total'     => $importer->imported + $importer->skipped,
                 'imported'  => $importer->imported,
                 'unmatched' => $importer->unmatched,
                 'skipped'   => $importer->skipped,
@@ -362,5 +370,105 @@ class ExamImportController extends Controller
         }
 
         return back()->with('delete_success', 'Import deleted successfully.');
+    }
+
+    // ── Import Detail (drill-down: unmatched/skipped breakdown) ────
+    public function importDetail(string $type, int $id)
+    {
+        $this->checkAccess();
+
+        // Load the correct import record
+        switch ($type) {
+            case 'al':
+                $import     = AlExamImport::findOrFail($id);
+                $typeLabel  = 'G.C.E. Advanced Level';
+                $importedBy = $import->imported_by; // stored as string name
+                break;
+
+            case 'ol':
+                $import     = OlExamImport::with('importedBy')->findOrFail($id);
+                $typeLabel  = 'G.C.E. Ordinary Level';
+                $importedBy = $import->importedBy?->name;
+                break;
+
+            case 'g5':
+                $import     = Grade5ExamImport::with('importedBy')->findOrFail($id);
+                $typeLabel  = 'Grade 5 Scholarship';
+                $importedBy = $import->importedBy?->name;
+                break;
+
+            default:
+                abort(404);
+        }
+
+        // Build summary cards per type
+        $summaryCards = match($type) {
+            'al' => [
+                ['label' => 'Total Rows',  'value' => $import->total_rows     ?? 0, 'color' => '#374151'],
+                ['label' => 'Matched',     'value' => $import->matched_rows   ?? 0, 'color' => '#16a34a', 'sub' => 'linked to a school'],
+                ['label' => 'Unmatched',   'value' => $import->unmatched_rows ?? 0, 'color' => '#d97706', 'sub' => 'census not found'],
+            ],
+            'ol' => [
+                ['label' => 'Total Rows',    'value' => $import->total_rows     ?? 0, 'color' => '#374151'],
+                ['label' => 'Matched',       'value' => $import->matched_rows   ?? 0, 'color' => '#16a34a', 'sub' => 'linked to a school'],
+                ['label' => 'Unmatched',     'value' => $import->unmatched_rows ?? 0, 'color' => '#d97706', 'sub' => 'census not found'],
+            ],
+            'g5' => [
+                ['label' => 'Total Rows',  'value' => ($import->imported ?? 0) + ($import->skipped ?? 0), 'color' => '#374151'],
+                ['label' => 'Imported',    'value' => $import->imported   ?? 0, 'color' => '#16a34a', 'sub' => 'stored in database'],
+                ['label' => 'Unmatched',   'value' => $import->unmatched  ?? 0, 'color' => '#d97706', 'sub' => 'census not found'],
+                ['label' => 'Skipped',     'value' => $import->skipped    ?? 0, 'color' => '#6b7280', 'sub' => 'blank census no'],
+            ],
+            default => [],
+        };
+
+        // Query unmatched rows from the results table, grouped by census_no
+        $unmatched = match($type) {
+            'al' => AlResult::where('import_id', $id)
+                ->where('school_matched', 0)
+                ->selectRaw('census_no, NULL as schid, COUNT(*) as student_count')
+                ->groupBy('census_no')
+                ->orderByDesc('student_count')
+                ->get(),
+
+            'ol' => OlResult::where('import_id', $id)
+                ->where('school_matched', 0)
+                ->selectRaw('census_no, NULL as schid, COUNT(*) as student_count')
+                ->groupBy('census_no')
+                ->orderByDesc('student_count')
+                ->get(),
+
+            'g5' => Grade5Result::where('import_id', $id)
+                ->where('school_matched', 0)
+                ->selectRaw('census_no, MAX(schid) as schid, COUNT(*) as student_count')
+                ->groupBy('census_no')
+                ->orderByDesc('student_count')
+                ->get(),
+
+            default => collect(),
+        };
+
+        // For each unmatched census_no, try to find a similar school in the DB
+        // (prefix match on census_no — helps identify typos)
+        $similarSchools = [];
+        foreach ($unmatched as $row) {
+            if (empty($row->census_no)) continue;
+
+            $prefix = substr($row->census_no, 0, 4);
+            $similar = School::where('census_no', 'like', $prefix . '%')
+                ->whereNotNull('census_no')
+                ->select('id', 'name_en', 'census_no')
+                ->limit(2)
+                ->get();
+
+            if ($similar->isNotEmpty()) {
+                $similarSchools[$row->census_no] = $similar;
+            }
+        }
+
+        return view('filament.pages.exam-import-detail', compact(
+            'import', 'type', 'typeLabel', 'importedBy',
+            'summaryCards', 'unmatched', 'similarSchools'
+        ));
     }
 }

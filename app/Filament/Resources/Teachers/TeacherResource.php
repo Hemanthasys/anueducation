@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Teachers;
 
+use App\Enums\TeacherStatus;
 use App\Models\LookupValue;
 use App\Models\Qualification;
 use App\Models\School;
@@ -12,6 +13,7 @@ use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Notifications\Notification;
@@ -31,9 +33,14 @@ use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Hash;
+use App\Filament\Traits\HasViewManagePermissions;
 
 class TeacherResource extends Resource
 {
+    use HasViewManagePermissions;
+    protected static string $viewPermission   = 'teachers.view';
+    protected static string $managePermission = 'teachers.manage';
+
     protected static ?string $model = Teacher::class;
 
     public static function getNavigationIcon(): string|\BackedEnum|null
@@ -54,11 +61,6 @@ class TeacherResource extends Resource
     public static function getNavigationSort(): ?int
     {
         return 2;
-    }
-
-    public static function canAccess(): bool
-    {
-        return auth()->user()->can('teachers.view') || auth()->user()->hasRole('super_admin');
     }
 
     public static function form(Schema $schema): Schema
@@ -116,19 +118,20 @@ class TeacherResource extends Resource
                         ->searchable()
                         ->required(),
 
-                Select::make('appointed_subject_id')
-                    ->label('Main Subject')
-                    ->options(function () {
+                    Select::make('appointed_subject_id')
+                        ->label('Main Subject')
+                        ->options(function () {
                             $grouped = \App\Models\TeachingSubject::groupedForDropdown();
                             return [
-                                'Primary'          => $grouped['primary'] ?? [],
-                                'O/L Subjects'     => $grouped['ol'] ?? [],
-                                'A/L Subjects'     => $grouped['al'] ?? [],
+                                'Primary'      => $grouped['primary'] ?? [],
+                                'O/L Subjects' => $grouped['ol'] ?? [],
+                                'A/L Subjects' => $grouped['al'] ?? [],
                             ];
                         })
-                    ->searchable()
-                    ->optionsLimit(150)
-                    ->nullable(),
+                        ->searchable()
+                        ->optionsLimit(150)
+                        ->nullable(),
+
                     Select::make('user_id')
                         ->label('Login Account')
                         ->options(
@@ -263,6 +266,13 @@ class TeacherResource extends Resource
                     ->label('Phone')
                     ->toggleable(),
 
+                TextColumn::make('status')
+                    ->label('Status')
+                    ->badge()
+                    ->formatStateUsing(fn ($state) => $state instanceof TeacherStatus ? $state->label() : ($state ?? 'Active'))
+                    ->color(fn ($state) => $state instanceof TeacherStatus ? $state->color() : 'success')
+                    ->toggleable(),
+
                 IconColumn::make('is_active')
                     ->label('Active')
                     ->boolean(),
@@ -285,11 +295,16 @@ class TeacherResource extends Resource
                     ->label('Service Grade')
                     ->options(LookupValue::optionsFor('service_grade')),
 
+                SelectFilter::make('status')
+                    ->label('Status')
+                    ->options(TeacherStatus::options()),
+
                 TernaryFilter::make('is_active')
                     ->label('Active'),
             ])
             ->actions([
-                EditAction::make(),
+                EditAction::make()
+                    ->visible(fn () => auth()->user()?->can('teachers.manage') || auth()->user()?->hasRole('super_admin')),
 
                 Action::make('create_login')
                     ->label('Create Login')
@@ -327,7 +342,8 @@ class TeacherResource extends Resource
             ])
             ->bulkActions([
                 BulkActionGroup::make([
-                    DeleteBulkAction::make(),
+                    DeleteBulkAction::make()
+                        ->visible(fn () => auth()->user()?->can('teachers.manage') || auth()->user()?->hasRole('super_admin')),
 
                     BulkAction::make('bulk_create_logins')
                         ->label('Create Logins for Selected')
@@ -337,7 +353,7 @@ class TeacherResource extends Resource
                         ->action(function (Collection $records) {
                             $results = [];
                             foreach ($records->where('user_id', null) as $teacher) {
-                                $username = 'T' . substr(preg_replace('/[^0-9]/', '', $record->nic ?? rand(100000, 999999)), -6);
+                                $username = 'T' . substr(preg_replace('/[^0-9]/', '', $teacher->nic ?? rand(100000, 999999)), -6);
                                 $password = substr(str_shuffle('abcdefghjkmnpqrstuvwxyzABCDEFGHJKMNPQRSTUVWXYZ23456789'), 0, 8);
 
                                 $user = User::create([

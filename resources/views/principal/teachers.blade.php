@@ -53,7 +53,8 @@
                             <th style="text-align:left;padding:11px 16px;color:#fff;font-size:11px;font-weight:600;">{{ __('type') }}</th>
                             <th style="text-align:left;padding:11px 16px;color:#fff;font-size:11px;font-weight:600;">{{ __('appointed_subject') }}</th>
                             <th style="text-align:left;padding:11px 16px;color:#fff;font-size:11px;font-weight:600;">{{ __('teaching_subjects') }}</th>
-                            <th style="text-align:center;padding:11px 16px;color:#fff;font-size:11px;font-weight:600;">{{ __('subjects_count') }}</th>
+                            <th style="text-align:center;padding:11px 16px;color:#fff;font-size:11px;font-weight:600;">{{ __('status') }}</th>
+
                             <th style="text-align:center;padding:11px 16px;color:#fff;font-size:11px;font-weight:600;">{{ __('total_periods') }}</th>
                             <th style="text-align:left;padding:11px 16px;color:#fff;font-size:11px;font-weight:600;">{{ __('service_grade') }}</th>
                             <th style="text-align:center;padding:11px 16px;color:#fff;font-size:11px;font-weight:600;">{{ __('actions') }}</th>
@@ -93,10 +94,23 @@
                                     <span style="color:#d1d5db;font-size:12px;">—</span>
                                 @endforelse
                             </td>
-                            <td style="padding:11px 16px;text-align:center;">
-                                <span style="font-size:13px;font-weight:700;color:var(--color-primary);">
-                                    {{ $teacher->subject_count }}
-                                </span>
+                           <td style="padding:11px 16px;text-align:center;">
+                                @if($teacher->status && $teacher->status->value !== 'active')
+                                    @php $statusColor = match($teacher->status->value) {
+                                        'maternity_leave','medical_leave','other_leave' => 'background:#fef3c7;color:#92400e;',
+                                        'transferred_out','resigned','abroad'           => 'background:#f3f4f6;color:#374151;',
+                                        'deceased'                                      => 'background:#fee2e2;color:#991b1b;',
+                                        'promoted_principal'                            => 'background:#d1fae5;color:#065f46;',
+                                        default                                         => 'background:#eff6ff;color:#1d4ed8;',
+                                    }; @endphp
+                                    <span style="font-size:11px;padding:2px 8px;border-radius:20px;{{ $statusColor }}font-weight:600;white-space:nowrap;">
+                                        {{ $teacher->status->label() }}
+                                    </span>
+                                @else
+                                    <span style="font-size:11px;padding:3px 10px;border-radius:20px;background:#d1fae5;color:#065f46;font-weight:600;">
+                                        {{ __('active') }}
+                                    </span>
+                                @endif
                             </td>
                             <td style="padding:11px 16px;text-align:center;">
                                 @php $totalPeriods = $teacher->teachingSubjects->sum('pivot.periods_per_week'); @endphp
@@ -137,13 +151,18 @@
                                 </button>
                                 @endif
                                 <button
-                                    onclick="openEditDrawer({{ $teacher->id }})"
-                                    style="background:#f3f4f6;border:none;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:600;color:#374151;cursor:pointer;display:inline-flex;align-items:center;gap:4px;">
-                                    <svg xmlns="http://www.w3.org/2000/svg" style="width:13px;height:13px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125" />
-                                    </svg>
-                                    {{ __('edit') }}
-                                </button>
+                                onclick="openEditDrawer({{ $teacher->id }})"
+                                style="background:#f3f4f6;border:none;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:600;color:#374151;cursor:pointer;display:inline-flex;align-items:center;gap:4px;">
+                                <svg xmlns="http://www.w3.org/2000/svg" style="width:13px;height:13px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125" />
+                                </svg>
+                                {{ __('edit') }}
+                            </button>
+                            <button
+                                onclick="openStatusDrawer({{ $teacher->id }}, '{{ addslashes($teacher->name) }}')"
+                                style="background:#ede9fe;border:none;border-radius:8px;padding:5px 10px;font-size:11px;font-weight:600;color:#5b21b6;cursor:pointer;white-space:nowrap;">
+                                {{ __('report_status') }}
+                            </button>
                                 </div>
                             </td>
                         </tr>
@@ -215,9 +234,22 @@
                                 {{ $teacher->activeAttachment?->attached_to?->format('d M Y') ?? __('indefinite') }}
                             </td>
                             <td style="padding:11px 16px;text-align:center;">
-                                <span style="font-size:13px;font-weight:700;color:#d97706;">
-                                    {{ $teacher->subject_count }}
-                                </span>
+                                @if($teacher->status && $teacher->status->value !== 'active')
+                                    @php $statusColor = match($teacher->status->value) {
+                                        'maternity_leave','medical_leave','other_leave' => 'background:#fef3c7;color:#92400e;',
+                                        'transferred_out','resigned','abroad'           => 'background:#f3f4f6;color:#374151;',
+                                        'deceased'                                      => 'background:#fee2e2;color:#991b1b;',
+                                        'promoted_principal'                            => 'background:#d1fae5;color:#065f46;',
+                                        default                                         => 'background:#eff6ff;color:#1d4ed8;',
+                                    }; @endphp
+                                    <span style="font-size:11px;padding:2px 8px;border-radius:20px;{{ $statusColor }}font-weight:600;white-space:nowrap;">
+                                        {{ $teacher->status->label() }}
+                                    </span>
+                                @else
+                                    <span style="font-size:11px;padding:3px 10px;border-radius:20px;background:#d1fae5;color:#065f46;font-weight:600;">
+                                        {{ __('active') }}
+                                    </span>
+                                @endif
                             </td>
                         </tr>
                         @endforeach
@@ -615,6 +647,7 @@ function closeAllDrawers() {
     document.getElementById('edit-drawer').style.transform       = 'translateX(100%)';
     document.getElementById('attach-drawer').style.transform     = 'translateX(100%)';
     document.getElementById('end-attach-drawer').style.transform = 'translateX(100%)';
+    document.getElementById('status-drawer').style.transform     = 'translateX(100%)';
     document.getElementById('drawer-backdrop').style.display     = 'none';
     document.body.style.overflow = '';
 }
@@ -814,6 +847,14 @@ document.addEventListener('DOMContentLoaded', () => {
     @endif
 });
 @endif
+
+function openStatusDrawer(teacherId, teacherName) {
+    document.getElementById('status-teacher-name').textContent = teacherName;
+    document.getElementById('status-form').action = `/principal/teachers/${teacherId}/status-request`;
+    document.getElementById('status-drawer').style.transform = 'translateX(0)';
+    document.getElementById('drawer-backdrop').style.display = 'block';
+    document.body.style.overflow = 'hidden';
+}
 </script>
 
 {{-- ══════════════════════════════════════════════════════════════════ --}}
@@ -963,6 +1004,77 @@ document.addEventListener('DOMContentLoaded', () => {
         </form>
     </div>
 </div>
+
+        {{-- ══════════════════════════════════════════════════════════════════ --}}
+        {{-- STATUS CHANGE DRAWER                                             --}}
+        {{-- ══════════════════════════════════════════════════════════════════ --}}
+        <div id="status-drawer"
+            style="position:fixed;top:0;right:0;height:100%;width:100%;max-width:420px;background:#fff;z-index:50;transform:translateX(100%);transition:transform 0.35s cubic-bezier(0.4,0,0.2,1);box-shadow:-4px 0 24px rgba(0,0,0,0.12);display:flex;flex-direction:column;">
+
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:20px 24px;border-bottom:1px solid #e5e7eb;background:#5b21b6;">
+                <div>
+                    <h2 style="font-size:16px;font-weight:700;color:#fff;margin:0;">{{ __('report_status_change') }}</h2>
+                    <p style="font-size:12px;color:rgba(255,255,255,0.75);margin:3px 0 0;" id="status-teacher-name"></p>
+                </div>
+                <button onclick="closeAllDrawers()" style="background:rgba(255,255,255,0.2);border:none;border-radius:8px;padding:6px;cursor:pointer;">
+                    <svg xmlns="http://www.w3.org/2000/svg" style="width:20px;height:20px;color:#fff;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+
+            <div style="flex:1;overflow-y:auto;padding:24px;">
+                <div style="background:#ede9fe;border:1px solid #c4b5fd;border-radius:10px;padding:12px 14px;margin-bottom:20px;">
+                    <p style="font-size:12px;color:#5b21b6;margin:0;">{{ __('status_change_note') }}</p>
+                </div>
+
+                <form id="status-form" method="POST">
+                    @csrf
+
+                    {{-- New Status --}}
+                    <div style="margin-bottom:16px;">
+                        <label style="font-size:13px;font-weight:600;color:#374151;display:block;margin-bottom:5px;">
+                            {{ __('new_status') }} <span style="color:#ef4444;">*</span>
+                        </label>
+                        <select name="status" required
+                            style="width:100%;padding:9px 13px;border:1.5px solid #d1d5db;border-radius:8px;font-size:14px;color:#111827;outline:none;box-sizing:border-box;background:#fff;">
+                            <option value="">— {{ __('select_status') }} —</option>
+                            <option value="maternity_leave">{{ __('Maternity Leave') }}</option>
+                            <option value="medical_leave">{{ __('Medical Leave') }}</option>
+                            <option value="other_leave">{{ __('Other Leave') }}</option>
+                            <option value="transferred_out">{{ __('Transferred Out of Zone') }}</option>
+                            <option value="deceased">{{ __('Deceased') }}</option>
+                            <option value="resigned">{{ __('Resigned') }}</option>
+                        </select>
+                    </div>
+
+                    {{-- Note --}}
+                    <div style="margin-bottom:16px;">
+                        <label style="font-size:13px;font-weight:600;color:#374151;display:block;margin-bottom:5px;">
+                            {{ __('reason_note') }} <span style="color:#ef4444;">*</span>
+                        </label>
+                        <textarea name="status_note" rows="3" required
+                            style="width:100%;padding:9px 13px;border:1.5px solid #d1d5db;border-radius:8px;font-size:14px;outline:none;box-sizing:border-box;resize:vertical;"
+                            placeholder="{{ __('status_note_placeholder') }}"></textarea>
+                    </div>
+
+                    {{-- Effective Date --}}
+                    <div style="margin-bottom:24px;">
+                        <label style="font-size:13px;font-weight:600;color:#374151;display:block;margin-bottom:5px;">
+                            {{ __('effective_date') }} <span style="color:#ef4444;">*</span>
+                        </label>
+                        <input type="date" name="status_changed_at" required
+                            value="{{ date('Y-m-d') }}"
+                            style="width:100%;padding:9px 13px;border:1.5px solid #d1d5db;border-radius:8px;font-size:14px;outline:none;box-sizing:border-box;">
+                    </div>
+
+                    <button type="submit"
+                        style="width:100%;padding:12px;background:#5b21b6;color:#fff;font-size:15px;font-weight:700;border:none;border-radius:10px;cursor:pointer;">
+                        {{ __('submit_status_request') }}
+                    </button>
+                </form>
+            </div>
+        </div>
 
 <script>
 // ── Attachment drawer helpers ──────────────────────────────────────────

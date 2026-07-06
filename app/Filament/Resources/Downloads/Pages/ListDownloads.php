@@ -13,7 +13,8 @@ class ListDownloads extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
-            CreateAction::make(),
+            CreateAction::make()
+             ->visible(fn () => auth()->user()->can('content.downloads') || auth()->user()->hasRole('super_admin')),
         ];
     }
 }

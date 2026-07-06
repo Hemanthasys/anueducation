@@ -60,11 +60,13 @@ class DownloadsTable
                     ),
             ])
             ->recordActions([
-                EditAction::make(),
+                EditAction::make()
+                ->visible(fn () => auth()->user()?->can('content.downloads') || auth()->user()?->hasRole('super_admin')),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
-                    DeleteBulkAction::make(),
+                    DeleteBulkAction::make()
+                    ->visible(fn () => auth()->user()?->can('content.downloads') || auth()->user()?->hasRole('super_admin')),
                 ]),
             ])
             ->defaultSort('year', 'desc');

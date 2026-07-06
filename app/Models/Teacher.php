@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\TeacherStatus;
 use Illuminate\Database\Eloquent\Model;
 
 class Teacher extends Model
@@ -11,15 +12,18 @@ class Teacher extends Model
         'name', 'nic', 'gender', 'phone', 'email', 'birthday', 'photo',
         'salary_slip_no', 'appointed_date', 'joined_school_date', 'designation',
         'staff_type', 'appointment_type', 'service_grade',
-        'is_active','attached_school_id','is_attached',
+        'is_active', 'attached_school_id', 'is_attached',
+        'status', 'status_note', 'status_changed_at',
     ];
 
     protected $casts = [
         'birthday'           => 'date',
         'appointed_date'     => 'date',
         'joined_school_date' => 'date',
+        'status_changed_at'  => 'date',
         'is_active'          => 'boolean',
-        'is_attached' => 'boolean',
+        'is_attached'        => 'boolean',
+        'status'             => TeacherStatus::class,
     ];
 
     // ── Relationships ─────────────────────────────────────────────────
@@ -60,17 +64,17 @@ class Teacher extends Model
     }
 
     // ── Attachment relationships ──────────────────────────────────────
- 
+
     public function attachedSchool()
     {
         return $this->belongsTo(School::class, 'attached_school_id');
     }
- 
+
     public function attachments()
     {
         return $this->hasMany(TeacherAttachment::class);
     }
- 
+
     public function activeAttachment()
     {
         return $this->hasOne(TeacherAttachment::class)->where('status', 'active');
@@ -109,7 +113,7 @@ class Teacher extends Model
     }
 
     // ── Helpers ───────────────────────────────────────────────────────
- 
+
     /**
      * Get the school where this teacher is currently working.
      * Returns attached school if attached, otherwise permanent school.
@@ -120,7 +124,7 @@ class Teacher extends Model
             ? $this->attachedSchool
             : $this->school;
     }
- 
+
     /**
      * Count of subjects this teacher teaches (from pivot table).
      */
@@ -128,13 +132,21 @@ class Teacher extends Model
     {
         return $this->teachingSubjects()->count();
     }
- 
+
     /**
      * Check if this teacher is attached to a given school.
      */
     public function isAttachedToSchool(int $schoolId): bool
     {
         return $this->is_attached && $this->attached_school_id === $schoolId;
+    }
+
+    /**
+     * Check if teacher is in an active working status.
+     */
+    public function isActiveStatus(): bool
+    {
+        return $this->status?->isActive() ?? $this->is_active;
     }
 
     // ── Accessors ─────────────────────────────────────────────────────
@@ -163,7 +175,7 @@ class Teacher extends Model
         };
     }
 
-        /**
+    /**
      * Total periods per week across all teaching subjects.
      */
     public function getTotalPeriodsAttribute(): int
@@ -176,6 +188,27 @@ class Teacher extends Model
     public function scopeActive($query)
     {
         return $query->where('is_active', true);
+    }
+
+    public function scopeActiveStatus($query)
+    {
+        return $query->whereIn('status', TeacherStatus::activeStatuses());
+    }
+
+    public function scopeInactiveStatus($query)
+    {
+        return $query->whereIn('status', TeacherStatus::inactiveStatuses());
+    }
+
+    public function scopeRetired($query)
+    {
+        return $query->where('status', TeacherStatus::Retired->value);
+    }
+
+    public function scopeInPool($query)
+    {
+        return $query->where('status', TeacherStatus::PromotedPrincipal->value)
+                     ->whereNotNull('user_id');
     }
 
     public function scopeTeachers($query)

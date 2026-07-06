@@ -13,6 +13,7 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Support\Facades\Auth;
+use App\Filament\Traits\HasViewManagePermissions;
 
 class ProgrammesTable
 {
@@ -82,7 +83,8 @@ class ProgrammesTable
                     ]),
             ])
             ->recordActions([
-                EditAction::make(),
+                EditAction::make()
+                ->visible(fn () => auth()->user()?->can('content.programmes') || auth()->user()?->hasRole('super_admin')),
 
                 Action::make('submit_review')
                     ->label('Submit for Review')
@@ -129,7 +131,8 @@ class ProgrammesTable
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
-                    DeleteBulkAction::make(),
+                    DeleteBulkAction::make()
+                    ->visible(fn () => auth()->user()?->can('content.programmes') || auth()->user()?->hasRole('super_admin')),
                 ]),
             ])
             ->defaultSort('created_at', 'desc');

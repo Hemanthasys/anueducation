@@ -107,11 +107,13 @@ class SchoolsTable
                     ]),
             ])
             ->recordActions([
-                EditAction::make(),
+                EditAction::make()
+                ->visible(fn () => auth()->user()?->can('schools.manage') || auth()->user()?->hasRole('super_admin')),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
-                    DeleteBulkAction::make(),
+                    DeleteBulkAction::make()
+                    ->visible(fn () => auth()->user()?->can('schools.manage') || auth()->user()?->hasRole('super_admin')),
                 ]),
             ])
             ->defaultSort('census_no');

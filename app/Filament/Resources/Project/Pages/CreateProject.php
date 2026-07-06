@@ -9,6 +9,16 @@ use Filament\Resources\Pages\CreateRecord;
 
 class CreateProject extends CreateRecord
 {
+    public function mount(): void
+    {
+        parent::mount();
+        
+        abort_unless(
+            auth()->user()->hasAnyRole(['super_admin', 'zonal_director', 'zonal_officer_planning']),
+            403
+        );
+    }
+
     protected static string $resource = ProjectResource::class;
 
     protected function mutateFormDataBeforeCreate(array $data): array

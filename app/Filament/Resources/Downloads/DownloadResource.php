@@ -13,9 +13,14 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
+use App\Filament\Traits\HasViewManagePermissions;
 
 class DownloadResource extends Resource
 {
+    
+    use HasViewManagePermissions;
+    protected static string $viewPermission   = 'content.downloads';
+    protected static string $managePermission = 'content.downloads';
     protected static ?string $model = Download::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
@@ -32,10 +37,6 @@ class DownloadResource extends Resource
         return 5;
     }
 
-    public static function canAccess(): bool
-    {
-        return auth()->user()->can('content.downloads') || auth()->user()->hasRole('super_admin');
-    }
 
     public static function form(Schema $schema): Schema
     {

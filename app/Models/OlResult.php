@@ -257,13 +257,13 @@ class OlResult extends Model
             $query->whereIn('import_id', $importIds);
         }
 
-        if (!empty($filters['medium']))     $query->where('medium', $filters['medium']);
-        if (!empty($filters['gender']))     $query->where('gender', $filters['gender']);
-        if (!empty($filters['attempt_no'])) $query->where('attempt_no', $filters['attempt_no']);
+        if (!empty($filters['medium']))     $query->where('ol_results.medium', $filters['medium']);
+        if (!empty($filters['gender']))     $query->where('ol_results.gender', $filters['gender']);
+        if (!empty($filters['attempt_no'])) $query->where('ol_results.attempt_no', $filters['attempt_no']);
 
         // Scope filters
         if (!empty($filters['school_id'])) {
-            $query->where('school_id', $filters['school_id']);
+            $query->where('ol_results.school_id', $filters['school_id']);
         } elseif (!empty($filters['division_id'])) {
             $query->where('ol_results.division_id', $filters['division_id']);
         }

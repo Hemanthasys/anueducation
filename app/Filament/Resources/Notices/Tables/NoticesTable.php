@@ -63,11 +63,13 @@ class NoticesTable
                     ]),
             ])
             ->recordActions([
-                EditAction::make(),
+                EditAction::make()
+                ->visible(fn () => auth()->user()?->can('content.notices') || auth()->user()?->hasRole('super_admin')),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
-                    DeleteBulkAction::make(),
+                    DeleteBulkAction::make()
+                    ->visible(fn () => auth()->user()?->can('content.notices') || auth()->user()?->hasRole('super_admin')),
                 ]),
             ])
             ->defaultSort('date', 'desc');
