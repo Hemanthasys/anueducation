@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Portal;
 use App\Http\Controllers\Controller;
 use App\Helpers\ThemeHelper;
 use App\Models\District;
+use App\Models\Division;
 use App\Models\Download;
 use App\Models\MutualTransfer;
 use App\Models\Notice;
@@ -373,7 +374,37 @@ class TeacherController extends Controller
     public function mutualTransfers()
     {
         $user = $this->guard()->user();
-        return view('teacher.mutual-transfers', compact('user'));
+
+        $myPost = MutualTransfer::where('user_id', $user->id)
+            ->where('is_active', true)
+            ->with(['currentSchool.division', 'preferredDivision'])
+            ->first();
+
+        $filterDivisionId = request('division_id') ? (int) request('division_id') : null;
+
+        $otherPosts = MutualTransfer::where('is_active', true)
+            ->where('user_id', '!=', $user->id)
+            ->when($filterDivisionId, fn($q) => $q->where('preferred_division_id', $filterDivisionId))
+            ->with(['user', 'currentSchool.division', 'preferredDivision'])
+            ->orderByDesc('created_at')
+            ->get()
+            ->map(function (MutualTransfer $post) use ($myPost) {
+                $post->is_match = $myPost
+                    && $myPost->preferred_division_id
+                    && $post->currentSchool
+                    && $myPost->preferred_division_id === $post->currentSchool->division_id
+                    && $post->preferred_division_id
+                    && $myPost->currentSchool
+                    && $post->preferred_division_id === $myPost->currentSchool->division_id;
+                return $post;
+            });
+
+        $divisions       = Division::orderBy('name_en')->get();
+        $teachingSubjects = TeachingSubject::groupedForDropdown();
+
+        return view('teacher.mutual-transfers', compact(
+            'user', 'myPost', 'otherPosts', 'divisions', 'teachingSubjects', 'filterDivisionId'
+        ));
     }
 
     public function postMutualTransfer(Request $request)
