@@ -37,7 +37,7 @@ class TeachingSubjectResource extends Resource
 
     public static function getNavigationGroup(): string
     {
-        return 'User Management';
+        return 'Reference Data';
     }
 
     public static function getNavigationLabel(): string
@@ -47,7 +47,7 @@ class TeachingSubjectResource extends Resource
 
     public static function getNavigationSort(): ?int
     {
-        return 3;
+        return 2;
     }
 
     public static function canAccess(): bool

@@ -11,8 +11,11 @@
     <title>@yield('title', __('principal_portal')) — {{ config('app.name') }}</title>
     <link rel="icon" type="image/png" href="{{ $faviconUrl ?? asset('images/favicon.png') }}">
     <link rel="apple-touch-icon" href="{{ $faviconUrl ?? asset('images/favicon.png') }}">
+    <link rel="manifest" href="{{ asset('manifest-principal.json') }}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Sinhala:wght@400;500;600;700&family=Noto+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="{{ asset('js/pwa-install.js') }}"></script>
+    <script src="{{ asset('js/offline-queue.js') }}"></script>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <style>
         :root {
@@ -208,6 +211,71 @@
             </a>
         </div>
 
+        {{-- Offline sync status --}}
+        <div
+            x-data="{
+                open: false,
+                online: navigator.onLine,
+                items: [],
+                init() {
+                    window.addEventListener('online', () => this.online = true);
+                    window.addEventListener('offline', () => this.online = false);
+                    document.addEventListener('principal-offline-queue-updated', (e) => { this.items = e.detail.items; });
+                    if (window.PrincipalOfflineQueue) {
+                        window.PrincipalOfflineQueue.getAll().then((items) => this.items = items);
+                    }
+                },
+                get pendingCount() { return this.items.filter(i => i.status === 'pending').length; },
+                get failedCount() { return this.items.filter(i => i.status === 'failed').length; },
+            }"
+            class="relative"
+            x-show="!online || items.length > 0"
+            x-cloak
+        >
+            <button @click="open = !open" type="button"
+                    class="flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-semibold"
+                    :style="failedCount > 0 ? 'background: rgba(220,38,38,0.45);' : 'background: rgba(255,255,255,0.15);'">
+                <span class="w-1.5 h-1.5 rounded-full" :class="online ? 'bg-yellow-300' : 'bg-gray-300'"></span>
+                <span x-show="!online" x-cloak>{{ __('offline') }}</span>
+                <span x-show="items.length > 0" x-cloak x-text="items.length + ' {{ __('queued') }}'"></span>
+            </button>
+
+            <div x-show="open" x-cloak @click.away="open = false"
+                 class="absolute right-0 mt-1 rounded shadow-lg overflow-hidden text-gray-800 bg-white"
+                 style="min-width: 16rem; z-index: 200; border: 1px solid #e5e7eb;">
+                <div class="px-3 py-2 text-xs font-semibold border-b border-gray-100" style="background:#f9fafb;">
+                    {{ __('offline_queue_title') }}
+                </div>
+                <template x-if="items.length === 0">
+                    <p class="px-3 py-3 text-xs text-gray-500">{{ __('offline_queue_empty') }}</p>
+                </template>
+                <template x-for="item in items" :key="item.id">
+                    <div class="px-3 py-2 border-b border-gray-100 flex items-center justify-between gap-2">
+                        <div>
+                            <p class="text-xs font-medium" x-text="item.label"></p>
+                            <p class="text-[11px]" :class="item.status === 'failed' ? 'text-red-600' : 'text-gray-500'"
+                               x-text="item.status === 'failed' ? (item.error || '{{ __('offline_queue_failed') }}') : '{{ __('offline_queue_pending') }}'"></p>
+                        </div>
+                        <button x-show="item.status === 'failed'" x-cloak
+                                @click="window.PrincipalOfflineQueue.retry(item.id)"
+                                class="text-xs font-semibold text-blue-600 hover:underline flex-shrink-0">
+                            {{ __('retry') }}
+                        </button>
+                    </div>
+                </template>
+            </div>
+        </div>
+
+        {{-- Install app button — shown by pwa-install.js only when a native install prompt is available --}}
+        <button id="pwa-install-btn" type="button"
+                class="items-center gap-1.5 px-2.5 py-1 rounded text-xs font-semibold text-white"
+                style="display: none; border: 1px solid rgba(255,255,255,0.4);">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-3.5 h-3.5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 16.5V9.75m0 6.75l-3.75-3.75M12 16.5l3.75-3.75M6.75 19.5h10.5a2.25 2.25 0 002.25-2.25V6.75a2.25 2.25 0 00-2.25-2.25H6.75A2.25 2.25 0 004.5 6.75v10.5a2.25 2.25 0 002.25 2.25z" />
+            </svg>
+            {{ __('install_app') }}
+        </button>
+
         {{-- Notification bell — desktop --}}
         @include('principal.partials.notification-bell')
 
@@ -221,6 +289,12 @@
             </button>
         </form>
     </div>
+</div>
+
+{{-- iOS "Add to Home Screen" instructions — no automatic install prompt exists on iOS Safari --}}
+<div id="pwa-ios-banner" class="items-center justify-between gap-3 px-4 py-2 text-xs" style="display: none; background: #fffbeb; border-bottom: 1px solid #fde68a; color: #92400e;">
+    <span>{{ __('ios_install_hint') }}</span>
+    <button id="pwa-ios-banner-dismiss" type="button" class="font-semibold flex-shrink-0">✕</button>
 </div>
 
 {{-- Desktop nav --}}
@@ -280,6 +354,13 @@
 
 @stack('scripts')
 
+{{-- Offline-save toast --}}
+<div id="offline-toast"
+     class="fixed bottom-4 left-1/2 px-4 py-2.5 rounded-xl text-xs font-medium text-white shadow-lg"
+     style="display: none; transform: translateX(-50%); background: #1a3a6b; z-index: 300;">
+    {{ __('offline_saved_toast') }}
+</div>
+
 <script>
 function openNav() {
     document.getElementById('navDrawer').classList.add('open');
@@ -291,6 +372,14 @@ function closeNav() {
     document.getElementById('navOverlay').classList.remove('open');
     document.body.style.overflow = '';
 }
+
+document.addEventListener('principal-offline-saved', function () {
+    var toast = document.getElementById('offline-toast');
+    if (!toast) return;
+    toast.style.display = 'block';
+    clearTimeout(window._offlineToastTimer);
+    window._offlineToastTimer = setTimeout(function () { toast.style.display = 'none'; }, 4000);
+});
 </script>
 
 </body>

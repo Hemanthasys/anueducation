@@ -4,8 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
+use App\Traits\Auditable;
+
 class TeacherAttachment extends Model
 {
+    use Auditable;
     protected $fillable = [
         'teacher_id',
         'salary_school_id',

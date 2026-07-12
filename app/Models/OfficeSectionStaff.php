@@ -4,8 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
+use App\Traits\Auditable;
+
 class OfficeSectionStaff extends Model
 {
+    use Auditable;
     protected $fillable = [
         'office_section_id',
         'name', 'designation',

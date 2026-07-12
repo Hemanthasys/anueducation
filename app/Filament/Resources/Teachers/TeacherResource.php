@@ -50,7 +50,7 @@ class TeacherResource extends Resource
 
     public static function getNavigationGroup(): string
     {
-        return 'School Management';
+        return 'Administration';
     }
 
     public static function getNavigationLabel(): string
@@ -60,7 +60,7 @@ class TeacherResource extends Resource
 
     public static function getNavigationSort(): ?int
     {
-        return 2;
+        return 1;
     }
 
     public static function form(Schema $schema): Schema

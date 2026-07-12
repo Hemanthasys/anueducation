@@ -6,8 +6,11 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Schema;
 
+use App\Traits\Auditable;
+
 class SiteSetting extends Model
 {
+    use Auditable;
     protected $fillable = ['key', 'value'];
 
     public static function get(string $key, mixed $default = null): mixed

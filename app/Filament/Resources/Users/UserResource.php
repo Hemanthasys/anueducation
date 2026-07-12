@@ -85,6 +85,7 @@ class UserResource extends Resource
 
                     TextInput::make('email')
                         ->email()
+                        ->required()
                         ->unique(ignoreRecord: true)
                         ->maxLength(255),
 

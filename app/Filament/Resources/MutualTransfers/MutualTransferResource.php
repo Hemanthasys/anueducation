@@ -29,7 +29,7 @@ class MutualTransferResource extends Resource
 
     public static function getNavigationGroup(): string
     {
-        return 'School Management';
+        return 'Administration';
     }
 
     public static function getNavigationLabel(): string
@@ -39,12 +39,12 @@ class MutualTransferResource extends Resource
 
     public static function getNavigationSort(): ?int
     {
-        return 4;
+        return 6;
     }
 
     public static function canAccess(): bool
     {
-        return auth()->user()->can('transfers.view') || auth()->user()->hasAnyRole(['super_admin', 'zonal_director']);
+        return auth()->user()?->can('mutual_transfers.view') || auth()->user()?->hasRole('super_admin') ?? false;
     }
 
     public static function canCreate(): bool

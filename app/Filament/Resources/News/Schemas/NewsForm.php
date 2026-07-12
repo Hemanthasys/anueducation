@@ -44,6 +44,7 @@ class NewsForm
                             ->schema([
                                 TextInput::make('title_si')
                                     ->label('Title (Sinhala)')
+                                    ->required()
                                     ->maxLength(255)
                                     ->columnSpanFull(),
                                 RichEditor::make('body_si')
@@ -88,11 +89,7 @@ class NewsForm
                                     ])
                                     ->default('draft')
                                     ->required()
-                                    ->disabled(fn () => !auth()->user()->hasAnyRole([
-                                        'super_admin',
-                                        'zonal_director',
-                                        'zonal_officer',
-                                    ])),
+                                    ->disabled(fn () => !auth()->user()?->can('content.approve')),
                             ]),
 
                         // ADD THIS:

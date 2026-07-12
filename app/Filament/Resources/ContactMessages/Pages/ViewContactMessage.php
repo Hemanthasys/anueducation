@@ -45,7 +45,7 @@ class ViewContactMessage extends ViewRecord
                 ->label('Assign to User')
                 ->icon(Heroicon::OutlinedUserPlus)
                 ->color('warning')
-                ->visible(fn () => auth()->user()->hasRole(['super_admin', 'zonal_director']))
+                ->visible(fn () => auth()->user()->can('contact_messages.manage'))
                 ->form([
                     Select::make('user_id')
                         ->label('Assign To')

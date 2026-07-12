@@ -5,8 +5,11 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Cache;
 
+use App\Traits\Auditable;
+
 class LookupValue extends Model
 {
+    use Auditable;
     protected $fillable = [
         'category', 'value', 'label_en', 'label_si', 'order', 'is_active',
     ];

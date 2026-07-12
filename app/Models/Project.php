@@ -9,8 +9,11 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use App\Models\ExpenditureVote;
 
+use App\Traits\Auditable;
+
 class Project extends Model
 {
+    use Auditable;
     protected $fillable = [
         'title',
         'reference_no',

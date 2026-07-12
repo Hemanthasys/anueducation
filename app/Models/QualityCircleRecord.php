@@ -6,8 +6,11 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
+use App\Traits\Auditable;
+
 class QualityCircleRecord extends Model
 {
+    use Auditable;
     protected $fillable = [
         'school_id', 'academic_year', 'inspection_date',
         'inspected_by', 'inspector_name', 'inspector_designation',

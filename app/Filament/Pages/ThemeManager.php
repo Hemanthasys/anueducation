@@ -38,7 +38,7 @@ class ThemeManager extends Page
 
     public static function canAccess(): bool
     {
-        return auth()->user()->hasAnyRole(['super_admin', 'zonal_director']);
+        return auth()->user()?->can('settings.theme') || auth()->user()?->hasRole('super_admin') ?? false;
     }
     
     public function mount(): void

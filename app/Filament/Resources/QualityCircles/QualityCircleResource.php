@@ -35,12 +35,12 @@ class QualityCircleResource extends Resource
 
     public static function getNavigationGroup(): string
     {
-        return 'School Management';
+        return 'Planning & Development';
     }
 
     public static function getNavigationSort(): ?int
     {
-        return 10;
+        return 6;
     }
 
 

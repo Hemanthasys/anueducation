@@ -35,7 +35,7 @@ class ProfileChangeRequestResource extends Resource
 
     public static function getNavigationGroup(): string
     {
-        return 'School Management';
+        return 'Administration';
     }
 
     public static function getNavigationLabel(): string
@@ -45,7 +45,7 @@ class ProfileChangeRequestResource extends Resource
 
     public static function getNavigationSort(): ?int
     {
-        return 4;
+        return 5;
     }
 
     public static function getNavigationBadge(): ?string

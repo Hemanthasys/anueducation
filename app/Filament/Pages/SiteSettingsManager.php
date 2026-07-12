@@ -51,6 +51,8 @@ class SiteSettingsManager extends Page implements HasForms
             'address_en'          => SiteSetting::get('address_en', ''),
             'address_si'          => SiteSetting::get('address_si', ''),
             'whatsapp_no'         => SiteSetting::get('whatsapp_no', ''),
+            'lat'                 => SiteSetting::get('lat', ''),
+            'lng'                 => SiteSetting::get('lng', ''),
 
             // Social
             'facebook_url'        => SiteSetting::get('facebook_url', ''),
@@ -161,6 +163,25 @@ class SiteSettingsManager extends Page implements HasForms
                                             ->label('Address (Sinhala) / ලිපිනය')
                                             ->rows(3)
                                             ->maxLength(300),
+                                    ]),
+
+                                Section::make('Map Location')
+                                    ->description('Powers the map on the public Contact page. Find your office on Google Maps, right-click the exact spot, and copy the latitude/longitude shown at the top of the menu.')
+                                    ->columns(2)
+                                    ->schema([
+                                        TextInput::make('lat')
+                                            ->label('Latitude')
+                                            ->numeric()
+                                            ->minValue(-90)
+                                            ->maxValue(90)
+                                            ->placeholder('e.g. 8.333315891250459'),
+
+                                        TextInput::make('lng')
+                                            ->label('Longitude')
+                                            ->numeric()
+                                            ->minValue(-180)
+                                            ->maxValue(180)
+                                            ->placeholder('e.g. 80.4044953538956'),
                                     ]),
                             ]),
 
@@ -336,7 +357,7 @@ class SiteSettingsManager extends Page implements HasForms
     public function saveContact(): void
     {
         $data = $this->data;
-        $keys = ['phone', 'email', 'address_en', 'address_si', 'whatsapp_no'];
+        $keys = ['phone', 'email', 'address_en', 'address_si', 'whatsapp_no', 'lat', 'lng'];
         foreach ($keys as $key) {
             SiteSetting::set($key, $data[$key] ?? '');
             Cache::forget("site_setting_{$key}");

@@ -253,9 +253,11 @@ class OlResult extends Model
         $query     = static::query();
         $importIds = static::getImportIds($filters);
 
-        if (!empty($importIds)) {
-            $query->whereIn('import_id', $importIds);
-        }
+        // Always scope by import_id, even when $importIds is empty — Laravel's
+        // whereIn() correctly returns zero rows for an empty array. Previously
+        // this was skipped when empty, which silently ignored the year filter
+        // and returned results from every year instead of none.
+        $query->whereIn('import_id', $importIds);
 
         if (!empty($filters['medium']))     $query->where('ol_results.medium', $filters['medium']);
         if (!empty($filters['gender']))     $query->where('ol_results.gender', $filters['gender']);

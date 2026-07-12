@@ -4,8 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
+use App\Traits\Auditable;
+
 class SchoolPhysicalResource extends Model
 {
+    use Auditable;
     protected $fillable = [
         'school_id',
         // Category 1 — Infrastructure

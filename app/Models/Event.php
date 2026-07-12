@@ -6,8 +6,11 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Carbon\Carbon;
 
+use App\Traits\Auditable;
+
 class Event extends Model
 {
+    use Auditable;
     protected $fillable = [
         'title_en', 'title_si',
         'description_en', 'description_si',

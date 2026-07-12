@@ -29,7 +29,7 @@ class LookupValueResource extends Resource
 
     public static function getNavigationGroup(): string
     {
-        return 'System Settings';
+        return 'Reference Data';
     }
 
     public static function getNavigationLabel(): string
@@ -39,7 +39,7 @@ class LookupValueResource extends Resource
 
     public static function getNavigationSort(): ?int
     {
-        return 10;
+        return 1;
     }
 
     // Only super_admin

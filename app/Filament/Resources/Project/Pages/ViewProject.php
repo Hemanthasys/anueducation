@@ -27,7 +27,7 @@ class ViewProject extends ViewRecord
     {
         $actions = [];
 
-        if (auth()->user()->hasAnyRole(['super_admin', 'zonal_director', 'zonal_officer_planning'])) {
+        if (auth()->user()->can('projects.edit')) {
             $actions[] = EditAction::make();
         }
 
@@ -40,7 +40,7 @@ class ViewProject extends ViewRecord
                 ->openUrlInNewTab();
         }
 
-        if (auth()->user()->hasAnyRole(['super_admin', 'zonal_director', 'zonal_officer_planning'])) {
+        if (auth()->user()->can('projects.assign_schools')) {
             $actions[] = Action::make('manage_assignments')
                 ->label(__('Manage Assignments'))
                 ->icon('heroicon-o-building-office-2')
@@ -105,7 +105,7 @@ class ViewProject extends ViewRecord
     private function canReviewUpdate(MilestoneUpdate $update): bool
     {
         $user = auth()->user();
-        if ($user->hasRole(['super_admin', 'zonal_director'])) return true;
+        if ($user->can('projects.approve_milestones')) return true;
         return $update->assignment?->assigned_to === $user->id;
     }
 

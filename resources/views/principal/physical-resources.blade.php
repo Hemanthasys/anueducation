@@ -47,6 +47,7 @@
     </div>
 @endif
 
+<div x-data="connectivity">
 <div class="bg-white rounded-2xl shadow-sm overflow-hidden" style="border: 1px solid #e5e7eb;"
      x-data="{ activeTab: 'infrastructure', confirmed: false }">
 
@@ -88,6 +89,7 @@
                 ['science',        __('science_sports')],
                 ['security',       __('security_transport')],
                 ['programs',       __('special_units')],
+                ['finance',        __('school_budget')],
             ] as [$key, $label])
                 <button type="button" @click="activeTab = '{{ $key }}'"
                         :class="activeTab === '{{ $key }}' ? 'text-white' : 'text-gray-500 bg-gray-100 hover:bg-gray-200'"
@@ -99,7 +101,9 @@
         </div>
     </div>
 
-    <form method="POST" action="{{ route('principal.physical-resources.update') }}">
+    <form method="POST" action="{{ route('principal.school.update') }}"
+          data-offline-section="physical_resources"
+          data-offline-label="{{ __('physical_resources') }}">
         @csrf
         <input type="hidden" name="section" value="physical_resources">
 
@@ -339,14 +343,50 @@
 
                 <input type="hidden" name="section_budget" value="1">
 
+                @php
+                    $budgetStatus = $budgetApproval->status ?? 'draft';
+                    $budgetLocked = $budgetApproval && !$budgetApproval->isEditable();
+                @endphp
+
+                {{-- Status badge --}}
+                <div class="mb-4 flex items-center gap-2">
+                    <span class="text-xs font-semibold px-2.5 py-1 rounded-full"
+                          style="{{ match($budgetStatus) {
+                              'submitted' => 'background:#fef3c7;color:#92400e;',
+                              'approved'  => 'background:#d1fae5;color:#065f46;',
+                              'rejected'  => 'background:#fee2e2;color:#991b1b;',
+                              default     => 'background:#f3f4f6;color:#6b7280;',
+                          } }}">
+                        {{ __('budget_status_' . $budgetStatus) }}
+                    </span>
+                    @if($budgetStatus === 'submitted' && $budgetApproval->submitted_at)
+                        <span class="text-xs" style="color:#9ca3af;">{{ __('submitted_on') }}: {{ $budgetApproval->submitted_at->format('d M Y') }}</span>
+                    @endif
+                </div>
+
+                {{-- Rejection reason --}}
+                @if($budgetStatus === 'rejected' && $budgetApproval->rejection_reason)
+                <div class="mb-5 p-4 rounded-xl" style="background:#fee2e2;border:1px solid #fca5a5;">
+                    <p class="text-xs font-semibold mb-1" style="color:#991b1b;">{{ __('budget_rejection_reason') }}:</p>
+                    <p class="text-sm" style="color:#991b1b;">{{ $budgetApproval->rejection_reason }}</p>
+                    <p class="text-xs mt-2" style="color:#b91c1c;">{{ __('budget_rejected_please_correct') }}</p>
+                </div>
+                @endif
+
                 {{-- Academic Year --}}
                 <div class="mb-5 flex items-center gap-3">
                     <label class="text-xs font-semibold" style="color:#6b7280;">{{ __('academic_year') }}:</label>
-                    <select name="budget_academic_year" class="rounded-lg text-sm px-3 py-2" style="border:1px solid #e5e7eb;" {{ !$canSubmit ? 'disabled' : '' }}>
+                    <select name="budget_academic_year" class="rounded-lg text-sm px-3 py-2" style="border:1px solid #e5e7eb;"
+                            :disabled="{{ (!$canSubmit || $budgetLocked) ? 'true' : 'false' }} || !online">
                         @foreach([date('Y'), date('Y')+1, date('Y')-1] as $yr)
                         <option value="{{ $yr }}" {{ ($budgetYear ?? date('Y')) == $yr ? 'selected' : '' }}>{{ $yr }}</option>
                         @endforeach
                     </select>
+                </div>
+
+                {{-- Budget is online-only — requires a live connection to validate against the database --}}
+                <div class="mb-5 px-3 py-2 rounded-lg text-xs" style="background:#fffbeb;border:1px solid #fde68a;color:#92400e;" x-show="!online" x-cloak>
+                    {{ __('requires_internet_connection') }}
                 </div>
 
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -371,7 +411,7 @@
                                                x-on:input="updateIncome({{ $source->id }}, $event.target.value)"
                                                class="w-32 text-right rounded-lg text-xs px-2 py-1.5 font-semibold"
                                                style="border:1px solid #e5e7eb;color:var(--color-primary);"
-                                               {{ !$canSubmit ? 'disabled' : '' }}>
+                                               :disabled="{{ (!$canSubmit || $budgetLocked) ? 'true' : 'false' }} || !online">
                                     </div>
                                 </div>
                                 @endforeach
@@ -404,7 +444,7 @@
                                                x-on:input="updateExpenditure({{ $vote->id }}, $event.target.value)"
                                                class="w-32 text-right rounded-lg text-xs px-2 py-1.5 font-semibold"
                                                style="border:1px solid #e5e7eb;color:var(--color-primary);"
-                                               {{ !$canSubmit ? 'disabled' : '' }}>
+                                               :disabled="{{ (!$canSubmit || $budgetLocked) ? 'true' : 'false' }} || !online">
                                     </div>
                                 </div>
                                 @endforeach
@@ -419,12 +459,37 @@
 
                 </div>
 
-                {{-- Balance check --}}
-                <div class="mt-4 p-3 rounded-xl text-sm font-semibold flex items-center justify-between"
-                     :style="balanced ? 'background:#d1fae5;border:1px solid #6ee7b7;color:#065f46;' : 'background:#fee2e2;border:1px solid #fca5a5;color:#991b1b;'">
-                    <span x-text="balanced ? '{{ __('budget_balanced') }}' : '{{ __('budget_unbalanced') }}'"></span>
-                    <span x-show="!balanced">{{ __('difference') }}: Rs. <span x-text="Math.abs(difference)"></span></span>
+                {{-- Balance check — prominent, hard to miss --}}
+                <div class="mt-4 p-4 rounded-xl flex items-center gap-3"
+                     :style="balanced ? 'background:#d1fae5;border:2px solid #10b981;color:#065f46;' : 'background:#fee2e2;border:2px solid #ef4444;color:#991b1b;'">
+                    <svg x-show="balanced" xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <svg x-show="!balanced" xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+                    </svg>
+                    <div class="flex-1">
+                        <p class="text-base font-bold" x-text="balanced ? '{{ __('budget_balanced') }}' : '{{ __('budget_unbalanced') }}'"></p>
+                        <p x-show="!balanced" class="text-xs mt-0.5">{{ __('difference') }}: Rs. <span x-text="Math.abs(difference)"></span></p>
+                    </div>
                 </div>
+
+                {{-- Submit for Approval --}}
+                @if($budgetStatus === 'draft' || $budgetStatus === 'rejected')
+                <div class="mt-4 flex justify-end">
+                    <button type="submit" form="budget-submit-form"
+                            :disabled="!balanced || !online"
+                            :class="(balanced && online) ? 'opacity-100 cursor-pointer' : 'opacity-40 cursor-not-allowed'"
+                            class="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-medium text-white transition-all"
+                            style="background: var(--color-primary);"
+                            onclick="return confirm('{{ __('confirm_submit_budget') }}');">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5" />
+                        </svg>
+                        {{ __('submit_budget_for_approval') }}
+                    </button>
+                </div>
+                @endif
             </div>
 
             @if($canSubmit)
@@ -453,6 +518,16 @@
 
         </div>
     </form>
+
+    {{-- Separate, independent form for the "Submit Budget for Approval" action —
+         kept outside the main form since HTML doesn't allow nested forms, and this
+         is a distinct action from the general "Save Physical Resources" save. The
+         button that triggers it lives inside the finance tab above, wired via the
+         HTML5 form="budget-submit-form" attribute. --}}
+    <form id="budget-submit-form" method="POST" action="{{ route('principal.budget.submit') }}" style="display:none;">
+        @csrf
+    </form>
+</div>
 </div>
 
 @endif

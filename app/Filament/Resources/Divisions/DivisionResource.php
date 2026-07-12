@@ -39,7 +39,7 @@ class DivisionResource extends Resource
 
         public static function getNavigationGroup(): string
     {
-        return 'Schools & Divisions';
+        return 'Divisions & Schools';
     }
 
     public static function getNavigationSort(): ?int

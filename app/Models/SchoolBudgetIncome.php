@@ -4,8 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
+use App\Traits\Auditable;
+
 class SchoolBudgetIncome extends Model
 {
+    use Auditable;
     protected $table = 'school_budget_income';
 
     protected $fillable = [

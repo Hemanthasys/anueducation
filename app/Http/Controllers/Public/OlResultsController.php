@@ -76,7 +76,11 @@ class OlResultsController extends Controller
             $subjectStats = array_values(array_filter($subjectStats, fn($r) => $r['code'] === $subject));
         }
 
-        $noData = $summary['total'] === 0;
+        // Distinguish "nothing imported for this year at all" from "an import
+        // exists but the current filters (e.g. medium) match zero rows" —
+        // the former hides the filter form entirely, the latter must not.
+        $yearTotal = OlResult::getSummary(['year' => $year])['total'];
+        $noData    = $yearTotal === 0;
 
         // ── Dropdowns ─────────────────────────────────────────────
         $divisions = Division::orderBy('name_en')->get();

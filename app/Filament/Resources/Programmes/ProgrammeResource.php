@@ -34,7 +34,7 @@ class ProgrammeResource extends Resource
 
     public static function getNavigationSort(): ?int
     {
-        return 4;
+        return 3;
     }
 
     

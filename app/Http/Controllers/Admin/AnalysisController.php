@@ -18,14 +18,37 @@ use Illuminate\Support\Facades\DB;
 class AnalysisController extends Controller
 {
     // ── Access check ──────────────────────────────────────────────────
-    private function checkAccess(): void
+    // Each analysis tab has its own permission (matching the resource it
+    // reports on) instead of one shared role list, so granting e.g.
+    // teachers.view via the Permission Manager gives access to the HR tab
+    // specifically, not every tab.
+    private function checkAccess(string ...$anyOfPermissions): void
     {
-        abort_unless(auth()->user()?->hasAnyRole([
-            'super_admin', 'zonal_director', 'zonal_officer_admin',
-            'zonal_officer_development', 'zonal_officer_schools',
-            'zonal_officer_planning', 'divisional_director',
-        ]), 403);
+        $user = auth()->user();
+
+        if ($user?->hasRole('super_admin')) {
+            return;
+        }
+
+        foreach ($anyOfPermissions as $permission) {
+            if ($user?->can($permission)) {
+                return;
+            }
+        }
+
+        abort(403);
     }
+
+    // All permissions used across any analysis tab — used to gate the
+    // landing-page redirect so it isn't a dead end for anyone who can
+    // reach at least one tab.
+    private const ANY_ANALYSIS_PERMISSION = [
+        'teachers.view', 'teachers.manage', 'staff.view', 'staff.manage',
+        'statistics.view', 'schools.view', 'schools.manage',
+        'physical_resources.view', 'physical_resources.manage',
+        'quality_circles.view', 'quality_circles.manage',
+        'projects.view', 'results.view', 'budget.view', 'budget.approve',
+    ];
 
     // ── Site settings helper ──────────────────────────────────────────
     private function siteSettings(): array
@@ -56,14 +79,14 @@ class AnalysisController extends Controller
     // ── Landing page ──────────────────────────────────────────────────
     public function index()
     {
-        $this->checkAccess();
+        $this->checkAccess(...self::ANY_ANALYSIS_PERMISSION);
         return redirect()->route('filament.admin.pages.analysis-dashboard');
     }
 
     // ── HR Analysis ───────────────────────────────────────────────────
     public function hr(Request $request)
     {
-        $this->checkAccess();
+        $this->checkAccess('teachers.view', 'teachers.manage', 'staff.view', 'staff.manage');
 
         // Full-page Excel export — all sections as multiple sheets
         if ($request->export === 'excel') {
@@ -543,7 +566,7 @@ class AnalysisController extends Controller
     // ── HR Export (per-section Excel) ─────────────────────────────────
     public function hrExport(Request $request)
     {
-        $this->checkAccess();
+        $this->checkAccess('teachers.view', 'teachers.manage', 'staff.view', 'staff.manage');
         $section = $request->section ?? 'all';
         $site    = $this->siteSettings();
         $filters = $request->only(['division_id', 'school_id']);
@@ -558,7 +581,7 @@ class AnalysisController extends Controller
     // ── Stub methods ──────────────────────────────────────────────────
     public function students(Request $request)
     {
-        $this->checkAccess();
+        $this->checkAccess('statistics.view');
 
         // Full-page Excel export — exports by-grade summary
         if ($request->export === 'excel') {
@@ -708,7 +731,7 @@ class AnalysisController extends Controller
     }
     public function schools(Request $request)
     {
-        $this->checkAccess();
+        $this->checkAccess('schools.view', 'schools.manage');
 
         $scopedDivisionId = $this->getDivisionScope();
         $locale           = app()->getLocale();
@@ -839,7 +862,7 @@ class AnalysisController extends Controller
     }
     public function physical(Request $request)
     {
-        $this->checkAccess();
+        $this->checkAccess('physical_resources.view', 'physical_resources.manage');
 
         // Excel export — full workbook
         if ($request->export === 'excel') {
@@ -1090,7 +1113,7 @@ class AnalysisController extends Controller
     }
     public function quality(Request $request)
     {
-        $this->checkAccess();
+        $this->checkAccess('quality_circles.view', 'quality_circles.manage');
 
         $scopedDivisionId = $this->getDivisionScope();
         $locale           = app()->getLocale();
@@ -1229,7 +1252,7 @@ class AnalysisController extends Controller
     }
     public function projects(Request $request)
     {
-        $this->checkAccess();
+        $this->checkAccess('projects.view');
 
         // Full-page Excel export
         if ($request->export === 'excel') {
@@ -1392,7 +1415,7 @@ class AnalysisController extends Controller
     }
     public function compliance(Request $request)
     {
-        $this->checkAccess();
+        $this->checkAccess('statistics.view');
 
         $scopedDivisionId = $this->getDivisionScope();
         $locale           = app()->getLocale();
@@ -1514,5 +1537,169 @@ class AnalysisController extends Controller
             'schoolCompliance', 'nonCompliant', 'noRecord',
         ));
     }
-    public function results()   { $this->checkAccess(); return view('admin.analysis.results'); }
+    public function results()   { $this->checkAccess('results.view'); return view('admin.analysis.results'); }
+
+    // ── Budget Analysis ──────────────────────────────────────────────
+    public function budget(Request $request)
+    {
+        $this->checkAccess('budget.view', 'budget.approve');
+
+        $academicYear = $request->academic_year ?: date('Y');
+
+        // Excel export — income + expenditure workbook
+        if ($request->export === 'excel') {
+            $site    = $this->siteSettings();
+            $filters = $request->only(['division_id', 'school_id']);
+            $export  = new \App\Exports\BudgetExport($academicYear, $filters, $site);
+            $filename = 'budget-analysis-' . $academicYear . '-' . now()->format('Ymd-Hi') . '.xlsx';
+            return \Maatwebsite\Excel\Facades\Excel::download($export, $filename);
+        }
+
+        $scopedDivisionId = $this->getDivisionScope();
+        $locale           = app()->getLocale();
+        $site             = $this->siteSettings();
+
+        // Filters
+        $divisionId = $scopedDivisionId ?? ($request->division_id ? (int)$request->division_id : null);
+        $schoolId   = $request->school_id ? (int)$request->school_id : null;
+
+        // Dropdowns
+        $divisions = $scopedDivisionId
+            ? Division::where('id', $scopedDivisionId)->get()
+            : Division::orderBy('name_en')->get();
+
+        $schools = School::where('is_active', true)
+            ->when($divisionId, fn($q) => $q->where('division_id', $divisionId))
+            ->orderBy('name_en')->get(['id', 'name_en', 'name_si', 'division_id']);
+
+        $years = collect()
+            ->merge(\App\Models\SchoolBudgetIncome::distinct()->pluck('academic_year'))
+            ->merge(\App\Models\SchoolBudgetExpenditure::distinct()->pluck('academic_year'))
+            ->unique()->sortDesc()->values();
+        if (!$years->contains($academicYear)) {
+            $years->prepend($academicYear);
+        }
+
+        // Scoped school id list (division + school filters applied)
+        $scopedSchoolIds = School::where('is_active', true)
+            ->when($divisionId, fn($q) => $q->where('division_id', $divisionId))
+            ->when($schoolId,   fn($q) => $q->where('id', $schoolId))
+            ->pluck('id');
+
+        $incomeBase = function () use ($scopedSchoolIds, $academicYear) {
+            return \App\Models\SchoolBudgetIncome::where('academic_year', $academicYear)
+                ->whereIn('school_id', $scopedSchoolIds);
+        };
+        $expenditureBase = function () use ($scopedSchoolIds, $academicYear) {
+            return \App\Models\SchoolBudgetExpenditure::where('academic_year', $academicYear)
+                ->whereIn('school_id', $scopedSchoolIds);
+        };
+
+        $totalIncome      = (float) $incomeBase()->sum('expected_amount');
+        $totalExpenditure = (float) $expenditureBase()->sum('expected_amount');
+        $difference       = $totalIncome - $totalExpenditure;
+
+        // ── Income by Funding Category → Source ─────────────────────
+        $incomeBySource = $incomeBase()
+            ->select('funding_source_id', DB::raw('SUM(expected_amount) as total'))
+            ->groupBy('funding_source_id')
+            ->pluck('total', 'funding_source_id');
+
+        $incomeByCategory = \App\Models\FundingCategory::with('sources')
+            ->orderBy('label_en')->get()
+            ->map(function ($cat) use ($incomeBySource) {
+                $sources = $cat->sources->map(fn ($src) => [
+                    'source' => $src,
+                    'amount' => (float) ($incomeBySource[$src->id] ?? 0),
+                ])->filter(fn ($s) => $s['amount'] > 0)->values();
+
+                return ['category' => $cat, 'sources' => $sources, 'total' => $sources->sum('amount')];
+            })
+            ->filter(fn ($c) => $c['total'] > 0)
+            ->values();
+
+        // ── Expenditure by Expenditure Category → Vote ──────────────
+        $expenditureByVote = $expenditureBase()
+            ->select('expenditure_vote_id', DB::raw('SUM(expected_amount) as total'))
+            ->groupBy('expenditure_vote_id')
+            ->pluck('total', 'expenditure_vote_id');
+
+        $expenditureByCategory = \App\Models\ExpenditureCategory::with('votes')
+            ->orderBy('label_en')->get()
+            ->map(function ($cat) use ($expenditureByVote) {
+                $votes = $cat->votes->map(fn ($vote) => [
+                    'vote'   => $vote,
+                    'amount' => (float) ($expenditureByVote[$vote->id] ?? 0),
+                ])->filter(fn ($v) => $v['amount'] > 0)->values();
+
+                return ['category' => $cat, 'votes' => $votes, 'total' => $votes->sum('amount')];
+            })
+            ->filter(fn ($c) => $c['total'] > 0)
+            ->values();
+
+        // ── School-wise breakdown (+ approval status) ────────────────
+        $approvals = \App\Models\SchoolBudgetApproval::where('academic_year', $academicYear)
+            ->whereIn('school_id', $scopedSchoolIds)
+            ->get()->keyBy('school_id');
+
+        $schoolIncome = $incomeBase()
+            ->select('school_id', DB::raw('SUM(expected_amount) as total'))
+            ->groupBy('school_id')->pluck('total', 'school_id');
+
+        $schoolExpenditure = $expenditureBase()
+            ->select('school_id', DB::raw('SUM(expected_amount) as total'))
+            ->groupBy('school_id')->pluck('total', 'school_id');
+
+        $schoolBreakdown = School::with('division')
+            ->where('is_active', true)
+            ->whereIn('id', $scopedSchoolIds)
+            ->orderBy('name_en')->get()
+            ->map(function ($school) use ($schoolIncome, $schoolExpenditure, $approvals) {
+                $income      = (float) ($schoolIncome[$school->id] ?? 0);
+                $expenditure = (float) ($schoolExpenditure[$school->id] ?? 0);
+                $approval    = $approvals->get($school->id);
+
+                return [
+                    'school'      => $school,
+                    'income'      => $income,
+                    'expenditure' => $expenditure,
+                    'balanced'    => abs($income - $expenditure) < 0.01,
+                    'status'      => $approval->status ?? ($income > 0 || $expenditure > 0 ? 'draft' : 'not_started'),
+                ];
+            });
+
+        $statusCounts = $schoolBreakdown->countBy('status');
+
+        // ── Division-wise breakdown ───────────────────────────────────
+        $divisionBreakdown = ($scopedDivisionId ? Division::where('id', $scopedDivisionId) : Division::query())
+            ->orderBy('name_en')->get()
+            ->map(function ($div) use ($schoolBreakdown, $divisionId, $schoolId) {
+                if ($divisionId && $div->id !== $divisionId) {
+                    return null;
+                }
+                $rows = $schoolBreakdown->filter(fn ($r) => $r['school']->division_id === $div->id);
+                if ($schoolId) {
+                    $rows = $rows->filter(fn ($r) => $r['school']->id === $schoolId);
+                }
+                return [
+                    'division'    => $div,
+                    'income'      => $rows->sum('income'),
+                    'expenditure' => $rows->sum('expenditure'),
+                    'submitted'   => $rows->whereIn('status', ['submitted', 'approved', 'rejected'])->count(),
+                    'approved'    => $rows->where('status', 'approved')->count(),
+                    'total'       => $rows->count(),
+                ];
+            })
+            ->filter()
+            ->values();
+
+        return view('admin.analysis.budget', compact(
+            'site', 'locale',
+            'scopedDivisionId', 'divisionId', 'schoolId', 'academicYear', 'years',
+            'divisions', 'schools',
+            'totalIncome', 'totalExpenditure', 'difference',
+            'incomeByCategory', 'expenditureByCategory',
+            'schoolBreakdown', 'statusCounts', 'divisionBreakdown',
+        ));
+    }
 }

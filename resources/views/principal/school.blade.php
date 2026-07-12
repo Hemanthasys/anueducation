@@ -94,13 +94,15 @@
 
     <form method="POST" action="{{ route('principal.school.update') }}"
           enctype="multipart/form-data"
-          x-data="{ confirmed: false }">
+          x-data="{ confirmed: false }"
+          data-offline-section="basic_info"
+          data-offline-label="{{ __('nav_school_profile') }}">
         @csrf
         <input type="hidden" name="section" value="basic_info">
 
-        <div class="p-5 space-y-4">
+        <div class="p-5 space-y-4" x-data="connectivity">
 
-            {{-- Logo upload --}}
+            {{-- Logo upload — online only, photo uploads aren't queued offline --}}
             <div>
                 <label class="block text-sm font-medium mb-2" style="color: #374151;">{{ __('school_logo') }}</label>
                 <div class="flex items-center gap-4">
@@ -115,10 +117,11 @@
                         @endif
                     </div>
                     <div class="flex-1 min-w-0">
-                        <input type="file" name="school_logo" accept="image/*"
-                               class="block w-full text-sm text-gray-500 file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-medium file:text-white cursor-pointer"
+                        <input type="file" name="school_logo" accept="image/*" :disabled="!online"
+                               class="block w-full text-sm text-gray-500 file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-medium file:text-white cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
                                style="file:background: var(--color-primary);">
-                        <p class="text-xs mt-1" style="color: #9ca3af;">{{ __('logo_hint') }}</p>
+                        <p class="text-xs mt-1" style="color: #9ca3af;" x-show="online">{{ __('logo_hint') }}</p>
+                        <p class="text-xs mt-1" style="color: #b45309;" x-show="!online" x-cloak>{{ __('requires_internet_connection') }}</p>
                     </div>
                 </div>
             </div>

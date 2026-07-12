@@ -4,8 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
+use App\Traits\Auditable;
+
 class StatDeadline extends Model
 {
+    use Auditable;
     protected $fillable = [
         'academic_year',
         'deadline_date',

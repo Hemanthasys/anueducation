@@ -80,6 +80,7 @@ class ProgrammesTable
                         'health'              => 'Health',
                         'ict'                 => 'ICT',
                         'teacher_development' => 'Teacher Development',
+                        'other'               => 'Other',
                     ]),
             ])
             ->recordActions([
@@ -92,7 +93,7 @@ class ProgrammesTable
                     ->color('warning')
                     ->visible(fn (Programme $record) =>
                         $record->status === 'draft' &&
-                        Auth::user()->hasAnyRole(['content_creator', 'super_admin'])
+                        Auth::user()->can('content.programmes')
                     )
                     ->requiresConfirmation()
                     ->action(fn (Programme $record) => $record->update([
@@ -106,7 +107,7 @@ class ProgrammesTable
                     ->color('success')
                     ->visible(fn (Programme $record) =>
                         $record->status === 'review' &&
-                        Auth::user()->hasAnyRole(['zonal_director', 'super_admin'])
+                        Auth::user()->can('content.approve')
                     )
                     ->requiresConfirmation()
                     ->action(fn (Programme $record) => $record->update([
@@ -121,7 +122,7 @@ class ProgrammesTable
                     ->color('danger')
                     ->visible(fn (Programme $record) =>
                         $record->status === 'review' &&
-                        Auth::user()->hasAnyRole(['zonal_director', 'zonal_officer', 'super_admin'])
+                        Auth::user()->can('content.approve')
                     )
                     ->requiresConfirmation()
                     ->action(fn (Programme $record) => $record->update([

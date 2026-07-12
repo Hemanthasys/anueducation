@@ -36,7 +36,7 @@ class ContactMessageResource extends Resource
         {
             $user = auth()->user();
 
-            if ($user->hasRole(['super_admin', 'zonal_director'])) {
+            if ($user->can('contact_messages.manage')) {
                 $count = ContactMessage::where('status', 'new')->count();
             } else {
                 $count = ContactMessage::where('assigned_to', $user->id)
@@ -52,12 +52,11 @@ class ContactMessageResource extends Resource
         return 'danger';
     }
 
-    // Only super_admin and zonal_director can access
     public static function canAccess(): bool
     {
         $user = auth()->user();
 
-        if ($user->hasRole(['super_admin', 'zonal_director'])) {
+        if ($user->can('contact_messages.manage')) {
             return true;
         }
 

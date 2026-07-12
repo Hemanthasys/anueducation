@@ -24,12 +24,12 @@ class SliderResource extends Resource
 
     public static function getNavigationGroup(): string
     {
-        return 'Website Content';
+        return 'Settings';
     }
 
     public static function getNavigationSort(): ?int
     {
-        return 1;
+        return 4;
     }
 
     public static function canAccess(): bool

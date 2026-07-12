@@ -24,7 +24,7 @@ class TeacherBulkUpload extends Page
 
     public static function getNavigationGroup(): string
     {
-        return 'School Management';
+        return 'Administration';
     }
 
     public static function getNavigationSort(): ?int
@@ -34,7 +34,7 @@ class TeacherBulkUpload extends Page
 
     public static function canAccess(): bool
     {
-        return auth()->user()->hasRole(['super_admin', 'zonal_director']);
+        return auth()->user()?->can('teachers.manage') || auth()->user()?->hasRole('super_admin') ?? false;
     }
 
     // ── Upload state ──────────────────────────────────────────────────────────

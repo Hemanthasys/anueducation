@@ -14,7 +14,7 @@ class ListProjects extends ListRecords
     {
         return [
             CreateAction::make()
-            ->visible(fn () => auth()->user()->hasAnyRole(['super_admin', 'zonal_director', 'zonal_officer_planning'])),
+            ->visible(fn () => auth()->user()->can('projects.create')),
 
         ];
     }

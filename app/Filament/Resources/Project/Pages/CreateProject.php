@@ -14,7 +14,7 @@ class CreateProject extends CreateRecord
         parent::mount();
         
         abort_unless(
-            auth()->user()->hasAnyRole(['super_admin', 'zonal_director', 'zonal_officer_planning']),
+            auth()->user()->can('projects.create'),
             403
         );
     }

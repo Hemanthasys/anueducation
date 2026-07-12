@@ -56,7 +56,7 @@ class ProjectResource extends Resource
 
     public static function getNavigationSort(): ?int
     {
-        return 10;
+        return 1;
     }
 
     // ─── Access Control ───────────────────────────────────────────────────────
@@ -68,17 +68,17 @@ class ProjectResource extends Resource
 
     public static function canCreate(): bool
     {
-        return auth()->user()?->hasAnyRole(['super_admin', 'zonal_director', 'zonal_officer_planning']) ?? false;
+        return auth()->user()?->can('projects.create') ?? false;
     }
 
     public static function canEdit($record): bool
     {
-    return auth()->user()?->hasAnyRole(['super_admin', 'zonal_director', 'zonal_officer_planning']) ?? false;
+        return auth()->user()?->can('projects.edit') ?? false;
     }
 
     public static function canDelete($record): bool
     {
-        return auth()->user()?->hasAnyRole(['super_admin', 'zonal_director', 'zonal_officer_planning']) ?? false;
+        return auth()->user()?->can('projects.delete') ?? false;
     }
 
     // ─── Form ─────────────────────────────────────────────────────────────────

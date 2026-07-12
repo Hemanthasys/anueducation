@@ -8,8 +8,11 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+use App\Traits\Auditable;
+
 class AlExamImport extends Model
 {
+    use Auditable;
     protected $fillable = [
     'year', 'scope', 'division_id', 'file_name',
     'total_rows', 'matched_rows', 'unmatched_rows', 'imported_by', 'remarks',

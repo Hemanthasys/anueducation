@@ -78,7 +78,7 @@ class NewsTable
             ->recordActions([
                 EditAction::make()
                 ->visible(fn (News $record) =>
-                    auth()->user()?->hasAnyRole(['super_admin', 'zonal_director']) ||
+                    auth()->user()?->can('content.approve') ||
                     (auth()->user()?->can('content.news') && $record->status === 'draft')
                 ),
 
@@ -88,7 +88,7 @@ class NewsTable
                     ->color('warning')
                     ->visible(fn (News $record) =>
                         $record->status === 'draft' &&
-                        Auth::user()->hasAnyRole(['content_creator', 'super_admin'])
+                        Auth::user()->can('content.news')
                     )
                     ->requiresConfirmation()
                     ->action(fn (News $record) => $record->update([
@@ -102,7 +102,7 @@ class NewsTable
                     ->color('success')
                     ->visible(fn (News $record) =>
                         $record->status === 'review' &&
-                        Auth::user()->hasAnyRole(['zonal_director', 'super_admin'])
+                        Auth::user()->can('content.approve')
                     )
                     ->requiresConfirmation()
                     ->action(fn (News $record) => $record->update([
@@ -117,7 +117,7 @@ class NewsTable
                     ->color('danger')
                     ->visible(fn (News $record) =>
                         $record->status === 'review' &&
-                        Auth::user()->hasAnyRole(['zonal_director', 'zonal_officer', 'super_admin'])
+                        Auth::user()->can('content.approve')
                     )
                     ->form([
                         Textarea::make('rejection_reason')
@@ -132,7 +132,7 @@ class NewsTable
             ->toolbarActions([
                 BulkActionGroup::make([
                     DeleteBulkAction::make()
-                      ->visible(fn () => auth()->user()?->hasAnyRole(['super_admin', 'zonal_director'])),
+                      ->visible(fn () => auth()->user()?->can('content.approve')),
                 ]),
             ])
             ->defaultSort('created_at', 'desc');

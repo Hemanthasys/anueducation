@@ -5,8 +5,11 @@ namespace App\Models;
 use App\Enums\TeacherStatus;
 use Illuminate\Database\Eloquent\Model;
 
+use App\Traits\Auditable;
+
 class Teacher extends Model
 {
+    use Auditable;
     protected $fillable = [
         'school_id', 'user_id', 'subject_id', 'appointed_subject_id', 'added_by',
         'name', 'nic', 'gender', 'phone', 'email', 'birthday', 'photo',

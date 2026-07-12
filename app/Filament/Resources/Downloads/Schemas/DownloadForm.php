@@ -27,6 +27,7 @@ class DownloadForm
                                     ->maxLength(255),
                                 TextInput::make('title_si')
                                     ->label('Title (Sinhala)')
+                                    ->required()
                                     ->maxLength(255),
                             ]),
                     ]),

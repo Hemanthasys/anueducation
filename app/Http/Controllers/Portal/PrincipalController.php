@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use App\Services\AuditLogService;
 use App\Models\SchoolStat;
+use App\Models\SchoolBudgetApproval;
 use App\Models\SchoolPhysicalResource;
 use App\Models\SchoolResourceProgram;
 use App\Models\Teacher;
@@ -33,6 +34,26 @@ class PrincipalController extends Controller
     private function guard()
     {
         return Auth::guard('web');
+    }
+
+    // Responds with JSON when the request explicitly expects it (used by the
+    // principal portal's offline-sync queue to replay queued submissions),
+    // otherwise falls back to the normal redirect-with-flash-message behavior
+    // that regular browser form submits already rely on.
+    private function respondSuccess(Request $request, string $message)
+    {
+        if ($request->expectsJson()) {
+            return response()->json(['success' => true, 'message' => $message]);
+        }
+        return back()->with('success', $message);
+    }
+
+    private function respondError(Request $request, string $message, int $status = 422)
+    {
+        if ($request->expectsJson()) {
+            return response()->json(['success' => false, 'message' => $message], $status);
+        }
+        return back()->with('error', $message);
     }
 
     // ── Login ──────────────────────────────────────────────────────────
@@ -59,15 +80,18 @@ class PrincipalController extends Controller
             ->first();
 
         if (!$user || !Hash::check($request->password, $user->password)) {
+            event(new \Illuminate\Auth\Events\Failed('principal_portal', $user, ['username' => $request->username]));
             return back()->with('error', __('invalid_credentials'));
         }
 
         if (!$user->hasRole('school_principal')) {
+            event(new \Illuminate\Auth\Events\Failed('principal_portal', $user, ['username' => $request->username]));
             return back()->with('error', __('not_principal'));
         }
 
         $this->guard()->login($user);
         $request->session()->regenerate();
+        event(new \Illuminate\Auth\Events\Login('principal_portal', $user, false));
 
         if ($user->must_change_password) {
             return redirect()->route('password.change');
@@ -150,14 +174,14 @@ class PrincipalController extends Controller
         $school = $user->school;
 
         if (!$school) {
-            return back()->with('error', __('no_school_assigned'));
+            return $this->respondError($request, __('no_school_assigned'));
         }
 
         $section = $request->input('section');
 
         if ($section === 'basic_info') {
             if (!app(\App\Services\StatisticsService::class)->canSubmit($school->id)) {
-                return back()->with('error', __('submissions_locked'));
+                return $this->respondError($request, __('submissions_locked'));
             }
             $request->validate([
                 'phone'       => 'nullable|string|max:15',
@@ -180,12 +204,12 @@ class PrincipalController extends Controller
                 'new_values' => $data,
                 'notes'      => 'Principal confirmed responsibility for this data.',
             ]);
-            return back()->with('success', __('school_info_updated'));
+            return $this->respondSuccess($request, __('school_info_updated'));
         }
 
         if ($section === 'student_stats') {
             if (!app(\App\Services\StatisticsService::class)->canSubmit($school->id)) {
-                return back()->with('error', __('submissions_locked'));
+                return $this->respondError($request, __('submissions_locked'));
             }
             $request->validate([
                 'academic_year'  => 'required|digits:4|integer|min:2000|max:2099',
@@ -218,12 +242,12 @@ class PrincipalController extends Controller
                 'new_values' => $data,
                 'notes'      => 'Principal confirmed responsibility for this data.',
             ]);
-            return back()->with('success', __('student_stats_saved'));
+            return $this->respondSuccess($request, __('student_stats_saved'));
         }
 
         if ($section === 'physical_resources') {
             if (!app(\App\Services\StatisticsService::class)->canSubmit($school->id)) {
-                return back()->with('error', __('submissions_locked'));
+                return $this->respondError($request, __('submissions_locked'));
             }
             $boolFields = [
                 'multi_story_buildings','library','staff_room','administrative_block',
@@ -286,6 +310,16 @@ class PrincipalController extends Controller
             if ($request->has('section_budget')) {
                 $budgetYear = $request->input('budget_academic_year', date('Y'));
 
+                // Once submitted/approved, the budget is locked — block writes even
+                // if someone bypasses the disabled UI fields and posts directly.
+                $budgetApproval = SchoolBudgetApproval::where('school_id', $school->id)
+                    ->where('academic_year', $budgetYear)
+                    ->first();
+
+                if ($budgetApproval && !$budgetApproval->isEditable()) {
+                    return $this->respondError($request, __('budget_locked_cannot_edit'));
+                }
+
                 // Income
                 if ($request->has('income')) {
                     foreach ($request->input('income', []) as $sourceId => $amount) {
@@ -307,10 +341,10 @@ class PrincipalController extends Controller
                 }
             }
 
-            return back()->with('success', __('physical_resources_saved'));
+            return $this->respondSuccess($request, __('physical_resources_saved'));
         }
 
-        return back()->with('error', __('invalid_section'));
+        return $this->respondError($request, __('invalid_section'));
     }
 
     // ── Physical Resources ─────────────────────────────────────────────
@@ -343,12 +377,67 @@ class PrincipalController extends Controller
                 ->pluck('expected_amount', 'expenditure_vote_id')->toArray()
             : [];
 
+        $budgetApproval = $school
+            ? SchoolBudgetApproval::where('school_id', $school->id)
+                ->where('academic_year', $budgetYear)
+                ->first()
+            : null;
+
         return view('principal.physical-resources', compact(
             'user', 'school', 'theme', 'res', 'canSubmit', 'activeDeadline',
             'budgetYear', 'fundingCategories', 'fundingSources',
             'expenditureCategories', 'expenditureVotes',
-            'budgetIncome', 'budgetExpenditure',
+            'budgetIncome', 'budgetExpenditure', 'budgetApproval',
         ));
+    }
+
+    // Submit the current academic year's budget for Zonal Officer Planning review.
+    // Always operates on the current year server-side (not client input) and
+    // recomputes totals from the DB — never trusts client-submitted totals.
+    public function submitBudgetForApproval(Request $request)
+    {
+        $user   = $this->guard()->user();
+        $school = $user->school;
+
+        if (!$school) {
+            return back()->with('error', __('no_school_assigned'));
+        }
+
+        $budgetYear = date('Y');
+
+        $existing = SchoolBudgetApproval::where('school_id', $school->id)
+            ->where('academic_year', $budgetYear)
+            ->first();
+
+        if ($existing && !$existing->isEditable()) {
+            return back()->with('error', __('budget_already_submitted'));
+        }
+
+        $totalIncome = \App\Models\SchoolBudgetIncome::where('school_id', $school->id)
+            ->where('academic_year', $budgetYear)
+            ->sum('expected_amount');
+
+        $totalExpenditure = \App\Models\SchoolBudgetExpenditure::where('school_id', $school->id)
+            ->where('academic_year', $budgetYear)
+            ->sum('expected_amount');
+
+        if (abs($totalIncome - $totalExpenditure) > 0.01) {
+            return back()->with('error', __('budget_must_be_balanced'));
+        }
+
+        SchoolBudgetApproval::updateOrCreate(
+            ['school_id' => $school->id, 'academic_year' => $budgetYear],
+            [
+                'status'           => 'submitted',
+                'submitted_by'     => $user->id,
+                'submitted_at'     => now(),
+                'reviewed_by'      => null,
+                'reviewed_at'      => null,
+                'rejection_reason' => null,
+            ]
+        );
+
+        return back()->with('success', __('budget_submitted_for_approval'));
     }
 
     // ── Students ───────────────────────────────────────────────────────

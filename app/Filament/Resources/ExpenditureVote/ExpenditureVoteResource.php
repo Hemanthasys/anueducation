@@ -38,7 +38,7 @@ class ExpenditureVoteResource extends Resource
 
     public static function getNavigationSort(): ?int
     {
-        return 21;
+        return 5;
     }
 
     public static function canAccess(): bool

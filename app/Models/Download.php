@@ -4,8 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
+use App\Traits\Auditable;
+
 class Download extends Model
 {
+    use Auditable;
     protected $fillable = [
         'title_si',
         'title_en',

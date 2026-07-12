@@ -18,10 +18,10 @@ class PendingReviews extends Page
 
     public static function getNavigationGroup(): string
     {
-        return 'Projects';
+        return 'Planning & Development';
     }
 
-    protected static ?int $navigationSort = 3;
+    protected static ?int $navigationSort = 2;
 
     protected string $view = 'filament.pages.pending-reviews';
 
@@ -47,7 +47,7 @@ class PendingReviews extends Page
     {
         $user = auth()->user();
 
-        if ($user->hasRole(['super_admin', 'zonal_director'])) {
+        if ($user->can('projects.approve_milestones')) {
             return true;
         }
 
@@ -71,7 +71,7 @@ class PendingReviews extends Page
             'photos',
         ])->where('status', 'pending');
 
-        if (! $user->hasRole(['super_admin', 'zonal_director'])) {
+        if (! $user->can('projects.approve_milestones')) {
             $query->whereHas('assignment', fn ($q) =>
                 $q->where('assigned_to', $user->id)
             );
@@ -158,7 +158,7 @@ class PendingReviews extends Page
     {
         $user = auth()->user();
 
-        if ($user->hasRole(['super_admin', 'zonal_director'])) {
+        if ($user->can('projects.approve_milestones')) {
             return true;
         }
 

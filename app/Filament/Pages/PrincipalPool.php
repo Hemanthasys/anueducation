@@ -29,12 +29,12 @@ class PrincipalPool extends Page implements HasTable
     protected string $view = 'filament.pages.principal-pool';
 
     public static function getNavigationLabel(): string { return 'Principal Pool'; }
-    public static function getNavigationGroup(): string { return 'School Management'; }
-    public static function getNavigationSort(): ?int    { return 6; }
+    public static function getNavigationGroup(): string { return 'Administration'; }
+    public static function getNavigationSort(): ?int    { return 7; }
 
     public static function canAccess(): bool
     {
-        return auth()->user()?->hasAnyRole(['super_admin', 'zonal_director', 'zonal_officer_admin']) ?? false;
+        return auth()->user()?->can('staff.manage') || auth()->user()?->hasRole('super_admin') ?? false;
     }
 
     public static function getNavigationBadge(): ?string

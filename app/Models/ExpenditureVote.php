@@ -6,8 +6,11 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
+use App\Traits\Auditable;
+
 class ExpenditureVote extends Model
 {
+    use Auditable;
     protected $fillable = [
         'expenditure_category_id',
         'code',

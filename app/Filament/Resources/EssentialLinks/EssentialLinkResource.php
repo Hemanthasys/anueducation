@@ -32,7 +32,7 @@ class EssentialLinkResource extends Resource
 
     public static function getNavigationLabel(): string { return 'Essential Links'; }
     public static function getNavigationGroup(): string { return 'Website Content'; }
-    public static function getNavigationSort(): ?int    { return 6; }
+    public static function getNavigationSort(): ?int    { return 7; }
     public static function getPluralLabel(): string     { return 'Essential Links'; }
 
     public static function canAccess(): bool

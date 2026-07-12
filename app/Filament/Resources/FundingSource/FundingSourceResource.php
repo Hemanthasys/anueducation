@@ -38,7 +38,7 @@ class FundingSourceResource extends Resource
 
     public static function getNavigationSort(): ?int
     {
-        return 20;
+        return 4;
     }
 
     public static function canAccess(): bool

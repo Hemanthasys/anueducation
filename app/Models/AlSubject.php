@@ -5,8 +5,11 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
 
+use App\Traits\Auditable;
+
 class AlSubject extends Model
 {
+    use Auditable;
     protected $fillable = ['code', 'name_en', 'name_si', 'is_active'];
     protected $casts    = ['is_active' => 'boolean'];
 

@@ -5,8 +5,11 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
+use App\Traits\Auditable;
+
 class Subject extends Model
 {
+    use Auditable;
     protected $fillable = ['name_en', 'name_si', 'is_active', 'order'];
 
     protected $casts = ['is_active' => 'boolean'];

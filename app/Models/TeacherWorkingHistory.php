@@ -5,8 +5,11 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+use App\Traits\Auditable;
+
 class TeacherWorkingHistory extends Model
 {
+    use Auditable;
     protected $table = 'teacher_working_history';
 
     protected $fillable = [

@@ -30,12 +30,12 @@ class OfficeSectionResource extends Resource
 
     public static function getNavigationGroup(): string
     {
-        return 'Website Content';
+        return 'Administration';
     }
 
     public static function getNavigationSort(): ?int
     {
-        return 6;
+        return 8;
     }
 
    

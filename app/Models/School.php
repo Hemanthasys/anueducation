@@ -4,8 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
+use App\Traits\Auditable;
+
 class School extends Model
 {
+    use Auditable;
     protected $fillable = [
         'census_no', 'name_si', 'name_en', 'division_id', 'type',
         'class_span_from', 'class_span_to', 'established_date',

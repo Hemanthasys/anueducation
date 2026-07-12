@@ -24,11 +24,16 @@ class EventResource extends Resource
 
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-calendar-days';
 
-    protected static string|\UnitEnum|null $navigationGroup = 'Content Management';
+    protected static string|\UnitEnum|null $navigationGroup = 'Website Content';
 
-    protected static ?int $navigationSort = 50;
+    protected static ?int $navigationSort = 5;
 
     protected static ?string $navigationLabel = 'Events Calendar';
+
+    public static function canAccess(): bool
+    {
+        return auth()->user()->can('content.events') || auth()->user()->hasRole('super_admin');
+    }
 
     public static function form(Schema $schema): Schema
     {

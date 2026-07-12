@@ -4,8 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
+use App\Traits\Auditable;
+
 class OlSubject extends Model
 {
+    use Auditable;
     protected $fillable = [
         'code', 'name_en', 'name_si', 'subject_group',
         'is_mother_language', 'is_mathematics', 'is_active',

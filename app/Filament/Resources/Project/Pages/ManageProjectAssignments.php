@@ -35,8 +35,7 @@ class ManageProjectAssignments extends Page implements HasTable
 
         $user = auth()->user();
 
-        // Allow: super_admin, zonal_director, zonal_officer_planning
-        $isManager = $user->hasAnyRole(['super_admin', 'zonal_director', 'zonal_officer_planning']);
+        $isManager = $user->can('projects.assign_schools');
 
         // Allow: assigned overseer for this project
         $isOverseer = ProjectAssignment::where('project_id', $record->id)
@@ -49,7 +48,7 @@ class ManageProjectAssignments extends Page implements HasTable
     // Helper to check if current user is a manager (not just overseer)
     private function isManager(): bool
     {
-        return auth()->user()->hasAnyRole(['super_admin', 'zonal_director', 'zonal_officer_planning']);
+        return auth()->user()->can('projects.assign_schools');
     }
 
     protected function getHeaderActions(): array

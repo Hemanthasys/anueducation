@@ -6,8 +6,11 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
+use App\Traits\Auditable;
+
 class FundingSource extends Model
 {
+    use Auditable;
     protected $fillable = [
         'funding_category_id',
         'code',

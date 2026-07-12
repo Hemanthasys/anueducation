@@ -27,12 +27,12 @@ class QualificationResource extends Resource
 
     public static function getNavigationGroup(): string
     {
-        return 'User Management';
+        return 'Reference Data';
     }
 
     public static function getNavigationSort(): ?int
     {
-        return 2;
+        return 5;
     }
 
     public static function canAccess(): bool

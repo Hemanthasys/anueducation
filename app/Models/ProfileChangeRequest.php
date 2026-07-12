@@ -4,8 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
+use App\Traits\Auditable;
+
 class ProfileChangeRequest extends Model
 {
+    use Auditable;
     protected $fillable = [
         'teacher_id',
         'requested_by',

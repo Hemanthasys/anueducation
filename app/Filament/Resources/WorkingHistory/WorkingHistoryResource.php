@@ -32,7 +32,7 @@ class WorkingHistoryResource extends Resource
 
     public static function getNavigationGroup(): string
     {
-        return 'School Management';
+        return 'Administration';
     }
 
     public static function getNavigationLabel(): string

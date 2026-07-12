@@ -65,15 +65,18 @@ class TeacherController extends Controller
             ->first();
 
         if (!$user || !Hash::check($request->password, $user->password)) {
+            event(new \Illuminate\Auth\Events\Failed('teacher_portal', $user, ['username' => $request->username]));
             return back()->with('error', __('invalid_credentials'));
         }
 
         if (!$user->hasRole('teacher')) {
+            event(new \Illuminate\Auth\Events\Failed('teacher_portal', $user, ['username' => $request->username]));
             return back()->with('error', __('not_teacher'));
         }
 
         $this->guard()->login($user);
         $request->session()->regenerate();
+        event(new \Illuminate\Auth\Events\Login('teacher_portal', $user, false));
 
         if ($user->must_change_password) {
             return redirect()->route('password.change');

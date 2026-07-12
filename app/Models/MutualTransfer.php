@@ -5,8 +5,11 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+use App\Traits\Auditable;
+
 class MutualTransfer extends Model
 {
+    use Auditable;
     protected $fillable = [
         'user_id', 'current_school_id', 'preferred_division_id',
         'preferred_subject', 'notes_en', 'notes_si', 'phone', 'is_active',

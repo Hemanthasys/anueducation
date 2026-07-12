@@ -34,7 +34,7 @@ class DownloadResource extends Resource
 
     public static function getNavigationSort(): ?int
     {
-        return 5;
+        return 4;
     }
 
 

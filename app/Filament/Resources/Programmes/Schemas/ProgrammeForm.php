@@ -43,6 +43,7 @@ class ProgrammeForm
                             ->schema([
                                 TextInput::make('title_si')
                                     ->label('Title (Sinhala)')
+                                    ->required()
                                     ->maxLength(255)
                                     ->columnSpanFull(),
                                 RichEditor::make('description_si')
@@ -103,6 +104,7 @@ class ProgrammeForm
                                         'health'              => 'Health',
                                         'ict'                 => 'ICT',
                                         'teacher_development' => 'Teacher Development',
+                                        'other'               => 'Other',
                                     ])
                                     ->searchable()
                                     ->required(),
@@ -118,11 +120,7 @@ class ProgrammeForm
                                     ])
                                     ->default('draft')
                                     ->required()
-                                    ->disabled(fn () => !auth()->user()->hasAnyRole([
-                                        'super_admin',
-                                        'zonal_director',
-                                        'zonal_officer',
-                                    ])),
+                                    ->disabled(fn () => !auth()->user()?->can('content.approve')),
                             ]),
 
                         Toggle::make('is_featured')

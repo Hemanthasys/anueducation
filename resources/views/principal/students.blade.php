@@ -76,6 +76,8 @@
     </div>
 
     <form method="POST" action="{{ route('principal.school.update') }}"
+          data-offline-section="student_stats"
+          data-offline-label="{{ __('student_statistics') }}"
           x-data="{
               confirmed: false,
               grades: {

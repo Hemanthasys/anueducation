@@ -5,8 +5,11 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
+use App\Traits\Auditable;
+
 class QualityCircleCriteria extends Model
 {
+    use Auditable;
     protected $table = 'quality_circle_criteria'; // prevent Laravel auto-pluralizing to 'quality_circle_criterias'
 
     protected $fillable = ['order', 'name_si', 'name_en', 'is_active'];

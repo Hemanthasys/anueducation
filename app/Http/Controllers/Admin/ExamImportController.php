@@ -25,7 +25,7 @@ class ExamImportController extends Controller
     // ── Authorization ─────────────────────────────────────────────
     private function checkAccess(): void
     {
-        if (!Auth::user()?->hasAnyRole(['super_admin', 'zonal_director'])) {
+        if (!Auth::user()?->can('results.import') && !Auth::user()?->hasRole('super_admin')) {
             abort(403);
         }
     }

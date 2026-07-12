@@ -13,7 +13,7 @@ class EditProject extends EditRecord
         parent::mount($record);
         
         abort_unless(
-            auth()->user()->hasAnyRole(['super_admin', 'zonal_director', 'zonal_officer_planning']),
+            auth()->user()->can('projects.edit'),
             403
         );
     }
@@ -24,7 +24,7 @@ class EditProject extends EditRecord
     {
         return [
             DeleteAction::make()
-                ->visible(fn () => auth()->user()->hasAnyRole(['super_admin', 'zonal_director', 'zonal_officer_planning']))
+                ->visible(fn () => auth()->user()->can('projects.delete'))
                 ->before(function () {
                     // Explicitly delete all photos before cascade so observer fires per file
                     foreach ($this->record->milestones as $milestone) {

@@ -33,6 +33,7 @@
                 $data   = $notification->data;
                 $status = $data['status'] ?? '';
                 $isRead = ! is_null($notification->read_at);
+                $kind   = $data['notification_kind'] ?? 'milestone';
             @endphp
 
             <div class="bg-white rounded-xl border {{ $isRead ? 'border-gray-200' : 'border-blue-200 bg-blue-50/30' }} shadow-sm overflow-hidden">
@@ -59,23 +60,40 @@
                     <div class="flex-1 min-w-0">
                         <div class="flex items-start justify-between gap-2">
                             <div>
-                                <p class="text-sm font-semibold text-gray-900">
-                                    @if($status === 'approved')
-                                        {{ __('update_approved_title') }}
-                                    @else
-                                        {{ __('update_rejected_title') }}
-                                    @endif
-                                </p>
-                                <p class="text-sm text-gray-600 mt-0.5">
-                                    <span class="font-medium">{{ $data['project_name'] ?? __('unknown_project') }}</span>
-                                    @if(! empty($data['milestone_title']))
-                                        <span class="text-gray-400 mx-1">&mdash;</span>
-                                        <span>{{ $data['milestone_title'] }}</span>
-                                    @else
-                                        <span class="text-gray-400 mx-1">&mdash;</span>
-                                        <span class="italic text-gray-400">{{ __('general_update') }}</span>
-                                    @endif
-                                </p>
+                                @if($kind === 'school_budget')
+                                    <p class="text-sm font-semibold text-gray-900">
+                                        @if($status === 'approved')
+                                            {{ __('budget_approved_title') }}
+                                        @else
+                                            {{ __('budget_rejected_title') }}
+                                        @endif
+                                    </p>
+                                    <p class="text-sm text-gray-600 mt-0.5">
+                                        <span class="font-medium">{{ __('school_budget') }}</span>
+                                        @if(! empty($data['academic_year']))
+                                            <span class="text-gray-400 mx-1">&mdash;</span>
+                                            <span>{{ $data['academic_year'] }}</span>
+                                        @endif
+                                    </p>
+                                @else
+                                    <p class="text-sm font-semibold text-gray-900">
+                                        @if($status === 'approved')
+                                            {{ __('update_approved_title') }}
+                                        @else
+                                            {{ __('update_rejected_title') }}
+                                        @endif
+                                    </p>
+                                    <p class="text-sm text-gray-600 mt-0.5">
+                                        <span class="font-medium">{{ $data['project_name'] ?? __('unknown_project') }}</span>
+                                        @if(! empty($data['milestone_title']))
+                                            <span class="text-gray-400 mx-1">&mdash;</span>
+                                            <span>{{ $data['milestone_title'] }}</span>
+                                        @else
+                                            <span class="text-gray-400 mx-1">&mdash;</span>
+                                            <span class="italic text-gray-400">{{ __('general_update') }}</span>
+                                        @endif
+                                    </p>
+                                @endif
                             </div>
                             <div class="flex-shrink-0 text-right">
                                 <p class="text-xs text-gray-400">{{ $notification->created_at->diffForHumans() }}</p>

@@ -44,6 +44,7 @@ class NoticeForm
                             ->schema([
                                 TextInput::make('title_si')
                                     ->label('Title (Sinhala)')
+                                    ->required()
                                     ->maxLength(255)
                                     ->columnSpanFull(),
                                 RichEditor::make('body_si')

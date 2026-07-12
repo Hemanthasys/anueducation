@@ -86,8 +86,11 @@ class PermissionSeeder extends Seeder
                     'content.news',           // Create / edit / approve news
                     'content.notices',        // Create / edit notices
                     'content.programmes',     // Create / edit programmes
+                    'content.gallery',        // Manage photo gallery albums
                     'content.downloads',      // Manage downloadable files
                     'content.essential_links',// Manage essential links
+                    'content.events',        // Manage events calendar
+                    'content.approve',       // Review/approve/reject/publish submitted News & Programmes
                 ],
             ],
 
@@ -144,7 +147,21 @@ class PermissionSeeder extends Seeder
             ],
 
             // ----------------------------------------------------------------
-            // TRANSFERS  (PHASE 2)
+            // MUTUAL TRANSFERS  (built — teacher-initiated post/browse/match)
+            // ----------------------------------------------------------------
+
+            'mutual_transfers' => [
+                'label'       => 'Mutual Transfers',
+                'group'       => 'Human Resources',
+                'phase'       => 1,
+                'permissions' => [
+                    'mutual_transfers.view', // View / oversee teacher mutual transfer posts
+                ],
+            ],
+
+            // ----------------------------------------------------------------
+            // TRANSFERS  (PHASE 2 — formal transfer-application workflow,
+            // distinct from the already-built Mutual Transfers above)
             // ----------------------------------------------------------------
 
             'transfers' => [
@@ -270,6 +287,22 @@ class PermissionSeeder extends Seeder
                     'projects.submit_update',     // Principal submits milestone progress update
                     'projects.comment',           // Divisional director comments on updates
                     'projects.export_pdf',        // Export project summary or milestone PDF report
+                    'projects.approve_milestones',// Approve / reject submitted milestone updates
+                    'projects.assign_schools',    // Assign / reassign schools & overseers on a project
+                ],
+            ],
+
+            // ----------------------------------------------------------------
+            // SCHOOL BUDGET
+            // ----------------------------------------------------------------
+
+            'budget' => [
+                'label'       => 'School Budget',
+                'group'       => 'Planning & Development',
+                'phase'       => 1,
+                'permissions' => [
+                    'budget.view',    // View zone-wide budget analysis (Analysis Dashboard Budget tab)
+                    'budget.approve', // Review, approve or reject submitted school budgets
                 ],
             ],
 
@@ -302,17 +335,18 @@ class PermissionSeeder extends Seeder
             ],
 
             // ----------------------------------------------------------------
-            // PHYSICAL RESOURCES  (PHASE 2)
+            // PHYSICAL RESOURCES  (built — principal portal submits, this
+            // gates the admin-side Analysis Dashboard tab + exports)
             // ----------------------------------------------------------------
 
             'physical_resources' => [
                 'label'       => 'Physical Resources',
                 'group'       => 'Planning & Development',
-                'phase'       => 2,
+                'phase'       => 1,
                 'permissions' => [
-                    'physical_resources.view',    // View physical resource records
-                    'physical_resources.manage',  // Create / edit resource records
-                    'physical_resources.reports', // Generate resource reports
+                    'physical_resources.view',    // View physical resource records & exports
+                    'physical_resources.manage',  // Reserved for future admin-side editing
+                    'physical_resources.reports', // Reserved for future dedicated reports feature
                 ],
             ],
 
@@ -329,6 +363,19 @@ class PermissionSeeder extends Seeder
                     'grievances.assign',      // Assign grievances to officers
                     'grievances.resolve',     // Mark grievances as resolved
                     'grievances.reports',     // Export grievance reports
+                ],
+            ],
+
+            // ----------------------------------------------------------------
+            // CONTACT MESSAGES
+            // ----------------------------------------------------------------
+
+            'contact_messages' => [
+                'label'       => 'Contact Messages',
+                'group'       => 'Communications',
+                'phase'       => 1,
+                'permissions' => [
+                    'contact_messages.manage', // View, assign and reply to public contact form messages
                 ],
             ],
 

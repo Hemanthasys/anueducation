@@ -7,6 +7,7 @@ use App\Http\Controllers\Public\NewsController;
 use App\Http\Controllers\Public\NoticeController;
 use App\Http\Controllers\Public\ProgrammeController;
 use App\Http\Controllers\Public\EventController;
+use App\Http\Controllers\Public\GalleryController;
 use App\Http\Controllers\Public\SchoolController;
 use App\Http\Controllers\Public\DownloadController;
 use App\Http\Controllers\Public\ContactController;
@@ -45,6 +46,9 @@ Route::group([
     Route::get('notices/{slug}', [NoticeController::class, 'show'])->name('notices.show');
 
     Route::get('programmes', [ProgrammeController::class, 'index'])->name('programmes.index');
+
+    Route::get('gallery',         [GalleryController::class, 'index'])->name('gallery.index');
+    Route::get('gallery/{slug}',  [GalleryController::class, 'show'])->name('gallery.show');
 
     Route::get('events', [EventController::class, 'index'])->name('events.index');
 
@@ -111,7 +115,7 @@ Route::prefix('principal')->name('principal.')->group(function () {
         Route::post('school',            [PrincipalController::class, 'updateSchool'])->name('school.update');
         Route::get('students',           [PrincipalController::class, 'students'])->name('students');
         Route::get('physical-resources', [PrincipalController::class, 'physicalResources'])->name('physical-resources');
-        Route::post('physical-resources',[PrincipalController::class, 'updatePhysicalResources'])->name('physical-resources.update');
+        Route::post('budget/submit',     [PrincipalController::class, 'submitBudgetForApproval'])->name('budget.submit');
         Route::get('term-tests',         [PrincipalController::class, 'termTests'])->name('term-tests');
         Route::get('news',               [PrincipalController::class, 'news'])->name('news');
         Route::get('notices',            [PrincipalController::class, 'notices'])->name('notices');
@@ -220,6 +224,7 @@ Route::prefix('admin')->middleware(['web', 'auth'])->group(function () {
         Route::get('/projects',    [AnalysisController::class, 'projects'])->name('admin.analysis.projects');
         Route::get('/compliance',  [AnalysisController::class, 'compliance'])->name('admin.analysis.compliance');
         Route::get('/results',     [AnalysisController::class, 'results'])->name('admin.analysis.results');
+        Route::get('/budget',      [AnalysisController::class, 'budget'])->name('admin.analysis.budget');
         Route::get('/hr/export', [AnalysisController::class, 'hrExport'])->name('admin.analysis.hr.export');
     });
 
